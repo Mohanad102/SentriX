@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body class="bg-gray-950 text-gray-100 flex">
+<body class="bg-gray-950 text-gray-100 flex" id="body">
 
   <!-- Sidebar -->
   <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
@@ -39,6 +39,12 @@
       <a href="/reports.html" class="sidebar-link" data-page="reports">
         <span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports
       </a>
+      <a href="/users.html" class="sidebar-link" data-page="users" id="nav-users">
+        <span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users
+      </a>
+      <a href="/rules.html" class="sidebar-link" data-page="rules">
+        <span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules
+      </a>
     </nav>
 
     <div class="p-3 border-t border-gray-800">
@@ -67,6 +73,27 @@
         <div class="flex items-center gap-2 text-xs text-emerald-400">
           <div class="live-dot"></div> LIVE
         </div>
+        <!-- Dark/Light Mode Toggle -->
+        <button onclick="toggleTheme()" id="theme-btn" title="Toggle theme"
+          class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-moon text-sm" id="theme-icon"></i>
+        </button>
+        <!-- Notification Bell -->
+        <div class="relative">
+          <button onclick="toggleNotifications()" id="notif-btn"
+            class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 transition text-gray-400 hover:text-white relative">
+            <i class="fa-solid fa-bell text-sm"></i>
+            <span id="notif-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+          </button>
+          <!-- Notifications Dropdown -->
+          <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50">
+            <div class="p-3 border-b border-gray-800 flex items-center justify-between">
+              <span class="text-sm font-medium text-white">Recent Alerts</span>
+              <a href="/alerts.html" class="text-xs text-emerald-400 hover:text-emerald-300">View all</a>
+            </div>
+            <div id="notif-list" class="max-h-64 overflow-y-auto divide-y divide-gray-800/50"></div>
+          </div>
+        </div>
         <button onclick="loadDashboard()" class="btn btn-secondary btn-sm">
           <i class="fa-solid fa-rotate-right"></i> Refresh
         </button>
@@ -74,13 +101,12 @@
     </header>
 
     <div class="p-6 page-fade" id="dashboard-content">
-      <!-- Loading state -->
       <div id="loading" class="flex items-center justify-center py-20">
         <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
       </div>
 
-      <!-- Stats Grid -->
       <div id="stats-grid" class="hidden">
+        <!-- Stats -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div class="stat-card glow-red">
             <div class="flex items-center justify-between mb-3">
@@ -92,7 +118,6 @@
             <p class="text-3xl font-bold text-white" id="stat-critical">—</p>
             <p class="text-xs text-gray-500 mt-1" id="stat-24h">— in last 24h</p>
           </div>
-
           <div class="stat-card">
             <div class="flex items-center justify-between mb-3">
               <span class="text-gray-500 text-sm">Open Alerts</span>
@@ -103,7 +128,6 @@
             <p class="text-3xl font-bold text-white" id="stat-open-alerts">—</p>
             <p class="text-xs text-gray-500 mt-1">Require attention</p>
           </div>
-
           <div class="stat-card">
             <div class="flex items-center justify-between mb-3">
               <span class="text-gray-500 text-sm">Active Incidents</span>
@@ -114,7 +138,6 @@
             <p class="text-3xl font-bold text-white" id="stat-incidents">—</p>
             <p class="text-xs text-gray-500 mt-1" id="stat-incidents-sub">— in progress</p>
           </div>
-
           <div class="stat-card">
             <div class="flex items-center justify-between mb-3">
               <span class="text-gray-500 text-sm">Malicious IOCs</span>
@@ -129,7 +152,6 @@
 
         <!-- Charts Row -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <!-- Alerts over time -->
           <div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h3 class="text-white font-medium mb-4 flex items-center gap-2">
               <i class="fa-solid fa-chart-line text-emerald-400 text-sm"></i>
@@ -139,8 +161,6 @@
               <canvas id="alertsTimeChart"></canvas>
             </div>
           </div>
-
-          <!-- Severity donut -->
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h3 class="text-white font-medium mb-4 flex items-center gap-2">
               <i class="fa-solid fa-chart-pie text-emerald-400 text-sm"></i>
@@ -153,8 +173,24 @@
           </div>
         </div>
 
-        <!-- Bottom Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Live Feed + Categories + Incident Status -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Live Alert Feed -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-white font-medium flex items-center gap-2">
+                <i class="fa-solid fa-satellite-dish text-emerald-400 text-sm"></i>
+                Live Feed
+              </h3>
+              <div class="flex items-center gap-1.5 text-xs text-emerald-400">
+                <div class="live-dot"></div> Real-time
+              </div>
+            </div>
+            <div id="live-feed" class="space-y-2 max-h-56 overflow-y-auto">
+              <p class="text-gray-500 text-sm text-center py-4">Waiting for alerts...</p>
+            </div>
+          </div>
+
           <!-- Recent Alerts -->
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
@@ -172,11 +208,10 @@
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
               <h3 class="text-white font-medium mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-tags text-emerald-400 text-sm"></i>
-                Top Alert Categories
+                Top Categories
               </h3>
               <div id="categories-list" class="space-y-2"></div>
             </div>
-
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
               <h3 class="text-white font-medium mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-circle-half-stroke text-emerald-400 text-sm"></i>
@@ -196,12 +231,66 @@
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
 
+    // ── Theme ─────────────────────────────────────────────────
+    const THEME_KEY = 'sentrix_theme';
+    function applyTheme(theme) {
+      const body = document.getElementById('body');
+      const icon = document.getElementById('theme-icon');
+      if (theme === 'light') {
+        body.classList.add('light-mode');
+        icon.className = 'fa-solid fa-sun text-sm';
+      } else {
+        body.classList.remove('light-mode');
+        icon.className = 'fa-solid fa-moon text-sm';
+      }
+    }
+    function toggleTheme() {
+      const cur = localStorage.getItem(THEME_KEY) || 'dark';
+      const next = cur === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(THEME_KEY, next);
+      applyTheme(next);
+    }
+    applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+
+    // ── Notifications ─────────────────────────────────────────
+    let _notifOpen = false;
+    function toggleNotifications() {
+      _notifOpen = !_notifOpen;
+      document.getElementById('notif-dropdown').classList.toggle('hidden', !_notifOpen);
+    }
+    document.addEventListener('click', e => {
+      if (!document.getElementById('notif-btn').contains(e.target) &&
+          !document.getElementById('notif-dropdown').contains(e.target)) {
+        _notifOpen = false;
+        document.getElementById('notif-dropdown').classList.add('hidden');
+      }
+    });
+
+    // ── Sound alert for critical ──────────────────────────────
+    let _lastAlertIds = new Set();
+    function playCriticalSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [880, 660, 880].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.12);
+          osc.start(ctx.currentTime + i * 0.15);
+          osc.stop(ctx.currentTime + i * 0.15 + 0.12);
+        });
+      } catch(e) {}
+    }
+
+    // ── Charts ────────────────────────────────────────────────
     let alertsTimeChart, severityChart, incidentStatusChart;
 
     async function loadDashboard() {
       document.getElementById('loading').classList.remove('hidden');
       document.getElementById('stats-grid').classList.add('hidden');
-
       try {
         const [stats, bySev, overTime, recentAlerts, incByStatus, topCats] = await Promise.all([
           apiGet('/api/dashboard/stats'),
@@ -212,7 +301,6 @@
           apiGet('/api/dashboard/top-categories')
         ]);
 
-        // Update stats
         document.getElementById('stat-critical').textContent = stats.alerts.critical;
         document.getElementById('stat-24h').textContent = `${stats.alerts.last_24h} in last 24h`;
         document.getElementById('stat-open-alerts').textContent = stats.alerts.open;
@@ -221,29 +309,78 @@
         document.getElementById('stat-iocs').textContent = stats.iocs.malicious;
         document.getElementById('stat-iocs-sub').textContent = `${stats.iocs.total} total tracked`;
 
-        // Alert badge in sidebar
+        // Badge
         if (stats.alerts.open > 0) {
           const badge = document.getElementById('alert-badge');
           badge.textContent = stats.alerts.open;
           badge.classList.remove('hidden');
         }
 
-        // Charts
         renderAlertsTimeChart(overTime);
         renderSeverityChart(bySev);
         renderIncidentStatusChart(incByStatus);
-
-        // Recent alerts
         renderRecentAlerts(recentAlerts);
-
-        // Top categories
         renderCategories(topCats);
+        updateNotifications(recentAlerts);
 
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('stats-grid').classList.remove('hidden');
-      } catch (err) {
-        document.getElementById('loading').innerHTML = `<p class="text-red-400">Error loading dashboard: ${err.message}</p>`;
+      } catch(err) {
+        document.getElementById('loading').innerHTML = `<p class="text-red-400">Error: ${err.message}</p>`;
       }
+    }
+
+    // ── Live Feed ─────────────────────────────────────────────
+    async function updateLiveFeed() {
+      try {
+        const data = await apiGet('/api/dashboard/recent-alerts');
+        const feed = document.getElementById('live-feed');
+        const newAlerts = data.filter(a => !_lastAlertIds.has(a.id));
+
+        // Play sound for new critical alerts
+        if (newAlerts.some(a => a.severity === 'critical') && _lastAlertIds.size > 0) {
+          playCriticalSound();
+        }
+
+        if (data.length === 0) {
+          feed.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">No alerts yet</p>';
+          return;
+        }
+
+        _lastAlertIds = new Set(data.map(a => a.id));
+
+        feed.innerHTML = data.slice(0, 8).map(a => {
+          const isNew = newAlerts.find(n => n.id === a.id);
+          const sevColor = {critical:'text-red-400 bg-red-500/10',high:'text-orange-400 bg-orange-500/10',medium:'text-yellow-400 bg-yellow-500/10',low:'text-green-400 bg-green-500/10'}[a.severity] || 'text-gray-400 bg-gray-500/10';
+          return `
+          <div class="flex items-center gap-2 p-2 rounded-lg ${isNew ? 'bg-emerald-500/5 border border-emerald-500/20' : 'hover:bg-gray-800/50'} transition">
+            <span class="text-xs px-1.5 py-0.5 rounded font-medium ${sevColor}">${a.severity?.toUpperCase()}</span>
+            <span class="text-xs text-gray-300 flex-1 truncate">${a.title}</span>
+            <span class="text-xs text-gray-600 flex-shrink-0">${timeAgo(a.created_at)}</span>
+          </div>`;
+        }).join('');
+      } catch(e) {}
+    }
+
+    function updateNotifications(alerts) {
+      const count = document.getElementById('notif-count');
+      const list  = document.getElementById('notif-list');
+      if (!alerts.length) {
+        count.classList.add('hidden');
+        list.innerHTML = '<p class="text-gray-500 text-sm text-center p-4">No alerts</p>';
+        return;
+      }
+      count.textContent = alerts.length;
+      count.classList.remove('hidden');
+      list.innerHTML = alerts.slice(0, 8).map(a => `
+        <div class="p-3 hover:bg-gray-800/50 transition cursor-pointer" onclick="window.location='/alerts.html'">
+          <div class="flex items-center gap-2 mb-1">
+            ${severityBadge(a.severity)}
+            <span class="text-xs text-gray-400">${timeAgo(a.created_at)}</span>
+          </div>
+          <p class="text-xs text-gray-300 truncate">${a.title}</p>
+          ${a.source_ip ? `<p class="text-xs text-gray-600 mt-0.5">${a.source_ip}</p>` : ''}
+        </div>`).join('');
     }
 
     function renderAlertsTimeChart(data) {
@@ -252,19 +389,14 @@
       alertsTimeChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: data.map(d => {
-            const dt = new Date(d.date);
-            return dt.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
-          }),
+          labels: data.map(d => new Date(d.date).toLocaleDateString('en', {weekday:'short', month:'short', day:'numeric'})),
           datasets: [{
             label: 'Alerts',
             data: data.map(d => d.count),
             borderColor: '#10b981',
             backgroundColor: 'rgba(16,185,129,0.08)',
-            tension: 0.4,
-            fill: true,
-            pointBackgroundColor: '#10b981',
-            pointRadius: 4,
+            tension: 0.4, fill: true,
+            pointBackgroundColor: '#10b981', pointRadius: 4,
           }]
         },
         options: {
@@ -280,26 +412,15 @@
 
     function renderSeverityChart(data) {
       const ctx = document.getElementById('severityChart').getContext('2d');
-      const colors = { critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#22c55e' };
-      const labels = Object.keys(data);
-      const values = Object.values(data);
+      const colors = { critical:'#ef4444', high:'#f97316', medium:'#eab308', low:'#22c55e' };
+      const labels = Object.keys(data), values = Object.values(data);
       if (severityChart) severityChart.destroy();
       severityChart = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-          labels,
-          datasets: [{ data: values, backgroundColor: labels.map(l => colors[l] || '#6b7280'), borderWidth: 0, hoverOffset: 4 }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          cutout: '65%',
-          plugins: { legend: { display: false } }
-        }
+        data: { labels, datasets: [{ data: values, backgroundColor: labels.map(l => colors[l] || '#6b7280'), borderWidth: 0, hoverOffset: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
       });
-
-      // Custom legend
-      const legend = document.getElementById('severity-legend');
-      legend.innerHTML = labels.map((l, i) => `
+      document.getElementById('severity-legend').innerHTML = labels.map((l, i) => `
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-2.5 h-2.5 rounded-full" style="background:${colors[l] || '#6b7280'}"></div>
@@ -311,15 +432,14 @@
 
     function renderIncidentStatusChart(data) {
       const ctx = document.getElementById('incidentStatusChart').getContext('2d');
-      const colors = { open: '#3b82f6', in_progress: '#eab308', resolved: '#22c55e', closed: '#6b7280' };
-      const labels = Object.keys(data);
-      const values = Object.values(data);
+      const colors = { open:'#3b82f6', in_progress:'#eab308', resolved:'#22c55e', closed:'#6b7280' };
+      const labels = Object.keys(data), values = Object.values(data);
       if (incidentStatusChart) incidentStatusChart.destroy();
       incidentStatusChart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: labels.map(l => l.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())),
-          datasets: [{ data: values, backgroundColor: labels.map(l => (colors[l] || '#6b7280') + '99'), borderRadius: 6 }]
+          labels: labels.map(l => l.replace('_',' ').replace(/\b\w/g, c => c.toUpperCase())),
+          datasets: [{ data: values, backgroundColor: labels.map(l => (colors[l]||'#6b7280')+'99'), borderRadius: 6 }]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
@@ -341,13 +461,10 @@
       container.innerHTML = alerts.slice(0, 6).map(a => `
         <div class="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-800/50 transition cursor-pointer" onclick="window.location='/alerts.html'">
           <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-            a.severity === 'critical' ? 'bg-red-400' :
-            a.severity === 'high' ? 'bg-orange-400' :
-            a.severity === 'medium' ? 'bg-yellow-400' : 'bg-green-400'
-          }"></div>
+            a.severity==='critical'?'bg-red-400':a.severity==='high'?'bg-orange-400':a.severity==='medium'?'bg-yellow-400':'bg-green-400'}"></div>
           <div class="flex-1 min-w-0">
             <p class="text-sm text-gray-200 truncate">${a.title}</p>
-            <p class="text-xs text-gray-500">${a.hostname || a.source_ip || 'Unknown'} · ${timeAgo(a.created_at)}</p>
+            <p class="text-xs text-gray-500">${a.hostname||a.source_ip||'Unknown'} · ${timeAgo(a.created_at)}</p>
           </div>
           ${severityBadge(a.severity)}
         </div>`).join('');
@@ -355,23 +472,23 @@
 
     function renderCategories(data) {
       const container = document.getElementById('categories-list');
-      if (!data.length) {
-        container.innerHTML = '<p class="text-gray-500 text-sm">No data</p>';
-        return;
-      }
+      if (!data.length) { container.innerHTML = '<p class="text-gray-500 text-sm">No data</p>'; return; }
       const max = Math.max(...data.map(d => d.count));
       container.innerHTML = data.map(d => `
         <div class="flex items-center gap-3">
-          <span class="text-xs text-gray-400 w-32 truncate capitalize">${d.category?.replace('_', ' ') || 'unknown'}</span>
+          <span class="text-xs text-gray-400 w-28 truncate capitalize">${d.category?.replace('_',' ')||'unknown'}</span>
           <div class="flex-1 bg-gray-800 rounded-full h-1.5">
-            <div class="h-1.5 rounded-full bg-emerald-500" style="width:${(d.count / max * 100).toFixed(0)}%"></div>
+            <div class="h-1.5 rounded-full bg-emerald-500" style="width:${(d.count/max*100).toFixed(0)}%"></div>
           </div>
-          <span class="text-xs text-gray-400 w-6 text-right">${d.count}</span>
+          <span class="text-xs text-gray-400 w-5 text-right">${d.count}</span>
         </div>`).join('');
     }
 
+    // ── Init ──────────────────────────────────────────────────
     loadDashboard();
-    setInterval(loadDashboard, 60000); // Auto-refresh every minute
+    updateLiveFeed();
+    setInterval(loadDashboard, 60000);
+    setInterval(updateLiveFeed, 10000); // Live feed every 10s
   </script>
 </body>
 </html>

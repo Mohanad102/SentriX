@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 import os
 
 from backend.database import init_db
-from backend.routers import auth, alerts, incidents, ioc, dashboard, ai_analyst, reports
+from backend.routers import auth, alerts, incidents, ioc, dashboard, ai_analyst, reports, users, audit, rules
 
 app = FastAPI(
     title="SentriX API",
@@ -29,6 +29,9 @@ app.include_router(ioc.router)
 app.include_router(dashboard.router)
 app.include_router(ai_analyst.router)
 app.include_router(reports.router)
+app.include_router(users.router)
+app.include_router(audit.router)
+app.include_router(rules.router)
 
 # Serve frontend static files
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")

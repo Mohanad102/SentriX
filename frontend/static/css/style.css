@@ -148,3 +148,34 @@ body {
 /* Page transition */
 .page-fade { animation: fade-in 0.3s ease-out; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Light Mode ─────────────────────────────────────────── */
+body.light-mode { background-color: #f1f5f9 !important; color: #0f172a !important; }
+body.light-mode .sidebar { background: #ffffff !important; border-color: #e2e8f0 !important; }
+body.light-mode .sidebar-link { color: #64748b; }
+body.light-mode .sidebar-link:hover { background: #f1f5f9; color: #0f172a; }
+body.light-mode .sidebar-link.active { background: #d1fae5; color: #059669; }
+body.light-mode .stat-card { background: #ffffff !important; border-color: #e2e8f0 !important; }
+body.light-mode .stat-card p.text-white { color: #0f172a !important; }
+body.light-mode .stat-card span.text-gray-500 { color: #64748b !important; }
+body.light-mode header { background: rgba(255,255,255,0.9) !important; border-color: #e2e8f0 !important; }
+body.light-mode .bg-gray-900 { background: #ffffff !important; }
+body.light-mode .bg-gray-800 { background: #f8fafc !important; }
+body.light-mode .bg-gray-800\/50 { background: rgba(248,250,252,0.8) !important; }
+body.light-mode .bg-gray-950 { background: #f1f5f9 !important; }
+body.light-mode .border-gray-800 { border-color: #e2e8f0 !important; }
+body.light-mode .border-gray-700 { border-color: #cbd5e1 !important; }
+body.light-mode .text-gray-100 { color: #0f172a !important; }
+body.light-mode .text-gray-200 { color: #1e293b !important; }
+body.light-mode .text-gray-300 { color: #334155 !important; }
+body.light-mode .text-gray-400 { color: #475569 !important; }
+body.light-mode .text-gray-500 { color: #64748b !important; }
+body.light-mode .text-white { color: #0f172a !important; }
+body.light-mode .data-table td { border-color: #f1f5f9 !important; }
+body.light-mode .data-table th { color: #64748b !important; border-color: #e2e8f0 !important; }
+body.light-mode .data-table tbody tr:hover { background: #f8fafc !important; }
+body.light-mode .form-input { background: #f8fafc !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+body.light-mode .btn-secondary { background: #f1f5f9 !important; color: #334155 !important; border-color: #cbd5e1 !important; }
+body.light-mode .btn-secondary:hover { background: #e2e8f0 !important; }
+body.light-mode .modal-box { background: #ffffff !important; border-color: #e2e8f0 !important; }
+body.light-mode .toast { background: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }

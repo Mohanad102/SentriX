@@ -7,8 +7,17 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    .kanban-col { min-height: 200px; }
+    .kanban-card { cursor: grab; transition: all .15s; }
+    .kanban-card:active { cursor: grabbing; opacity: .7; }
+    .kanban-card.drag-over { border-color: #10b981; background: rgba(16,185,129,.08); }
+    .drop-zone.drag-active { background: rgba(16,185,129,.04); border-color: rgba(16,185,129,.3); }
+    .timeline-line { position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: #374151; }
+    .timeline-dot  { position: relative; z-index: 1; }
+  </style>
 </head>
-<body class="bg-gray-950 text-gray-100 flex">
+<body class="bg-gray-950 text-gray-100 flex" id="body">
 
   <!-- Sidebar -->
   <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
@@ -21,11 +30,13 @@
       </div>
     </div>
     <nav class="p-3 flex-1 space-y-1">
-      <a href="/dashboard.html" class="sidebar-link" data-page="dashboard"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
-      <a href="/alerts.html" class="sidebar-link" data-page="alerts"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
-      <a href="/incidents.html" class="sidebar-link active" data-page="incidents"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
-      <a href="/ai_analyst.html" class="sidebar-link" data-page="ai"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
-      <a href="/reports.html" class="sidebar-link" data-page="reports"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
+      <a href="/alerts.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
+      <a href="/incidents.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
+      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
+      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
+      <a href="/rules.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
     </nav>
     <div class="p-3 border-t border-gray-800">
       <div class="flex items-center gap-3 px-2 py-2">
@@ -43,9 +54,22 @@
         <h1 class="text-white font-semibold text-lg">Incident Management</h1>
         <p class="text-gray-500 text-xs">Case tracking and response orchestration</p>
       </div>
-      <button onclick="openCreateModal()" class="btn btn-primary">
-        <i class="fa-solid fa-plus"></i> New Incident
-      </button>
+      <div class="flex items-center gap-2">
+        <!-- View toggle -->
+        <div class="flex bg-gray-800 rounded-lg p-0.5 gap-0.5">
+          <button onclick="setView('list')" id="btn-list"
+            class="px-3 py-1.5 rounded text-xs font-medium transition bg-gray-700 text-white">
+            <i class="fa-solid fa-list mr-1"></i> List
+          </button>
+          <button onclick="setView('kanban')" id="btn-kanban"
+            class="px-3 py-1.5 rounded text-xs font-medium transition text-gray-400 hover:text-white">
+            <i class="fa-solid fa-columns mr-1"></i> Kanban
+          </button>
+        </div>
+        <button onclick="openCreateModal()" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> New Incident
+        </button>
+      </div>
     </header>
 
     <div class="p-6 page-fade">
@@ -71,48 +95,96 @@
         </select>
       </div>
 
-      <!-- Table -->
-      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-        <div id="table-loading" class="flex items-center justify-center py-16">
-          <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+      <!-- List View -->
+      <div id="list-view">
+        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div id="table-loading" class="flex items-center justify-center py-16">
+            <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+          </div>
+          <div id="table-container" class="hidden overflow-x-auto">
+            <table class="data-table">
+              <thead class="bg-gray-800/50">
+                <tr>
+                  <th>Case #</th><th>Title</th><th>Severity</th><th>Priority</th>
+                  <th>Status</th><th>Assigned To</th><th>Created</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="incidents-tbody"></tbody>
+            </table>
+          </div>
         </div>
-        <div id="table-container" class="hidden overflow-x-auto">
-          <table class="data-table">
-            <thead class="bg-gray-800/50">
-              <tr>
-                <th>Case #</th>
-                <th>Title</th>
-                <th>Severity</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Assigned To</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="incidents-tbody"></tbody>
-          </table>
+        <div class="flex items-center justify-between mt-4">
+          <p class="text-xs text-gray-500" id="pagination-info"></p>
+          <div class="flex gap-1" id="pagination-btns"></div>
         </div>
       </div>
-      <div class="flex items-center justify-between mt-4">
-        <p class="text-xs text-gray-500" id="pagination-info"></p>
-        <div class="flex gap-1" id="pagination-btns"></div>
+
+      <!-- Kanban View -->
+      <div id="kanban-view" class="hidden">
+        <div class="grid grid-cols-4 gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+              <span class="text-sm font-medium text-gray-300">Open</span>
+              <span class="ml-auto text-xs text-gray-500" id="k-count-open">0</span>
+            </div>
+            <div id="k-open" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
+              ondragover="onDragOver(event,'open')" ondrop="onDrop(event,'open')" ondragleave="onDragLeave(event)"></div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+              <span class="text-sm font-medium text-gray-300">In Progress</span>
+              <span class="ml-auto text-xs text-gray-500" id="k-count-in_progress">0</span>
+            </div>
+            <div id="k-in_progress" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
+              ondragover="onDragOver(event,'in_progress')" ondrop="onDrop(event,'in_progress')" ondragleave="onDragLeave(event)"></div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+              <span class="text-sm font-medium text-gray-300">Resolved</span>
+              <span class="ml-auto text-xs text-gray-500" id="k-count-resolved">0</span>
+            </div>
+            <div id="k-resolved" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
+              ondragover="onDragOver(event,'resolved')" ondrop="onDrop(event,'resolved')" ondragleave="onDragLeave(event)"></div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-2 h-2 rounded-full bg-gray-500"></div>
+              <span class="text-sm font-medium text-gray-300">Closed</span>
+              <span class="ml-auto text-xs text-gray-500" id="k-count-closed">0</span>
+            </div>
+            <div id="k-closed" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
+              ondragover="onDragOver(event,'closed')" ondrop="onDrop(event,'closed')" ondragleave="onDragLeave(event)"></div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
 
-  <!-- Incident Detail Modal -->
+  <!-- Detail Modal -->
   <div id="detail-modal" class="modal-overlay hidden">
     <div class="modal-box w-full max-w-3xl">
-      <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center justify-between mb-4">
         <h3 class="text-white font-semibold text-lg" id="modal-case-num">Incident Details</h3>
         <button onclick="closeModal('detail-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
-      <div id="modal-body"></div>
+      <!-- Tab Bar -->
+      <div class="flex gap-1 mb-5 bg-gray-800/50 rounded-lg p-1">
+        <button onclick="switchTab('details')" id="tab-details" class="tab-btn active flex-1 py-1.5 text-xs font-medium rounded">Details</button>
+        <button onclick="switchTab('timeline')" id="tab-timeline" class="tab-btn flex-1 py-1.5 text-xs font-medium rounded">Timeline</button>
+        <button onclick="switchTab('iocs')" id="tab-iocs" class="tab-btn flex-1 py-1.5 text-xs font-medium rounded">IOCs</button>
+        <button onclick="switchTab('alerts')" id="tab-alerts" class="tab-btn flex-1 py-1.5 text-xs font-medium rounded">Alerts</button>
+      </div>
+      <div id="tab-details-content" class="tab-content"></div>
+      <div id="tab-timeline-content" class="tab-content hidden"></div>
+      <div id="tab-iocs-content" class="tab-content hidden"></div>
+      <div id="tab-alerts-content" class="tab-content hidden"></div>
     </div>
   </div>
 
-  <!-- Create Incident Modal -->
+  <!-- Create Modal -->
   <div id="create-modal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="flex items-center justify-between mb-5">
@@ -120,84 +192,35 @@
         <button onclick="closeModal('create-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <form id="create-form" class="space-y-4">
-        <div>
-          <label class="block text-gray-400 text-sm mb-1">Title *</label>
-          <input type="text" id="c-title" class="form-input" required placeholder="Incident title" />
-        </div>
+        <div><label class="block text-gray-400 text-sm mb-1">Title *</label>
+          <input type="text" id="c-title" class="form-input" required placeholder="Incident title" /></div>
         <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-gray-400 text-sm mb-1">Severity</label>
+          <div><label class="block text-gray-400 text-sm mb-1">Severity</label>
             <select id="c-severity" class="form-input form-select">
               <option value="low">Low</option><option value="medium" selected>Medium</option>
               <option value="high">High</option><option value="critical">Critical</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-gray-400 text-sm mb-1">Priority</label>
+            </select></div>
+          <div><label class="block text-gray-400 text-sm mb-1">Priority</label>
             <select id="c-priority" class="form-input form-select">
               <option value="low">Low</option><option value="medium" selected>Medium</option>
               <option value="high">High</option><option value="critical">Critical</option>
-            </select>
-          </div>
+            </select></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-gray-400 text-sm mb-1">Category</label>
-            <input type="text" id="c-category" class="form-input" placeholder="e.g. ransomware" />
-          </div>
-          <div>
-            <label class="block text-gray-400 text-sm mb-1">Assign To</label>
-            <input type="text" id="c-assigned" class="form-input" placeholder="username" />
-          </div>
+          <div><label class="block text-gray-400 text-sm mb-1">Category</label>
+            <input type="text" id="c-category" class="form-input" placeholder="e.g. ransomware" /></div>
+          <div><label class="block text-gray-400 text-sm mb-1">Assign To</label>
+            <input type="text" id="c-assigned" class="form-input" placeholder="username" /></div>
         </div>
-        <div>
-          <label class="block text-gray-400 text-sm mb-1">Description</label>
-          <textarea id="c-description" class="form-input h-24 resize-none" placeholder="Describe the incident..."></textarea>
-        </div>
-        <div>
-          <label class="block text-gray-400 text-sm mb-1">Tags</label>
-          <input type="text" id="c-tags" class="form-input" placeholder="tag1,tag2,tag3" />
-        </div>
+        <div><label class="block text-gray-400 text-sm mb-1">Description</label>
+          <textarea id="c-description" class="form-input h-24 resize-none" placeholder="Describe the incident..."></textarea></div>
+        <div><label class="block text-gray-400 text-sm mb-1">Tags</label>
+          <input type="text" id="c-tags" class="form-input" placeholder="tag1,tag2" /></div>
         <div class="flex gap-3 pt-2">
           <button type="submit" class="btn btn-primary flex-1">Create Incident</button>
           <button type="button" onclick="closeModal('create-modal')" class="btn btn-secondary">Cancel</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Update Status Modal -->
-  <div id="status-modal" class="modal-overlay hidden">
-    <div class="modal-box max-w-sm">
-      <div class="flex items-center justify-between mb-5">
-        <h3 class="text-white font-semibold flex items-center gap-2">
-          <i class="fa-solid fa-pen text-emerald-400 text-sm"></i>
-          Update Incident Status
-        </h3>
-        <button onclick="closeModal('status-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-      <input type="hidden" id="status-incident-id" />
-      <div class="space-y-4">
-        <div>
-          <label class="block text-gray-400 text-sm mb-2">Current Status</label>
-          <p id="status-current" class="text-sm text-gray-300"></p>
-        </div>
-        <div>
-          <label class="block text-gray-400 text-sm mb-2">New Status</label>
-          <select id="status-select" class="form-input form-select">
-            <option value="open">🔵 Open</option>
-            <option value="in_progress">🟡 In Progress</option>
-            <option value="resolved">🟢 Resolved</option>
-            <option value="closed">⚫ Closed</option>
-          </select>
-        </div>
-        <div class="flex gap-3 pt-1">
-          <button onclick="submitStatusUpdate()" class="btn btn-primary flex-1">
-            <i class="fa-solid fa-check"></i> Update Status
-          </button>
-          <button onclick="closeModal('status-modal')" class="btn btn-secondary">Cancel</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -210,20 +233,13 @@
       </div>
       <form id="ioc-form" class="space-y-4">
         <input type="hidden" id="ioc-incident-id" />
-        <div>
-          <label class="block text-gray-400 text-sm mb-1">IOC Value *</label>
-          <input type="text" id="ioc-value" class="form-input" required placeholder="IP, domain, hash, URL..." />
-        </div>
-        <div>
-          <label class="block text-gray-400 text-sm mb-1">Type</label>
+        <div><label class="block text-gray-400 text-sm mb-1">Value *</label>
+          <input type="text" id="ioc-value" class="form-input" required placeholder="IP, domain, hash..." /></div>
+        <div><label class="block text-gray-400 text-sm mb-1">Type</label>
           <select id="ioc-type" class="form-input form-select">
-            <option value="ip">IP Address</option>
-            <option value="domain">Domain</option>
-            <option value="url">URL</option>
-            <option value="hash">File Hash</option>
-            <option value="email">Email</option>
-          </select>
-        </div>
+            <option value="ip">IP Address</option><option value="domain">Domain</option>
+            <option value="url">URL</option><option value="hash">File Hash</option><option value="email">Email</option>
+          </select></div>
         <div class="flex gap-3">
           <button type="submit" class="btn btn-primary flex-1">Add IOC</button>
           <button type="button" onclick="closeModal('ioc-modal')" class="btn btn-secondary">Cancel</button>
@@ -233,38 +249,53 @@
   </div>
 
   <script src="/static/js/api.js"></script>
+  <style>
+    .tab-btn { color: #6b7280; }
+    .tab-btn.active { background: #374151; color: #fff; }
+  </style>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
-    let currentPage = 1;
-    let debounceTimer;
-    let allIncidentsCache = {};  // id -> incident object cache
+
+    let currentPage = 1, debounceTimer, allIncidents = [], currentView = 'list';
+    let dragId = null, currentIncId = null;
     const debouncedLoad = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadIncidents, 400); };
 
+    // ── View ──────────────────────────────────────────────────
+    function setView(v) {
+      currentView = v;
+      document.getElementById('list-view').classList.toggle('hidden', v !== 'list');
+      document.getElementById('kanban-view').classList.toggle('hidden', v !== 'kanban');
+      document.getElementById('btn-list').className   = `px-3 py-1.5 rounded text-xs font-medium transition ${v==='list'   ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
+      document.getElementById('btn-kanban').className = `px-3 py-1.5 rounded text-xs font-medium transition ${v==='kanban' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
+      if (v === 'kanban') renderKanban(allIncidents);
+    }
+
+    // ── Load ──────────────────────────────────────────────────
     async function loadIncidents(page = 1) {
       currentPage = page;
       document.getElementById('table-loading').classList.remove('hidden');
       document.getElementById('table-container').classList.add('hidden');
-      const params = {
-        page, page_size: 20,
+      const params = { page, page_size: 50,
         search: document.getElementById('search-input').value,
         severity: document.getElementById('filter-severity').value,
-        status: document.getElementById('filter-status').value
-      };
+        status: document.getElementById('filter-status').value };
       Object.keys(params).forEach(k => !params[k] && delete params[k]);
       try {
         const data = await apiGet('/api/incidents', params);
+        allIncidents = data.items;
         renderTable(data.items);
+        if (currentView === 'kanban') renderKanban(data.items);
         document.getElementById('pagination-info').textContent =
-          `Showing ${Math.min((page-1)*20+1, data.total)}-${Math.min(page*20, data.total)} of ${data.total}`;
+          `Showing ${Math.min((page-1)*20+1, data.total)}–${Math.min(page*20, data.total)} of ${data.total}`;
         buildPagination(document.getElementById('pagination-btns'), page, data.pages, loadIncidents);
-        data.items.forEach(i => allIncidentsCache[i.id] = i);
         document.getElementById('table-loading').classList.add('hidden');
         document.getElementById('table-container').classList.remove('hidden');
-      } catch (err) {
+      } catch(err) {
         document.getElementById('table-loading').innerHTML = `<p class="text-red-400 py-8 text-center">${err.message}</p>`;
       }
     }
 
+    // ── List Render ───────────────────────────────────────────
     function renderTable(items) {
       document.getElementById('incidents-tbody').innerHTML = items.map(inc => `
         <tr>
@@ -273,27 +304,77 @@
           <td>${severityBadge(inc.severity)}</td>
           <td>${severityBadge(inc.priority)}</td>
           <td>${statusBadge(inc.status)}</td>
-          <td><span class="text-xs text-gray-400">${inc.assigned_to || '—'}</span></td>
+          <td><span class="text-xs text-gray-400">${inc.assigned_to||'—'}</span></td>
           <td><span class="text-xs text-gray-500">${timeAgo(inc.created_at)}</span></td>
           <td>
             <div class="flex gap-1">
               <button onclick="showDetail(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-folder-open"></i></button>
-              <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20" title="AI Analysis">
+              <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20">
                 <i class="fa-solid fa-robot"></i>
               </button>
-              <a href="/ai_analyst.html?incident=${inc.id}" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20" title="Open in AI Analyst">
-                <i class="fa-solid fa-message"></i>
-              </a>
             </div>
           </td>
         </tr>`).join('') || '<tr><td colspan="8" class="text-center text-gray-500 py-10">No incidents found</td></tr>';
     }
 
+    // ── Kanban ────────────────────────────────────────────────
+    const STATUSES = ['open','in_progress','resolved','closed'];
+
+    function renderKanban(items) {
+      const grouped = {};
+      STATUSES.forEach(s => grouped[s] = []);
+      items.forEach(i => { if (grouped[i.status]) grouped[i.status].push(i); });
+      STATUSES.forEach(s => {
+        document.getElementById(`k-count-${s}`).textContent = grouped[s].length;
+        document.getElementById(`k-${s}`).innerHTML = grouped[s].map(inc => `
+          <div class="kanban-card bg-gray-900 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition"
+            draggable="true" data-id="${inc.id}"
+            ondragstart="onDragStart(event,${inc.id})"
+            onclick="showDetail(${inc.id})">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <span class="font-mono text-xs text-emerald-400">${inc.case_number}</span>
+              ${severityBadge(inc.severity)}
+            </div>
+            <p class="text-sm text-gray-200 font-medium leading-snug mb-2 line-clamp-2">${inc.title}</p>
+            <div class="flex items-center justify-between text-xs text-gray-500">
+              <span>${inc.assigned_to||'Unassigned'}</span>
+              <span>${timeAgo(inc.created_at)}</span>
+            </div>
+          </div>`).join('') || '<p class="text-center text-gray-700 text-xs py-4">Empty</p>';
+      });
+    }
+
+    // ── Drag & Drop ───────────────────────────────────────────
+    function onDragStart(e, id) { dragId = id; e.dataTransfer.effectAllowed = 'move'; }
+    function onDragOver(e, status) { e.preventDefault(); e.currentTarget.classList.add('drag-active'); }
+    function onDragLeave(e) { e.currentTarget.classList.remove('drag-active'); }
+    async function onDrop(e, status) {
+      e.preventDefault(); e.currentTarget.classList.remove('drag-active');
+      if (!dragId) return;
+      try {
+        await apiPatch(`/api/incidents/${dragId}`, { status });
+        showToast(`Moved to ${status.replace('_',' ')}`, 'success');
+        await loadIncidents(currentPage);
+      } catch(err) { showToast(err.message, 'error'); }
+      dragId = null;
+    }
+
+    // ── Tabs ──────────────────────────────────────────────────
+    function switchTab(tab) {
+      ['details','timeline','iocs','alerts'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+        document.getElementById(`tab-${t}-content`).classList.toggle('hidden', t !== tab);
+      });
+    }
+
+    // ── Detail ────────────────────────────────────────────────
     async function showDetail(id) {
+      currentIncId = id;
       const inc = await apiGet(`/api/incidents/${id}`);
-      allIncidentsCache[id] = inc;
+
+      // Details tab
       document.getElementById('modal-case-num').textContent = `${inc.case_number} — ${inc.title}`;
-      document.getElementById('modal-body').innerHTML = `
+      document.getElementById('tab-details-content').innerHTML = `
         <div class="space-y-4 text-sm">
           <div class="grid grid-cols-3 gap-3">
             <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Severity</p>${severityBadge(inc.severity)}</div>
@@ -301,75 +382,83 @@
             <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Priority</p>${severityBadge(inc.priority)}</div>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Assigned To</p><p>${inc.assigned_to || '—'}</p></div>
-            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Category</p><p class="capitalize">${inc.category?.replace('_',' ') || '—'}</p></div>
+            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Assigned To</p><p>${inc.assigned_to||'—'}</p></div>
+            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Category</p><p class="capitalize">${inc.category?.replace('_',' ')||'—'}</p></div>
           </div>
           ${inc.description ? `<div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Description</p><p class="text-gray-200">${inc.description}</p></div>` : ''}
           ${inc.ai_summary ? `<div class="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3"><p class="text-emerald-400 text-xs font-semibold mb-2"><i class="fa-solid fa-robot mr-1"></i>AI Summary</p><p class="text-gray-300">${inc.ai_summary}</p></div>` : ''}
           ${inc.ai_recommendations ? `<div class="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3"><p class="text-blue-400 text-xs font-semibold mb-2"><i class="fa-solid fa-list-check mr-1"></i>Recommendations</p><pre class="text-gray-300 whitespace-pre-wrap text-xs">${inc.ai_recommendations}</pre></div>` : ''}
-
-          ${inc.iocs?.length ? `<div>
-            <p class="text-gray-400 text-xs font-semibold mb-2">IOCs (${inc.iocs.length})</p>
-            <div class="space-y-1">${inc.iocs.map(i => `
-              <div class="flex items-center gap-2 bg-gray-800 rounded px-3 py-2">
-                <span class="badge badge-${i.is_malicious ? 'critical' : 'low'}">${i.ioc_type.toUpperCase()}</span>
-                <span class="font-mono text-xs flex-1">${i.value}</span>
-                ${i.vt_score ? `<span class="text-xs text-gray-500">VT: ${i.vt_score}</span>` : ''}
-                <button onclick="enrichIoc(${i.id})" class="text-xs text-purple-400 hover:text-purple-300"><i class="fa-solid fa-magnifying-glass"></i></button>
-              </div>`).join('')}
-            </div>
-          </div>` : ''}
-
-          ${inc.alerts?.length ? `<div>
-            <p class="text-gray-400 text-xs font-semibold mb-2">Related Alerts (${inc.alerts.length})</p>
-            <div class="space-y-1">${inc.alerts.map(a => `
-              <div class="flex items-center gap-2 bg-gray-800 rounded px-3 py-1.5">
-                ${severityBadge(a.severity)}
-                <span class="text-xs flex-1">${a.title}</span>
-              </div>`).join('')}
-            </div>
-          </div>` : ''}
-
           <div class="flex flex-wrap gap-2 pt-2">
-            <button onclick="updateStatus(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Update Status</button>
-            <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> Add IOC</button>
-            <button onclick="bulkEnrich(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400">
-              <i class="fa-solid fa-virus-covid-slash"></i> Enrich IOCs
-            </button>
-            <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-              <i class="fa-solid fa-robot"></i> AI Analysis
-            </button>
-            <a href="/reports.html?incident=${inc.id}" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400">
-              <i class="fa-solid fa-file-lines"></i> Report
-            </a>
+            <button onclick="changeStatus(${inc.id},'${inc.status}')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Status</button>
+            <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> IOC</button>
+            <button onclick="bulkEnrich(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400"><i class="fa-solid fa-virus-covid-slash"></i> Enrich</button>
+            <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"><i class="fa-solid fa-robot"></i> AI Analysis</button>
+            <a href="/reports.html?incident=${inc.id}" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400"><i class="fa-solid fa-file-lines"></i> Report</a>
           </div>
         </div>`;
+
+      // Timeline tab
+      const events = [];
+      if (inc.created_at) events.push({ time: inc.created_at, label: 'Incident Created', icon: 'fa-circle-plus', color: 'text-emerald-400' });
+      (inc.alerts || []).forEach(a => events.push({ time: a.created_at, label: `Alert: ${a.title}`, icon: 'fa-bell', color: 'text-orange-400' }));
+      (inc.iocs || []).forEach(i => events.push({ time: i.created_at, label: `IOC Added: ${i.value}`, icon: 'fa-fingerprint', color: 'text-purple-400' }));
+      if (inc.closed_at) events.push({ time: inc.closed_at, label: 'Incident Closed', icon: 'fa-circle-check', color: 'text-gray-400' });
+      events.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+      document.getElementById('tab-timeline-content').innerHTML = `
+        <div class="relative pl-8">
+          <div class="timeline-line"></div>
+          ${events.length ? events.map(ev => `
+            <div class="relative mb-5">
+              <div class="timeline-dot absolute -left-8 top-0 w-6 h-6 rounded-full bg-gray-800 border-2 border-gray-700 flex items-center justify-center">
+                <i class="fa-solid ${ev.icon} text-xs ${ev.color}"></i>
+              </div>
+              <div class="bg-gray-800 rounded-lg px-3 py-2">
+                <p class="text-sm text-gray-200">${ev.label}</p>
+                <p class="text-xs text-gray-500 mt-0.5">${formatDate(ev.time)}</p>
+              </div>
+            </div>`).join('') : '<p class="text-gray-500 text-sm">No timeline events yet.</p>'}
+        </div>`;
+
+      // IOCs tab
+      document.getElementById('tab-iocs-content').innerHTML = inc.iocs?.length ? `
+        <div class="space-y-2">
+          ${inc.iocs.map(i => `
+            <div class="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
+              <span class="badge badge-${i.is_malicious?'critical':'low'}">${i.ioc_type.toUpperCase()}</span>
+              <span class="font-mono text-xs flex-1">${i.value}</span>
+              ${i.vt_score ? `<span class="text-xs text-gray-500">${i.vt_score}</span>` : ''}
+              <button onclick="enrichIoc(${i.id})" class="text-xs text-purple-400 hover:text-purple-300 ml-1" title="Enrich"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>`).join('')}
+        </div>
+        <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm mt-3"><i class="fa-solid fa-plus"></i> Add IOC</button>` :
+        `<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-fingerprint text-2xl mb-2 block"></i>No IOCs yet</div>
+         <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> Add IOC</button>`;
+
+      // Alerts tab
+      document.getElementById('tab-alerts-content').innerHTML = inc.alerts?.length ? `
+        <div class="space-y-2">${inc.alerts.map(a => `
+          <div class="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
+            ${severityBadge(a.severity)}
+            <span class="text-xs flex-1">${a.title}</span>
+            <span class="text-xs text-gray-500">${timeAgo(a.created_at)}</span>
+          </div>`).join('')}</div>` :
+        '<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-bell-slash text-2xl mb-2 block"></i>No related alerts</div>';
+
+      switchTab('details');
       document.getElementById('detail-modal').classList.remove('hidden');
     }
 
-    function updateStatus(id) {
-      // Find current status from the loaded incident
-      const incidentData = allIncidentsCache[id];
-      document.getElementById('status-incident-id').value = id;
-      document.getElementById('status-current').innerHTML = incidentData
-        ? statusBadge(incidentData.status)
-        : '<span class="text-gray-500">Loading...</span>';
-      if (incidentData) {
-        document.getElementById('status-select').value = incidentData.status;
-      }
-      document.getElementById('status-modal').classList.remove('hidden');
-    }
-
-    async function submitStatusUpdate() {
-      const id = document.getElementById('status-incident-id').value;
-      const status = document.getElementById('status-select').value;
+    async function changeStatus(id, current) {
+      const statuses = ['open','in_progress','resolved','closed'];
+      const next = statuses[(statuses.indexOf(current)+1) % statuses.length];
+      if (!confirm(`Change status to "${next.replace('_',' ')}"?`)) return;
       try {
-        await apiPatch(`/api/incidents/${id}`, { status });
-        showToast('Status updated successfully', 'success');
-        closeModal('status-modal');
+        await apiPatch(`/api/incidents/${id}`, { status: next });
+        showToast('Status updated', 'success');
         closeModal('detail-modal');
         loadIncidents(currentPage);
-      } catch (err) { showToast(err.message, 'error'); }
+      } catch(err) { showToast(err.message, 'error'); }
     }
 
     function openIocModal(incidentId) {
@@ -378,7 +467,7 @@
       document.getElementById('ioc-modal').classList.remove('hidden');
     }
 
-    document.getElementById('ioc-form').addEventListener('submit', async (e) => {
+    document.getElementById('ioc-form').addEventListener('submit', async e => {
       e.preventDefault();
       const incidentId = document.getElementById('ioc-incident-id').value;
       try {
@@ -390,14 +479,15 @@
         showToast('IOC added', 'success');
         closeModal('ioc-modal');
         showDetail(incidentId);
-      } catch (err) { showToast(err.message, 'error'); }
+      } catch(err) { showToast(err.message, 'error'); }
     });
 
     async function enrichIoc(iocId) {
       try {
-        const result = await apiFetch(`/api/ioc/${iocId}/enrich`, { method: 'POST' });
-        showToast(`Enriched: ${result.vt_score} — ${result.is_malicious ? 'MALICIOUS' : 'Clean'}`, result.is_malicious ? 'error' : 'success');
-      } catch (err) { showToast(err.message, 'error'); }
+        const r = await apiFetch(`/api/ioc/${iocId}/enrich`, { method: 'POST' });
+        showToast(`Enriched: ${r.vt_score} — ${r.is_malicious?'MALICIOUS':'Clean'}`, r.is_malicious?'error':'success');
+        if (currentIncId) showDetail(currentIncId);
+      } catch(err) { showToast(err.message, 'error'); }
     }
 
     async function bulkEnrich(incidentId) {
@@ -405,7 +495,7 @@
         const r = await apiFetch(`/api/ioc/bulk-enrich?incident_id=${incidentId}`, { method: 'POST' });
         showToast(r.message, 'success');
         showDetail(incidentId);
-      } catch (err) { showToast(err.message, 'error'); }
+      } catch(err) { showToast(err.message, 'error'); }
     }
 
     async function openAiAnalysis(incidentId) {
@@ -414,18 +504,14 @@
         await apiPost('/api/ai/analyze-incident', { incident_id: incidentId });
         showToast('AI analysis complete!', 'success');
         closeModal('detail-modal');
-        await showDetail(incidentId);
-      } catch (err) { showToast(err.message, 'error'); }
+        showDetail(incidentId);
+      } catch(err) { showToast(err.message, 'error'); }
     }
 
-    function openCreateModal() {
-      document.getElementById('create-form').reset();
-      document.getElementById('create-modal').classList.remove('hidden');
-    }
-
+    function openCreateModal() { document.getElementById('create-form').reset(); document.getElementById('create-modal').classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    document.getElementById('create-form').addEventListener('submit', async (e) => {
+    document.getElementById('create-form').addEventListener('submit', async e => {
       e.preventDefault();
       try {
         await apiPost('/api/incidents', {
@@ -440,12 +526,11 @@
         showToast('Incident created', 'success');
         closeModal('create-modal');
         loadIncidents();
-      } catch (err) { showToast(err.message, 'error'); }
+      } catch(err) { showToast(err.message, 'error'); }
     });
 
-    document.querySelectorAll('.modal-overlay').forEach(m => {
-      m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
-    });
+    document.querySelectorAll('.modal-overlay').forEach(m =>
+      m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
 
     loadIncidents();
   </script>

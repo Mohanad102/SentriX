@@ -71,6 +71,59 @@ def create_ioc(
     return ioc_to_dict(ioc)
 
 
+@router.post("/{ioc_id}/enrich-abuse")
+async def enrich_ioc_abuse(
+    ioc_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Enrich an IP IOC using AbuseIPDB."""
+    from backend.config import settings
+    import httpx
+
+    ioc = db.query(IOC).filter(IOC.id == ioc_id).first()
+    if not ioc:
+        raise HTTPException(status_code=404, detail="IOC not found")
+    if ioc.ioc_type != "ip":
+        raise HTTPException(status_code=400, detail="AbuseIPDB only supports IP type IOCs")
+
+    api_key = getattr(settings, "ABUSEIPDB_API_KEY", "")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="AbuseIPDB API key not configured")
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://api.abuseipdb.com/api/v2/check",
+                headers={"Key": api_key, "Accept": "application/json"},
+                params={"ipAddress": ioc.value, "maxAgeInDays": 90}
+            )
+        data = resp.json().get("data", {})
+        score = data.get("abuseConfidenceScore", 0)
+        ioc.enriched = True
+        ioc.enriched_at = datetime.utcnow()
+        ioc.vt_score = f"AbuseScore: {score}/100"
+        ioc.is_malicious = score >= 50
+        ioc.vt_report = str(data)
+        db.commit()
+        db.refresh(ioc)
+        return {**ioc_to_dict(ioc), "abuse_score": score, "country": data.get("countryCode"),
+                "isp": data.get("isp"), "total_reports": data.get("totalReports")}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AbuseIPDB error: {e}")
+
+
+@router.get("/search")
+def search_iocs(
+    q: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Search IOCs across all incidents."""
+    results = db.query(IOC).filter(IOC.value.ilike(f"%{q}%")).limit(50).all()
+    return {"total": len(results), "items": [ioc_to_dict(i) for i in results]}
+
+
 @router.post("/{ioc_id}/enrich")
 async def enrich_ioc(
     ioc_id: int,
