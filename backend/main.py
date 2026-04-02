@@ -56,7 +56,6 @@ def serve_page(page: str):
 @app.on_event("startup")
 def startup_event():
     init_db()
-    _seed_data()
 
 
 def _seed_data():
