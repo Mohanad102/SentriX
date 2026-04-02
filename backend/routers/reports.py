@@ -149,6 +149,138 @@ def export_incident_txt(
     )
 
 
+@router.get("/incident/{incident_id}/export/pdf")
+def export_incident_pdf(
+    incident_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    import io
+
+    inc = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not inc:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    alerts = db.query(Alert).filter(Alert.incident_id == incident_id).all()
+    iocs   = db.query(IOC).filter(IOC.incident_id == incident_id).all()
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=2*cm, rightMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+    styles = getSampleStyleSheet()
+
+    SEV_COLORS = {
+        "critical": colors.HexColor("#ef4444"),
+        "high":     colors.HexColor("#f97316"),
+        "medium":   colors.HexColor("#eab308"),
+        "low":      colors.HexColor("#22c55e"),
+    }
+    sev_color = SEV_COLORS.get(inc.severity, colors.grey)
+
+    title_style   = ParagraphStyle("title", fontSize=20, textColor=colors.HexColor("#10b981"),
+                                   alignment=TA_CENTER, spaceAfter=6, fontName="Helvetica-Bold")
+    sub_style     = ParagraphStyle("sub",   fontSize=10, textColor=colors.grey, alignment=TA_CENTER, spaceAfter=12)
+    heading_style = ParagraphStyle("h2",    fontSize=13, textColor=colors.HexColor("#10b981"),
+                                   fontName="Helvetica-Bold", spaceBefore=14, spaceAfter=4)
+    body_style    = ParagraphStyle("body",  fontSize=9,  textColor=colors.HexColor("#374151"),
+                                   leading=14, spaceAfter=6)
+
+    story = [
+        Paragraph("SentriX — Incident Report", title_style),
+        Paragraph(f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}", sub_style),
+        HRFlowable(width="100%", thickness=1, color=colors.HexColor("#10b981")),
+        Spacer(1, 10),
+    ]
+
+    # Meta table
+    meta = [
+        ["Case Number", inc.case_number,     "Status",   inc.status.upper()],
+        ["Severity",    inc.severity.upper(), "Priority", (inc.priority or "N/A").upper()],
+        ["Category",    inc.category or "N/A","Assigned", inc.assigned_to or "Unassigned"],
+        ["Created",     inc.created_at.strftime("%Y-%m-%d %H:%M") if inc.created_at else "N/A", "", ""],
+    ]
+    t = Table(meta, colWidths=[3.5*cm, 6*cm, 3.5*cm, 4*cm])
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0,0), (0,-1), colors.HexColor("#f3f4f6")),
+        ("BACKGROUND", (2,0), (2,-1), colors.HexColor("#f3f4f6")),
+        ("FONTNAME",   (0,0), (0,-1), "Helvetica-Bold"),
+        ("FONTNAME",   (2,0), (2,-1), "Helvetica-Bold"),
+        ("FONTSIZE",   (0,0), (-1,-1), 9),
+        ("GRID",       (0,0), (-1,-1), 0.5, colors.HexColor("#e5e7eb")),
+        ("ROWBACKGROUNDS", (0,0), (-1,-1), [colors.white, colors.HexColor("#f9fafb")]),
+        ("TEXTCOLOR", (1,0), (1,0), sev_color),
+        ("FONTNAME",  (1,0), (1,0), "Helvetica-Bold"),
+    ]))
+    story += [Paragraph("Incident Details", heading_style), t, Spacer(1, 8)]
+
+    # Title & Description
+    story += [
+        Paragraph(f"<b>{inc.title}</b>", ParagraphStyle("it", fontSize=11, textColor=colors.HexColor("#111827"), spaceAfter=4)),
+        Paragraph(inc.description or "No description.", body_style),
+    ]
+
+    # AI sections
+    for label, content in [("AI Summary", inc.ai_summary), ("Recommendations", inc.ai_recommendations)]:
+        if content:
+            story += [Paragraph(label, heading_style),
+                      HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#d1fae5")),
+                      Paragraph(content.replace("\n", "<br/>"), body_style)]
+
+    # Alerts table
+    if alerts:
+        story.append(Paragraph(f"Related Alerts ({len(alerts)})", heading_style))
+        ah = [["Alert ID", "Title", "Severity", "Source IP", "Time"]]
+        for a in alerts:
+            ah.append([
+                a.alert_id or "",
+                (a.title or "")[:45],
+                (a.severity or "").upper(),
+                a.source_ip or "",
+                a.created_at.strftime("%Y-%m-%d %H:%M") if a.created_at else ""
+            ])
+        at = Table(ah, colWidths=[2.5*cm, 7*cm, 2*cm, 3*cm, 3*cm])
+        at.setStyle(TableStyle([
+            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#10b981")),
+            ("TEXTCOLOR",  (0,0), (-1,0), colors.white),
+            ("FONTNAME",   (0,0), (-1,0), "Helvetica-Bold"),
+            ("FONTSIZE",   (0,0), (-1,-1), 8),
+            ("GRID",       (0,0), (-1,-1), 0.4, colors.HexColor("#e5e7eb")),
+            ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#f0fdf4")]),
+        ]))
+        story.append(at)
+
+    # IOCs table
+    if iocs:
+        story.append(Paragraph(f"Indicators of Compromise ({len(iocs)})", heading_style))
+        ih = [["Type", "Value", "Status", "VT Score"]]
+        for i in iocs:
+            status = "MALICIOUS" if i.is_malicious else ("CLEAN" if i.is_malicious is False else "UNKNOWN")
+            ih.append([(i.ioc_type or "").upper(), i.value or "", status, i.vt_score or "N/A"])
+        it = Table(ih, colWidths=[2.5*cm, 9*cm, 3*cm, 3*cm])
+        it.setStyle(TableStyle([
+            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#10b981")),
+            ("TEXTCOLOR",  (0,0), (-1,0), colors.white),
+            ("FONTNAME",   (0,0), (-1,0), "Helvetica-Bold"),
+            ("FONTSIZE",   (0,0), (-1,-1), 8),
+            ("GRID",       (0,0), (-1,-1), 0.4, colors.HexColor("#e5e7eb")),
+            ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#f0fdf4")]),
+        ]))
+        story.append(it)
+
+    doc.build(story)
+    buf.seek(0)
+    return Response(
+        content=buf.read(),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=report_{inc.case_number}.pdf"}
+    )
+
+
 @router.get("/summary")
 def get_summary_report(
     db: Session = Depends(get_db),

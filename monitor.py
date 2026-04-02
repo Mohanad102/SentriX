@@ -8,26 +8,26 @@ import psutil
 import requests
 import socket
 import os
+import re
 import time
 import json
 import hashlib
+import subprocess
 from datetime import datetime
 
 # ─── Configuration ────────────────────────────────────────────
 API_URL   = "http://localhost:8000"
 USERNAME  = "admin"
 PASSWORD  = "admin123"
-INTERVAL  = 30        # seconds between each scan
+INTERVAL  = 30
 HOSTNAME  = socket.gethostname()
 
-# Suspicious process names to watch for
 SUSPICIOUS_PROCESSES = [
     "nmap", "masscan", "hydra", "sqlmap", "metasploit", "msfconsole",
     "nc", "netcat", "socat", "tcpdump", "wireshark", "aircrack",
     "hashcat", "john", "mimikatz", "cobalt", "empire"
 ]
 
-# Suspicious remote ports and their known associations
 SUSPICIOUS_PORTS = {
     4444:  "Metasploit default",
     1337:  "Common backdoor",
@@ -39,13 +39,18 @@ SUSPICIOUS_PORTS = {
     9050:  "Tor SOCKS proxy",
 }
 
-# Sensitive files to monitor for changes
 WATCHED_FILES = [
     "/etc/passwd",
     "/etc/shadow",
     "/etc/hosts",
     "/etc/sudoers",
     "/root/.ssh/authorized_keys",
+]
+
+AUTH_LOG_PATHS = [
+    "/var/log/auth.log",
+    "/var/log/secure",
+    "/var/log/syslog",
 ]
 
 # ─── State ────────────────────────────────────────────────────
@@ -55,7 +60,10 @@ _state = {
     "prev_processes": set(),
     "file_hashes": {},
     "prev_cpu_alert": 0,
-    "sent_alerts": set(),   # deduplication cache
+    "sent_alerts": set(),
+    "auth_log_pos": {},       # file path -> last read position
+    "crontab_hash": None,
+    "prev_open_ports": set(),
 }
 
 
@@ -83,8 +91,6 @@ def get_headers():
 # ─── Send Alert ───────────────────────────────────────────────
 def send_alert(title, description, severity, category,
                source_ip=None, dest_ip=None, rule_id=None, rule_level=None, raw_data=None):
-
-    # Deduplicate: skip if same alert was already sent this session
     key = hashlib.md5(f"{title}{source_ip}{dest_ip}".encode()).hexdigest()
     if key in _state["sent_alerts"]:
         return
@@ -124,10 +130,21 @@ def send_alert(title, description, severity, category,
 # ─── 1. Suspicious Process Detection ─────────────────────────
 def check_suspicious_processes():
     current = set()
-    for proc in psutil.process_iter(["pid", "name", "username", "cmdline", "create_time"]):
+    for proc in psutil.process_iter(["pid", "name", "username", "cmdline", "exe", "ppid"]):
         try:
-            name = proc.info["name"].lower()
+            name    = proc.info["name"].lower()
             cmdline = " ".join(proc.info.get("cmdline") or []).lower()
+            exe     = proc.info.get("exe") or ""
+            ppid    = proc.info.get("ppid")
+
+            # Resolve parent process name
+            parent_name = ""
+            try:
+                if ppid:
+                    parent_name = psutil.Process(ppid).name()
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+
             for sus in SUSPICIOUS_PROCESSES:
                 if sus in name or sus in cmdline:
                     key = f"{sus}_{proc.pid}"
@@ -138,13 +155,22 @@ def check_suspicious_processes():
                             description=(
                                 f"A suspicious process was detected on the system.\n"
                                 f"PID: {proc.pid} | User: {proc.info['username']}\n"
-                                f"Command: {cmdline[:200]}"
+                                f"Parent: {parent_name} (PPID: {ppid})\n"
+                                f"Path: {exe}\n"
+                                f"Command: {cmdline[:300]}"
                             ),
                             severity="high",
                             category="execution",
                             rule_id="MON-001",
                             rule_level=10,
-                            raw_data=json.dumps({"pid": proc.pid, "name": proc.info["name"], "cmd": cmdline[:500]}),
+                            raw_data=json.dumps({
+                                "pid": proc.pid,
+                                "name": proc.info["name"],
+                                "exe": exe,
+                                "ppid": ppid,
+                                "parent": parent_name,
+                                "cmd": cmdline[:500]
+                            }),
                         )
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
@@ -220,11 +246,16 @@ def check_resource_usage():
         _state["prev_cpu_alert"] = now
 
         top_procs = sorted(
-            psutil.process_iter(["name", "cpu_percent"]),
+            psutil.process_iter(["name", "cpu_percent", "pid", "username"]),
             key=lambda p: p.info.get("cpu_percent") or 0,
             reverse=True
         )[:5]
-        top_names = [p.info["name"] for p in top_procs if p.info.get("name")]
+        top_info = [
+            {"name": p.info["name"], "pid": p.info["pid"],
+             "cpu": p.info.get("cpu_percent"), "user": p.info.get("username")}
+            for p in top_procs if p.info.get("name")
+        ]
+        top_names = [x["name"] for x in top_info]
 
         send_alert(
             title=f"High CPU Usage Detected: {cpu:.0f}%",
@@ -237,7 +268,7 @@ def check_resource_usage():
             category="execution",
             rule_id="MON-004",
             rule_level=8,
-            raw_data=json.dumps({"cpu": cpu, "ram": ram, "top_processes": top_names}),
+            raw_data=json.dumps({"cpu": cpu, "ram": ram, "top_processes": top_info}),
         )
 
 
@@ -311,6 +342,203 @@ def check_logged_in_users():
         pass
 
 
+# ─── 6. SSH / Auth Log Monitoring ────────────────────────────
+def init_auth_log():
+    for path in AUTH_LOG_PATHS:
+        if os.path.exists(path):
+            try:
+                _state["auth_log_pos"][path] = os.path.getsize(path)
+            except Exception:
+                pass
+
+
+def check_auth_logs():
+    failed_pattern    = re.compile(r"Failed password for (?:invalid user )?(\S+) from (\S+) port (\d+)")
+    accepted_pattern  = re.compile(r"Accepted (?:password|publickey) for (\S+) from (\S+) port (\d+)")
+    invalid_pattern   = re.compile(r"Invalid user (\S+) from (\S+)")
+    sudo_pattern      = re.compile(r"sudo:\s+(\S+) : .*COMMAND=(.*)")
+
+    for path, start_pos in list(_state["auth_log_pos"].items()):
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path, "r", errors="ignore") as f:
+                f.seek(start_pos)
+                new_lines = f.read()
+                _state["auth_log_pos"][path] = f.tell()
+
+            if not new_lines:
+                continue
+
+            # Count failed logins per IP
+            failed_ips = {}
+            for match in failed_pattern.finditer(new_lines):
+                user, ip, port = match.groups()
+                failed_ips[ip] = failed_ips.get(ip, 0) + 1
+
+            for ip, count in failed_ips.items():
+                severity = "critical" if count >= 10 else "high" if count >= 5 else "medium"
+                send_alert(
+                    title=f"SSH Failed Login Attempts: {count} from {ip}",
+                    description=(
+                        f"{count} failed SSH login attempt(s) detected.\n"
+                        f"Source IP: {ip}\n"
+                        f"Log file: {path}"
+                    ),
+                    severity=severity,
+                    category="authentication",
+                    source_ip=ip,
+                    rule_id="MON-007",
+                    rule_level=8 if count < 5 else 12,
+                    raw_data=json.dumps({"ip": ip, "count": count, "log": path}),
+                )
+
+            # Successful logins
+            for match in accepted_pattern.finditer(new_lines):
+                user, ip, port = match.groups()
+                send_alert(
+                    title=f"Successful SSH Login: {user} from {ip}",
+                    description=(
+                        f"SSH login accepted.\n"
+                        f"User: {user} | Source IP: {ip}:{port}\n"
+                        f"Log file: {path}"
+                    ),
+                    severity="low",
+                    category="authentication",
+                    source_ip=ip,
+                    rule_id="MON-008",
+                    rule_level=3,
+                    raw_data=json.dumps({"user": user, "ip": ip, "port": port}),
+                )
+
+            # Invalid users
+            for match in invalid_pattern.finditer(new_lines):
+                user, ip = match.groups()
+                send_alert(
+                    title=f"Invalid SSH User Attempt: {user} from {ip}",
+                    description=(
+                        f"SSH login attempt with non-existent username.\n"
+                        f"Username: {user} | Source IP: {ip}"
+                    ),
+                    severity="medium",
+                    category="authentication",
+                    source_ip=ip,
+                    rule_id="MON-009",
+                    rule_level=6,
+                    raw_data=json.dumps({"user": user, "ip": ip}),
+                )
+
+            # Sudo usage
+            for match in sudo_pattern.finditer(new_lines):
+                user, command = match.groups()
+                send_alert(
+                    title=f"Sudo Command Executed by: {user}",
+                    description=(
+                        f"A user executed a command with sudo privileges.\n"
+                        f"User: {user}\n"
+                        f"Command: {command.strip()}"
+                    ),
+                    severity="medium",
+                    category="privilege_escalation",
+                    rule_id="MON-010",
+                    rule_level=7,
+                    raw_data=json.dumps({"user": user, "command": command.strip()}),
+                )
+
+        except Exception as e:
+            print(f"[!] Error reading {path}: {e}")
+
+
+# ─── 7. Crontab Change Detection ─────────────────────────────
+def get_crontab_snapshot():
+    content = ""
+    # System crontabs
+    for cron_dir in ["/etc/cron.d", "/etc/cron.daily", "/etc/cron.hourly",
+                     "/etc/cron.weekly", "/etc/cron.monthly"]:
+        if os.path.isdir(cron_dir):
+            for f in os.listdir(cron_dir):
+                fpath = os.path.join(cron_dir, f)
+                try:
+                    with open(fpath, "r", errors="ignore") as fh:
+                        content += fh.read()
+                except Exception:
+                    pass
+    # /etc/crontab
+    if os.path.exists("/etc/crontab"):
+        try:
+            with open("/etc/crontab", "r", errors="ignore") as f:
+                content += f.read()
+        except Exception:
+            pass
+    # User crontabs
+    try:
+        result = subprocess.run(["crontab", "-l"], capture_output=True, text=True, timeout=3)
+        content += result.stdout
+    except Exception:
+        pass
+    return hashlib.md5(content.encode()).hexdigest()
+
+
+def init_crontab():
+    _state["crontab_hash"] = get_crontab_snapshot()
+
+
+def check_crontab_changes():
+    current_hash = get_crontab_snapshot()
+    if _state["crontab_hash"] and current_hash != _state["crontab_hash"]:
+        _state["crontab_hash"] = current_hash
+        send_alert(
+            title="Crontab Modification Detected",
+            description=(
+                "A scheduled task (crontab) was added, modified, or removed.\n"
+                "This may indicate persistence mechanism installation.\n"
+                "Check: /etc/crontab, /etc/cron.d/, and user crontabs."
+            ),
+            severity="high",
+            category="persistence",
+            rule_id="MON-011",
+            rule_level=11,
+            raw_data=json.dumps({"prev_hash": _state["crontab_hash"], "new_hash": current_hash}),
+        )
+    _state["crontab_hash"] = current_hash
+
+
+# ─── 8. Open Port Scan Detection (new listening ports) ────────
+def check_open_ports():
+    current_ports = set()
+    try:
+        for conn in psutil.net_connections(kind="inet"):
+            if conn.status == "LISTEN" and conn.laddr:
+                current_ports.add(conn.laddr.port)
+    except psutil.AccessDenied:
+        return
+
+    if not _state["prev_open_ports"]:
+        _state["prev_open_ports"] = current_ports
+        return
+
+    new_ports = current_ports - _state["prev_open_ports"]
+    for port in new_ports:
+        severity = "critical" if port in SUSPICIOUS_PORTS else "medium"
+        reason = SUSPICIOUS_PORTS.get(port, "Newly opened listening port")
+        send_alert(
+            title=f"New Listening Port Detected: {port}",
+            description=(
+                f"A new port has started listening on this system.\n"
+                f"Port: {port}\n"
+                f"Note: {reason}\n"
+                f"This may indicate a backdoor or new service."
+            ),
+            severity=severity,
+            category="network",
+            rule_id="MON-012",
+            rule_level=9 if severity == "critical" else 6,
+            raw_data=json.dumps({"port": port, "note": reason}),
+        )
+
+    _state["prev_open_ports"] = current_ports
+
+
 # ─── Main Loop ────────────────────────────────────────────────
 def main():
     print("=" * 55)
@@ -324,9 +552,15 @@ def main():
         return
 
     init_file_hashes()
+    init_auth_log()
+    init_crontab()
+
     print(f"[+] Watching {len(WATCHED_FILES)} sensitive files")
     print(f"[+] Watching {len(SUSPICIOUS_PROCESSES)} suspicious process names")
     print(f"[+] Watching {len(SUSPICIOUS_PORTS)} suspicious ports")
+    print(f"[+] Watching auth logs: {[p for p in AUTH_LOG_PATHS if os.path.exists(p)]}")
+    print(f"[+] Crontab monitoring enabled")
+    print(f"[+] Open port monitoring enabled")
     print("[+] Monitoring started... (Ctrl+C to stop)\n")
 
     while True:
@@ -336,6 +570,9 @@ def main():
             check_resource_usage()
             check_file_changes()
             check_logged_in_users()
+            check_auth_logs()
+            check_crontab_changes()
+            check_open_ports()
             time.sleep(INTERVAL)
         except KeyboardInterrupt:
             print("\n[!] Monitor stopped.")

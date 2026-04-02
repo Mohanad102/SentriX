@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     VIRUSTOTAL_API_KEY: str = ""
     VIRUSTOTAL_ENABLED: bool = False  # Set True when API key is provided
 
+    # AbuseIPDB
+    ABUSEIPDB_API_KEY: str = ""
+    ABUSEIPDB_ENABLED: bool = False  # Set True when API key is provided
+
     # OpenAI / AI Engine
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"

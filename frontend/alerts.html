@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body class="bg-gray-950 text-gray-100 flex">
+<body class="bg-gray-950 text-gray-100 flex" id="body">
 
   <!-- Sidebar -->
   <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
@@ -21,11 +21,13 @@
       </div>
     </div>
     <nav class="p-3 flex-1 space-y-1">
-      <a href="/dashboard.html" class="sidebar-link" data-page="dashboard"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
-      <a href="/alerts.html" class="sidebar-link active" data-page="alerts"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
-      <a href="/incidents.html" class="sidebar-link" data-page="incidents"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
-      <a href="/ai_analyst.html" class="sidebar-link" data-page="ai"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
-      <a href="/reports.html" class="sidebar-link" data-page="reports"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
+      <a href="/alerts.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
+      <a href="/incidents.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
+      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
+      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
+      <a href="/rules.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
     </nav>
     <div class="p-3 border-t border-gray-800">
       <div class="flex items-center gap-3 px-2 py-2">
@@ -44,11 +46,16 @@
     <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 backdrop-blur z-10">
       <div>
         <h1 class="text-white font-semibold text-lg">Alert Management</h1>
-        <p class="text-gray-500 text-xs">Monitor and triage security alerts</p>
+        <p class="text-gray-500 text-xs" id="auto-refresh-label">Auto-refresh: ON (30s)</p>
       </div>
-      <button onclick="openCreateModal()" class="btn btn-primary">
-        <i class="fa-solid fa-plus"></i> New Alert
-      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleAutoRefresh()" id="refresh-toggle-btn" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-pause" id="refresh-icon"></i> Pause
+        </button>
+        <button onclick="openCreateModal()" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> New Alert
+        </button>
+      </div>
     </header>
 
     <div class="p-6 page-fade">
@@ -56,8 +63,7 @@
       <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3">
         <div class="relative flex-1 min-w-48">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
-          <input type="text" id="search-input" placeholder="Search alerts..." class="form-input pl-9"
-            oninput="debounce(loadAlerts, 400)()" />
+          <input type="text" id="search-input" placeholder="Search alerts..." class="form-input pl-9" oninput="debounceLoad()" />
         </div>
         <select id="filter-severity" class="form-input form-select w-36" onchange="loadAlerts()">
           <option value="">All Severities</option>
@@ -74,8 +80,27 @@
           <option value="false_positive">False Positive</option>
         </select>
         <button onclick="loadAlerts()" class="btn btn-secondary btn-sm">
-          <i class="fa-solid fa-rotate-right"></i> Refresh
+          <i class="fa-solid fa-rotate-right"></i>
         </button>
+      </div>
+
+      <!-- Bulk Action Bar (hidden until selection) -->
+      <div id="bulk-bar" class="hidden bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+        <span class="text-emerald-400 text-sm font-medium"><span id="selected-count">0</span> selected</span>
+        <div class="flex gap-2 ml-auto">
+          <button onclick="bulkStatus('closed')" class="btn btn-sm bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600">
+            <i class="fa-solid fa-check"></i> Close All
+          </button>
+          <button onclick="bulkStatus('false_positive')" class="btn btn-sm bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600">
+            <i class="fa-solid fa-thumbs-down"></i> False Positive
+          </button>
+          <button onclick="bulkDelete()" class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20">
+            <i class="fa-solid fa-trash"></i> Delete All
+          </button>
+          <button onclick="clearSelection()" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Table -->
@@ -87,6 +112,9 @@
           <table class="data-table">
             <thead class="bg-gray-800/50">
               <tr>
+                <th class="w-8">
+                  <input type="checkbox" id="select-all" onchange="toggleSelectAll()" class="rounded border-gray-600 bg-gray-700 text-emerald-500" />
+                </th>
                 <th>Alert ID</th>
                 <th>Title</th>
                 <th>Severity</th>
@@ -107,7 +135,6 @@
         </div>
       </div>
 
-      <!-- Pagination -->
       <div class="flex items-center justify-between mt-4">
         <p class="text-xs text-gray-500" id="pagination-info"></p>
         <div class="flex gap-1" id="pagination-btns"></div>
@@ -115,7 +142,7 @@
     </div>
   </main>
 
-  <!-- Alert Detail Modal -->
+  <!-- Detail Modal -->
   <div id="detail-modal" class="modal-overlay hidden">
     <div class="modal-box w-full max-w-2xl">
       <div class="flex items-center justify-between mb-5">
@@ -126,7 +153,7 @@
     </div>
   </div>
 
-  <!-- Create Alert Modal -->
+  <!-- Create Modal -->
   <div id="create-modal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="flex items-center justify-between mb-5">
@@ -179,16 +206,97 @@
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
 
+    // ── State ─────────────────────────────────────────────────
     let currentPage = 1;
+    let selectedIds  = new Set();
+    let autoRefresh  = true;
+    let refreshTimer = null;
     let debounceTimer;
 
-    function debounce(fn, ms) {
-      return (...args) => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => fn(...args), ms);
-      };
+    const SEV_ROW = {
+      critical: 'border-l-4 border-red-500 bg-red-500/5',
+      high:     'border-l-4 border-orange-500 bg-orange-500/5',
+      medium:   'border-l-4 border-yellow-500 bg-yellow-500/5',
+      low:      '',
+    };
+
+    function debounceLoad() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => loadAlerts(), 400);
     }
 
+    // ── Auto-Refresh ──────────────────────────────────────────
+    function scheduleRefresh() {
+      clearTimeout(refreshTimer);
+      if (autoRefresh) refreshTimer = setTimeout(() => { loadAlerts(currentPage); }, 30000);
+    }
+
+    function toggleAutoRefresh() {
+      autoRefresh = !autoRefresh;
+      const icon = document.getElementById('refresh-icon');
+      const btn  = document.getElementById('refresh-toggle-btn');
+      const label = document.getElementById('auto-refresh-label');
+      if (autoRefresh) {
+        icon.className = 'fa-solid fa-pause';
+        btn.innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+        label.textContent = 'Auto-refresh: ON (30s)';
+        scheduleRefresh();
+      } else {
+        clearTimeout(refreshTimer);
+        icon.className = 'fa-solid fa-play';
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Resume';
+        label.textContent = 'Auto-refresh: OFF';
+      }
+    }
+
+    // ── Selection ─────────────────────────────────────────────
+    function toggleSelectAll() {
+      const checked = document.getElementById('select-all').checked;
+      document.querySelectorAll('.row-check').forEach(cb => {
+        cb.checked = checked;
+        checked ? selectedIds.add(+cb.dataset.id) : selectedIds.delete(+cb.dataset.id);
+      });
+      updateBulkBar();
+    }
+
+    function toggleRow(id, checked) {
+      checked ? selectedIds.add(id) : selectedIds.delete(id);
+      updateBulkBar();
+    }
+
+    function clearSelection() {
+      selectedIds.clear();
+      document.querySelectorAll('.row-check').forEach(cb => cb.checked = false);
+      document.getElementById('select-all').checked = false;
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const bar = document.getElementById('bulk-bar');
+      document.getElementById('selected-count').textContent = selectedIds.size;
+      bar.classList.toggle('hidden', selectedIds.size === 0);
+    }
+
+    // ── Bulk Actions ──────────────────────────────────────────
+    async function bulkStatus(status) {
+      if (!selectedIds.size) return;
+      if (!confirm(`Set ${selectedIds.size} alert(s) to "${status.replace('_',' ')}"?`)) return;
+      await Promise.all([...selectedIds].map(id => apiPatch(`/api/alerts/${id}`, { status })));
+      showToast(`${selectedIds.size} alerts updated`, 'success');
+      clearSelection();
+      loadAlerts(currentPage);
+    }
+
+    async function bulkDelete() {
+      if (!selectedIds.size) return;
+      if (!confirm(`Delete ${selectedIds.size} alert(s)? This cannot be undone.`)) return;
+      await Promise.all([...selectedIds].map(id => apiFetch(`/api/alerts/${id}`, { method: 'DELETE' })));
+      showToast(`${selectedIds.size} alerts deleted`, 'success');
+      clearSelection();
+      loadAlerts(currentPage);
+    }
+
+    // ── Load & Render ─────────────────────────────────────────
     async function loadAlerts(page = 1) {
       currentPage = page;
       document.getElementById('table-loading').classList.remove('hidden');
@@ -196,9 +304,9 @@
 
       const params = {
         page, page_size: 20,
-        search: document.getElementById('search-input').value,
+        search:   document.getElementById('search-input').value,
         severity: document.getElementById('filter-severity').value,
-        status: document.getElementById('filter-status').value
+        status:   document.getElementById('filter-status').value,
       };
       Object.keys(params).forEach(k => !params[k] && delete params[k]);
 
@@ -206,13 +314,15 @@
         const data = await apiGet('/api/alerts', params);
         renderTable(data.items);
         document.getElementById('pagination-info').textContent =
-          `Showing ${(page-1)*20+1}-${Math.min(page*20, data.total)} of ${data.total} alerts`;
+          `Showing ${(page-1)*20+1}–${Math.min(page*20, data.total)} of ${data.total} alerts`;
         buildPagination(document.getElementById('pagination-btns'), page, data.pages, loadAlerts);
         document.getElementById('table-loading').classList.add('hidden');
         document.getElementById('table-container').classList.remove('hidden');
         document.getElementById('no-results').classList.toggle('hidden', data.items.length > 0);
+        scheduleRefresh();
       } catch (err) {
-        document.getElementById('table-loading').innerHTML = `<p class="text-red-400 py-8 text-center">${err.message}</p>`;
+        document.getElementById('table-loading').innerHTML =
+          `<p class="text-red-400 py-8 text-center">${err.message}</p>`;
       }
     }
 
@@ -220,15 +330,20 @@
       const tbody = document.getElementById('alerts-tbody');
       if (!alerts.length) { tbody.innerHTML = ''; return; }
       tbody.innerHTML = alerts.map(a => `
-        <tr>
+        <tr class="${SEV_ROW[a.severity] || ''}">
+          <td>
+            <input type="checkbox" class="row-check rounded border-gray-600 bg-gray-700 text-emerald-500"
+              data-id="${a.id}" ${selectedIds.has(a.id)?'checked':''}
+              onchange="toggleRow(${a.id}, this.checked)" />
+          </td>
           <td><span class="font-mono text-xs text-gray-400">${a.alert_id}</span></td>
           <td class="max-w-xs">
             <p class="truncate text-gray-100 text-sm" title="${a.title}">${a.title}</p>
           </td>
           <td>${severityBadge(a.severity)}</td>
-          <td><span class="font-mono text-xs text-gray-400">${a.source_ip || '—'}</span></td>
-          <td><span class="text-xs text-gray-400">${a.hostname || '—'}</span></td>
-          <td><span class="text-xs text-gray-400 capitalize">${a.category?.replace('_',' ') || '—'}</span></td>
+          <td><span class="font-mono text-xs text-gray-400">${a.source_ip||'—'}</span></td>
+          <td><span class="text-xs text-gray-400">${a.hostname||'—'}</span></td>
+          <td><span class="text-xs text-gray-400 capitalize">${a.category?.replace('_',' ')||'—'}</span></td>
           <td>${statusBadge(a.status)}</td>
           <td><span class="text-xs text-gray-500">${timeAgo(a.created_at)}</span></td>
           <td>
@@ -236,10 +351,10 @@
               <button onclick="showDetail(${a.id})" class="btn btn-secondary btn-sm" title="Details">
                 <i class="fa-solid fa-eye"></i>
               </button>
-              <button onclick="escalate(${a.id})" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20" title="Escalate to Incident">
+              <button onclick="escalate(${a.id})" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20" title="Escalate">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
               </button>
-              <button onclick="changeStatus(${a.id}, '${a.status}')" class="btn btn-secondary btn-sm" title="Update Status">
+              <button onclick="changeStatus(${a.id},'${a.status}')" class="btn btn-secondary btn-sm" title="Change Status">
                 <i class="fa-solid fa-pen"></i>
               </button>
             </div>
@@ -247,54 +362,36 @@
         </tr>`).join('');
     }
 
+    // ── Detail / Escalate / Status ────────────────────────────
     async function showDetail(id) {
       const a = await apiGet(`/api/alerts/${id}`);
       document.getElementById('modal-title').textContent = a.title;
       document.getElementById('modal-body').innerHTML = `
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-3 text-sm">
-            <div class="bg-gray-800 rounded-lg p-3">
-              <p class="text-gray-500 text-xs mb-1">Alert ID</p>
-              <p class="text-gray-100 font-mono">${a.alert_id}</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-3">
-              <p class="text-gray-500 text-xs mb-1">Severity</p>
-              ${severityBadge(a.severity)}
-            </div>
-            <div class="bg-gray-800 rounded-lg p-3">
-              <p class="text-gray-500 text-xs mb-1">Source IP</p>
-              <p class="text-gray-100 font-mono">${a.source_ip || '—'}</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-3">
-              <p class="text-gray-500 text-xs mb-1">Hostname</p>
-              <p class="text-gray-100">${a.hostname || '—'}</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-3">
-              <p class="text-gray-500 text-xs mb-1">Rule ID / Level</p>
-              <p class="text-gray-100">${a.rule_id || '—'} / ${a.rule_level ?? '—'}</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-3">
-              <p class="text-gray-500 text-xs mb-1">Category</p>
-              <p class="text-gray-100 capitalize">${a.category?.replace('_',' ') || '—'}</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-3">
-              <p class="text-gray-500 text-xs mb-1">Status</p>
-              ${statusBadge(a.status)}
-            </div>
-            <div class="bg-gray-800 rounded-lg p-3">
-              <p class="text-gray-500 text-xs mb-1">Created</p>
-              <p class="text-gray-100 text-xs">${formatDate(a.created_at)}</p>
-            </div>
+            ${[['Alert ID', `<span class="font-mono">${a.alert_id}</span>`],
+               ['Severity', severityBadge(a.severity)],
+               ['Source IP', `<span class="font-mono">${a.source_ip||'—'}</span>`],
+               ['Hostname', a.hostname||'—'],
+               ['Rule ID / Level', `${a.rule_id||'—'} / ${a.rule_level??'—'}`],
+               ['Category', `<span class="capitalize">${a.category?.replace('_',' ')||'—'}</span>`],
+               ['Status', statusBadge(a.status)],
+               ['Created', `<span class="text-xs">${formatDate(a.created_at)}</span>`],
+            ].map(([label, val]) => `
+              <div class="bg-gray-800 rounded-lg p-3">
+                <p class="text-gray-500 text-xs mb-1">${label}</p>
+                <div class="text-gray-100">${val}</div>
+              </div>`).join('')}
           </div>
           ${a.description ? `<div class="bg-gray-800 rounded-lg p-3">
             <p class="text-gray-500 text-xs mb-1">Description</p>
-            <p class="text-gray-200 text-sm">${a.description}</p>
+            <p class="text-gray-200 text-sm whitespace-pre-wrap">${a.description}</p>
           </div>` : ''}
           <div class="flex gap-3">
             <button onclick="escalate(${a.id})" class="btn btn-primary flex-1">
               <i class="fa-solid fa-arrow-up-right-from-square"></i> Escalate to Incident
             </button>
-            <button onclick="changeStatus(${a.id}, '${a.status}')" class="btn btn-secondary">
+            <button onclick="changeStatus(${a.id},'${a.status}')" class="btn btn-secondary">
               <i class="fa-solid fa-pen"></i> Update Status
             </button>
           </div>
@@ -305,27 +402,23 @@
     async function escalate(id) {
       if (!confirm('Escalate this alert to a new incident?')) return;
       try {
-        const result = await apiFetch(`/api/alerts/${id}/escalate`, { method: 'POST' });
-        showToast(`Incident ${result.case_number} created`, 'success');
+        const r = await apiFetch(`/api/alerts/${id}/escalate`, { method: 'POST' });
+        showToast(`Incident ${r.case_number} created`, 'success');
         closeModal('detail-modal');
         loadAlerts(currentPage);
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
+      } catch(err) { showToast(err.message, 'error'); }
     }
 
-    async function changeStatus(id, currentStatus) {
-      const statuses = ['open', 'in_progress', 'closed', 'false_positive'];
-      const next = statuses[(statuses.indexOf(currentStatus) + 1) % statuses.length];
-      if (!confirm(`Change status to "${next.replace('_', ' ')}"?`)) return;
+    async function changeStatus(id, current) {
+      const statuses = ['open','in_progress','closed','false_positive'];
+      const next = statuses[(statuses.indexOf(current)+1) % statuses.length];
+      if (!confirm(`Change status to "${next.replace('_',' ')}"?`)) return;
       try {
         await apiPatch(`/api/alerts/${id}`, { status: next });
         showToast('Status updated', 'success');
-        loadAlerts(currentPage);
         closeModal('detail-modal');
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
+        loadAlerts(currentPage);
+      } catch(err) { showToast(err.message, 'error'); }
     }
 
     function openCreateModal() {
@@ -333,33 +426,27 @@
       document.getElementById('create-modal').classList.remove('hidden');
     }
 
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-    }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    document.getElementById('create-form').addEventListener('submit', async (e) => {
+    document.getElementById('create-form').addEventListener('submit', async e => {
       e.preventDefault();
       try {
         await apiPost('/api/alerts', {
-          title: document.getElementById('c-title').value,
-          severity: document.getElementById('c-severity').value,
-          category: document.getElementById('c-category').value || null,
-          source_ip: document.getElementById('c-source-ip').value || null,
-          hostname: document.getElementById('c-hostname').value || null,
+          title:       document.getElementById('c-title').value,
+          severity:    document.getElementById('c-severity').value,
+          category:    document.getElementById('c-category').value || null,
+          source_ip:   document.getElementById('c-source-ip').value || null,
+          hostname:    document.getElementById('c-hostname').value || null,
           description: document.getElementById('c-description').value || null,
         });
         showToast('Alert created', 'success');
         closeModal('create-modal');
         loadAlerts();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
+      } catch(err) { showToast(err.message, 'error'); }
     });
 
-    // Close modal on overlay click
-    document.querySelectorAll('.modal-overlay').forEach(m => {
-      m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
-    });
+    document.querySelectorAll('.modal-overlay').forEach(m =>
+      m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
 
     loadAlerts();
   </script>
