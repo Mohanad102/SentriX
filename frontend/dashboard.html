@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="bg-gray-950 text-gray-100 flex">
+
+  <!-- Sidebar -->
+  <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
+    <div class="p-5 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
+        </div>
+        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
+      </div>
+    </div>
+
+    <nav class="p-3 flex-1 space-y-1">
+      <a href="/dashboard.html" class="sidebar-link active" data-page="dashboard">
+        <span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard
+      </a>
+      <a href="/alerts.html" class="sidebar-link" data-page="alerts">
+        <span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts
+        <span id="alert-badge" class="ml-auto bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded-full hidden"></span>
+      </a>
+      <a href="/incidents.html" class="sidebar-link" data-page="incidents">
+        <span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents
+      </a>
+      <a href="/ai_analyst.html" class="sidebar-link" data-page="ai">
+        <span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst
+      </a>
+      <a href="/reports.html" class="sidebar-link" data-page="reports">
+        <span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports
+      </a>
+    </nav>
+
+    <div class="p-3 border-t border-gray-800">
+      <div class="flex items-center gap-3 px-2 py-2 rounded-lg">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-white truncate user-name">Admin</p>
+          <p class="text-xs text-gray-500 user-role">ADMIN</p>
+        </div>
+        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition" title="Logout">
+          <i class="fa-solid fa-right-from-bracket text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 min-h-screen overflow-auto">
+    <!-- Top bar -->
+    <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 backdrop-blur z-10">
+      <div>
+        <h1 class="text-white font-semibold text-lg">Security Dashboard</h1>
+        <p class="text-gray-500 text-xs">Real-time SOC overview</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 text-xs text-emerald-400">
+          <div class="live-dot"></div> LIVE
+        </div>
+        <button onclick="loadDashboard()" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+      </div>
+    </header>
+
+    <div class="p-6 page-fade" id="dashboard-content">
+      <!-- Loading state -->
+      <div id="loading" class="flex items-center justify-center py-20">
+        <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+      </div>
+
+      <!-- Stats Grid -->
+      <div id="stats-grid" class="hidden">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="stat-card glow-red">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-500 text-sm">Critical Alerts</span>
+              <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <i class="fa-solid fa-triangle-exclamation text-red-400 text-sm"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-bold text-white" id="stat-critical">—</p>
+            <p class="text-xs text-gray-500 mt-1" id="stat-24h">— in last 24h</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-500 text-sm">Open Alerts</span>
+              <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <i class="fa-solid fa-bell text-orange-400 text-sm"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-bold text-white" id="stat-open-alerts">—</p>
+            <p class="text-xs text-gray-500 mt-1">Require attention</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-500 text-sm">Active Incidents</span>
+              <div class="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                <i class="fa-solid fa-file-shield text-yellow-400 text-sm"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-bold text-white" id="stat-incidents">—</p>
+            <p class="text-xs text-gray-500 mt-1" id="stat-incidents-sub">— in progress</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-500 text-sm">Malicious IOCs</span>
+              <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <i class="fa-solid fa-virus text-purple-400 text-sm"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-bold text-white" id="stat-iocs">—</p>
+            <p class="text-xs text-gray-500 mt-1" id="stat-iocs-sub">— total tracked</p>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <!-- Alerts over time -->
+          <div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h3 class="text-white font-medium mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-emerald-400 text-sm"></i>
+              Alerts — Last 7 Days
+            </h3>
+            <div class="chart-container" style="height:200px">
+              <canvas id="alertsTimeChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Severity donut -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h3 class="text-white font-medium mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-emerald-400 text-sm"></i>
+              Alerts by Severity
+            </h3>
+            <div class="chart-container" style="height:160px">
+              <canvas id="severityChart"></canvas>
+            </div>
+            <div id="severity-legend" class="mt-3 space-y-1"></div>
+          </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Recent Alerts -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-white font-medium flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-emerald-400 text-sm"></i>
+                Recent Alerts
+              </h3>
+              <a href="/alerts.html" class="text-xs text-emerald-400 hover:text-emerald-300">View all →</a>
+            </div>
+            <div id="recent-alerts-list" class="space-y-2"></div>
+          </div>
+
+          <!-- Top Categories + Incident Status -->
+          <div class="space-y-4">
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 class="text-white font-medium mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-tags text-emerald-400 text-sm"></i>
+                Top Alert Categories
+              </h3>
+              <div id="categories-list" class="space-y-2"></div>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 class="text-white font-medium mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-half-stroke text-emerald-400 text-sm"></i>
+                Incident Status
+              </h3>
+              <div class="chart-container" style="height:120px">
+                <canvas id="incidentStatusChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error('Not authenticated');
+
+    let alertsTimeChart, severityChart, incidentStatusChart;
+
+    async function loadDashboard() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('stats-grid').classList.add('hidden');
+
+      try {
+        const [stats, bySev, overTime, recentAlerts, incByStatus, topCats] = await Promise.all([
+          apiGet('/api/dashboard/stats'),
+          apiGet('/api/dashboard/alerts-by-severity'),
+          apiGet('/api/dashboard/alerts-over-time'),
+          apiGet('/api/dashboard/recent-alerts'),
+          apiGet('/api/dashboard/incidents-by-status'),
+          apiGet('/api/dashboard/top-categories')
+        ]);
+
+        // Update stats
+        document.getElementById('stat-critical').textContent = stats.alerts.critical;
+        document.getElementById('stat-24h').textContent = `${stats.alerts.last_24h} in last 24h`;
+        document.getElementById('stat-open-alerts').textContent = stats.alerts.open;
+        document.getElementById('stat-incidents').textContent = stats.incidents.open + stats.incidents.in_progress;
+        document.getElementById('stat-incidents-sub').textContent = `${stats.incidents.in_progress} in progress`;
+        document.getElementById('stat-iocs').textContent = stats.iocs.malicious;
+        document.getElementById('stat-iocs-sub').textContent = `${stats.iocs.total} total tracked`;
+
+        // Alert badge in sidebar
+        if (stats.alerts.open > 0) {
+          const badge = document.getElementById('alert-badge');
+          badge.textContent = stats.alerts.open;
+          badge.classList.remove('hidden');
+        }
+
+        // Charts
+        renderAlertsTimeChart(overTime);
+        renderSeverityChart(bySev);
+        renderIncidentStatusChart(incByStatus);
+
+        // Recent alerts
+        renderRecentAlerts(recentAlerts);
+
+        // Top categories
+        renderCategories(topCats);
+
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('stats-grid').classList.remove('hidden');
+      } catch (err) {
+        document.getElementById('loading').innerHTML = `<p class="text-red-400">Error loading dashboard: ${err.message}</p>`;
+      }
+    }
+
+    function renderAlertsTimeChart(data) {
+      const ctx = document.getElementById('alertsTimeChart').getContext('2d');
+      if (alertsTimeChart) alertsTimeChart.destroy();
+      alertsTimeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => {
+            const dt = new Date(d.date);
+            return dt.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
+          }),
+          datasets: [{
+            label: 'Alerts',
+            data: data.map(d => d.count),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16,185,129,0.08)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#10b981',
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: '#1f2937' }, ticks: { color: '#6b7280', font: { size: 11 } } },
+            y: { grid: { color: '#1f2937' }, ticks: { color: '#6b7280', font: { size: 11 } }, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderSeverityChart(data) {
+      const ctx = document.getElementById('severityChart').getContext('2d');
+      const colors = { critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#22c55e' };
+      const labels = Object.keys(data);
+      const values = Object.values(data);
+      if (severityChart) severityChart.destroy();
+      severityChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{ data: values, backgroundColor: labels.map(l => colors[l] || '#6b7280'), borderWidth: 0, hoverOffset: 4 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      // Custom legend
+      const legend = document.getElementById('severity-legend');
+      legend.innerHTML = labels.map((l, i) => `
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full" style="background:${colors[l] || '#6b7280'}"></div>
+            <span class="text-xs text-gray-400 capitalize">${l}</span>
+          </div>
+          <span class="text-xs font-medium text-white">${values[i]}</span>
+        </div>`).join('');
+    }
+
+    function renderIncidentStatusChart(data) {
+      const ctx = document.getElementById('incidentStatusChart').getContext('2d');
+      const colors = { open: '#3b82f6', in_progress: '#eab308', resolved: '#22c55e', closed: '#6b7280' };
+      const labels = Object.keys(data);
+      const values = Object.values(data);
+      if (incidentStatusChart) incidentStatusChart.destroy();
+      incidentStatusChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels.map(l => l.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())),
+          datasets: [{ data: values, backgroundColor: labels.map(l => (colors[l] || '#6b7280') + '99'), borderRadius: 6 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 11 } } },
+            y: { grid: { color: '#1f2937' }, ticks: { color: '#6b7280', font: { size: 11 } }, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderRecentAlerts(alerts) {
+      const container = document.getElementById('recent-alerts-list');
+      if (!alerts.length) {
+        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">No alerts yet</p>';
+        return;
+      }
+      container.innerHTML = alerts.slice(0, 6).map(a => `
+        <div class="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-800/50 transition cursor-pointer" onclick="window.location='/alerts.html'">
+          <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+            a.severity === 'critical' ? 'bg-red-400' :
+            a.severity === 'high' ? 'bg-orange-400' :
+            a.severity === 'medium' ? 'bg-yellow-400' : 'bg-green-400'
+          }"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-gray-200 truncate">${a.title}</p>
+            <p class="text-xs text-gray-500">${a.hostname || a.source_ip || 'Unknown'} · ${timeAgo(a.created_at)}</p>
+          </div>
+          ${severityBadge(a.severity)}
+        </div>`).join('');
+    }
+
+    function renderCategories(data) {
+      const container = document.getElementById('categories-list');
+      if (!data.length) {
+        container.innerHTML = '<p class="text-gray-500 text-sm">No data</p>';
+        return;
+      }
+      const max = Math.max(...data.map(d => d.count));
+      container.innerHTML = data.map(d => `
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-400 w-32 truncate capitalize">${d.category?.replace('_', ' ') || 'unknown'}</span>
+          <div class="flex-1 bg-gray-800 rounded-full h-1.5">
+            <div class="h-1.5 rounded-full bg-emerald-500" style="width:${(d.count / max * 100).toFixed(0)}%"></div>
+          </div>
+          <span class="text-xs text-gray-400 w-6 text-right">${d.count}</span>
+        </div>`).join('');
+    }
+
+    loadDashboard();
+    setInterval(loadDashboard, 60000); // Auto-refresh every minute
+  </script>
+</body>
+</html>

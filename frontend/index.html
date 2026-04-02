@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="bg-gray-950 flex items-center justify-center min-h-screen">
+
+  <!-- Animated background grid -->
+  <div class="fixed inset-0 opacity-5 pointer-events-none" style="background-image: linear-gradient(#00ff88 1px, transparent 1px), linear-gradient(90deg, #00ff88 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+  <div class="relative z-10 w-full max-w-md px-6">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 mb-4 shadow-lg shadow-emerald-500/10">
+        <i class="fa-solid fa-shield-halved text-2xl text-emerald-400"></i>
+      </div>
+      <h1 class="text-3xl font-bold text-white tracking-wide">Sentri<span class="text-emerald-400">X</span></h1>
+      <p class="text-gray-400 text-sm mt-1">AI-Driven Security Operations Center</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl p-8">
+      <h2 class="text-white font-semibold text-lg mb-6">Sign in to your account</h2>
+
+      <div id="error-msg" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg px-4 py-3 mb-4 text-sm flex items-center gap-2">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="error-text"></span>
+      </div>
+
+      <form id="login-form" class="space-y-5">
+        <div>
+          <label class="block text-gray-400 text-sm mb-2">Username</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+            <input type="text" id="username" placeholder="admin" required
+              class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-gray-400 text-sm mb-2">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+            <input type="password" id="password" placeholder="••••••••" required
+              class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition text-sm" />
+            <button type="button" id="toggle-pwd" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition">
+              <i class="fa-solid fa-eye text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="login-btn"
+          class="w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-semibold rounded-lg py-3 transition flex items-center justify-center gap-2 text-sm">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Sign In
+        </button>
+      </form>
+
+      <!-- Demo credentials -->
+      <div class="mt-6 border-t border-gray-800 pt-5">
+        <p class="text-gray-500 text-xs text-center mb-3">Demo Credentials</p>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="fillCredentials('admin','admin123')"
+            class="bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-300 transition flex items-center gap-2">
+            <i class="fa-solid fa-user-shield text-emerald-400"></i>
+            Admin / admin123
+          </button>
+          <button onclick="fillCredentials('analyst','analyst123')"
+            class="bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-300 transition flex items-center gap-2">
+            <i class="fa-solid fa-user text-blue-400"></i>
+            Analyst / analyst123
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center text-gray-600 text-xs mt-6">
+      SentriX v1.0 &mdash; Applied Science Private University &copy; 2025-2026
+    </p>
+  </div>
+
+  <script>
+    function fillCredentials(user, pass) {
+      document.getElementById('username').value = user;
+      document.getElementById('password').value = pass;
+    }
+
+    document.getElementById('toggle-pwd').addEventListener('click', () => {
+      const pwd = document.getElementById('password');
+      const icon = document.querySelector('#toggle-pwd i');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash text-sm';
+      } else {
+        pwd.type = 'password';
+        icon.className = 'fa-solid fa-eye text-sm';
+      }
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const errDiv = document.getElementById('error-msg');
+      const errText = document.getElementById('error-text');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in...';
+      errDiv.classList.add('hidden');
+
+      const formData = new FormData();
+      formData.append('username', document.getElementById('username').value);
+      formData.append('password', document.getElementById('password').value);
+
+      try {
+        const resp = await fetch('/api/auth/login', { method: 'POST', body: formData });
+        const data = await resp.json();
+
+        if (resp.ok) {
+          localStorage.setItem('sentrix_token', data.access_token);
+          localStorage.setItem('sentrix_user', JSON.stringify(data.user));
+          window.location.href = '/dashboard.html';
+        } else {
+          errText.textContent = data.detail || 'Login failed';
+          errDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        errText.textContent = 'Connection error. Please try again.';
+        errDiv.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Sign In';
+      }
+    });
+
+    // Redirect if already logged in
+    if (localStorage.getItem('sentrix_token')) {
+      window.location.href = '/dashboard.html';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — Incidents</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="bg-gray-950 text-gray-100 flex">
+
+  <!-- Sidebar -->
+  <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
+    <div class="p-5 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
+        </div>
+        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
+      </div>
+    </div>
+    <nav class="p-3 flex-1 space-y-1">
+      <a href="/dashboard.html" class="sidebar-link" data-page="dashboard"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
+      <a href="/alerts.html" class="sidebar-link" data-page="alerts"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
+      <a href="/incidents.html" class="sidebar-link active" data-page="incidents"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
+      <a href="/ai_analyst.html" class="sidebar-link" data-page="ai"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
+      <a href="/reports.html" class="sidebar-link" data-page="reports"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+    </nav>
+    <div class="p-3 border-t border-gray-800">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-medium text-white truncate user-name">Admin</p><p class="text-xs text-gray-500 user-role">ADMIN</p></div>
+        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-h-screen overflow-auto">
+    <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 backdrop-blur z-10">
+      <div>
+        <h1 class="text-white font-semibold text-lg">Incident Management</h1>
+        <p class="text-gray-500 text-xs">Case tracking and response orchestration</p>
+      </div>
+      <button onclick="openCreateModal()" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> New Incident
+      </button>
+    </header>
+
+    <div class="p-6 page-fade">
+      <!-- Filters -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3">
+        <div class="relative flex-1 min-w-48">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+          <input type="text" id="search-input" placeholder="Search incidents..." class="form-input pl-9" oninput="debouncedLoad()" />
+        </div>
+        <select id="filter-severity" class="form-input form-select w-36" onchange="loadIncidents()">
+          <option value="">All Severities</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select id="filter-status" class="form-input form-select w-36" onchange="loadIncidents()">
+          <option value="">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div id="table-loading" class="flex items-center justify-center py-16">
+          <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+        </div>
+        <div id="table-container" class="hidden overflow-x-auto">
+          <table class="data-table">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th>Case #</th>
+                <th>Title</th>
+                <th>Severity</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="incidents-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="flex items-center justify-between mt-4">
+        <p class="text-xs text-gray-500" id="pagination-info"></p>
+        <div class="flex gap-1" id="pagination-btns"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Incident Detail Modal -->
+  <div id="detail-modal" class="modal-overlay hidden">
+    <div class="modal-box w-full max-w-3xl">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-white font-semibold text-lg" id="modal-case-num">Incident Details</h3>
+        <button onclick="closeModal('detail-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Create Incident Modal -->
+  <div id="create-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-white font-semibold">Create Incident</h3>
+        <button onclick="closeModal('create-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="create-form" class="space-y-4">
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Title *</label>
+          <input type="text" id="c-title" class="form-input" required placeholder="Incident title" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-gray-400 text-sm mb-1">Severity</label>
+            <select id="c-severity" class="form-input form-select">
+              <option value="low">Low</option><option value="medium" selected>Medium</option>
+              <option value="high">High</option><option value="critical">Critical</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-400 text-sm mb-1">Priority</label>
+            <select id="c-priority" class="form-input form-select">
+              <option value="low">Low</option><option value="medium" selected>Medium</option>
+              <option value="high">High</option><option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-gray-400 text-sm mb-1">Category</label>
+            <input type="text" id="c-category" class="form-input" placeholder="e.g. ransomware" />
+          </div>
+          <div>
+            <label class="block text-gray-400 text-sm mb-1">Assign To</label>
+            <input type="text" id="c-assigned" class="form-input" placeholder="username" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Description</label>
+          <textarea id="c-description" class="form-input h-24 resize-none" placeholder="Describe the incident..."></textarea>
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Tags</label>
+          <input type="text" id="c-tags" class="form-input" placeholder="tag1,tag2,tag3" />
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="submit" class="btn btn-primary flex-1">Create Incident</button>
+          <button type="button" onclick="closeModal('create-modal')" class="btn btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Update Status Modal -->
+  <div id="status-modal" class="modal-overlay hidden">
+    <div class="modal-box max-w-sm">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-white font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-pen text-emerald-400 text-sm"></i>
+          Update Incident Status
+        </h3>
+        <button onclick="closeModal('status-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <input type="hidden" id="status-incident-id" />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-gray-400 text-sm mb-2">Current Status</label>
+          <p id="status-current" class="text-sm text-gray-300"></p>
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-2">New Status</label>
+          <select id="status-select" class="form-input form-select">
+            <option value="open">🔵 Open</option>
+            <option value="in_progress">🟡 In Progress</option>
+            <option value="resolved">🟢 Resolved</option>
+            <option value="closed">⚫ Closed</option>
+          </select>
+        </div>
+        <div class="flex gap-3 pt-1">
+          <button onclick="submitStatusUpdate()" class="btn btn-primary flex-1">
+            <i class="fa-solid fa-check"></i> Update Status
+          </button>
+          <button onclick="closeModal('status-modal')" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IOC Add Modal -->
+  <div id="ioc-modal" class="modal-overlay hidden">
+    <div class="modal-box max-w-md">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-white font-semibold">Add IOC</h3>
+        <button onclick="closeModal('ioc-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="ioc-form" class="space-y-4">
+        <input type="hidden" id="ioc-incident-id" />
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">IOC Value *</label>
+          <input type="text" id="ioc-value" class="form-input" required placeholder="IP, domain, hash, URL..." />
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Type</label>
+          <select id="ioc-type" class="form-input form-select">
+            <option value="ip">IP Address</option>
+            <option value="domain">Domain</option>
+            <option value="url">URL</option>
+            <option value="hash">File Hash</option>
+            <option value="email">Email</option>
+          </select>
+        </div>
+        <div class="flex gap-3">
+          <button type="submit" class="btn btn-primary flex-1">Add IOC</button>
+          <button type="button" onclick="closeModal('ioc-modal')" class="btn btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error('Not authenticated');
+    let currentPage = 1;
+    let debounceTimer;
+    let allIncidentsCache = {};  // id -> incident object cache
+    const debouncedLoad = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadIncidents, 400); };
+
+    async function loadIncidents(page = 1) {
+      currentPage = page;
+      document.getElementById('table-loading').classList.remove('hidden');
+      document.getElementById('table-container').classList.add('hidden');
+      const params = {
+        page, page_size: 20,
+        search: document.getElementById('search-input').value,
+        severity: document.getElementById('filter-severity').value,
+        status: document.getElementById('filter-status').value
+      };
+      Object.keys(params).forEach(k => !params[k] && delete params[k]);
+      try {
+        const data = await apiGet('/api/incidents', params);
+        renderTable(data.items);
+        document.getElementById('pagination-info').textContent =
+          `Showing ${Math.min((page-1)*20+1, data.total)}-${Math.min(page*20, data.total)} of ${data.total}`;
+        buildPagination(document.getElementById('pagination-btns'), page, data.pages, loadIncidents);
+        data.items.forEach(i => allIncidentsCache[i.id] = i);
+        document.getElementById('table-loading').classList.add('hidden');
+        document.getElementById('table-container').classList.remove('hidden');
+      } catch (err) {
+        document.getElementById('table-loading').innerHTML = `<p class="text-red-400 py-8 text-center">${err.message}</p>`;
+      }
+    }
+
+    function renderTable(items) {
+      document.getElementById('incidents-tbody').innerHTML = items.map(inc => `
+        <tr>
+          <td><span class="font-mono text-xs text-emerald-400">${inc.case_number}</span></td>
+          <td class="max-w-xs"><p class="truncate text-sm" title="${inc.title}">${inc.title}</p></td>
+          <td>${severityBadge(inc.severity)}</td>
+          <td>${severityBadge(inc.priority)}</td>
+          <td>${statusBadge(inc.status)}</td>
+          <td><span class="text-xs text-gray-400">${inc.assigned_to || '—'}</span></td>
+          <td><span class="text-xs text-gray-500">${timeAgo(inc.created_at)}</span></td>
+          <td>
+            <div class="flex gap-1">
+              <button onclick="showDetail(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-folder-open"></i></button>
+              <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20" title="AI Analysis">
+                <i class="fa-solid fa-robot"></i>
+              </button>
+              <a href="/ai_analyst.html?incident=${inc.id}" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20" title="Open in AI Analyst">
+                <i class="fa-solid fa-message"></i>
+              </a>
+            </div>
+          </td>
+        </tr>`).join('') || '<tr><td colspan="8" class="text-center text-gray-500 py-10">No incidents found</td></tr>';
+    }
+
+    async function showDetail(id) {
+      const inc = await apiGet(`/api/incidents/${id}`);
+      allIncidentsCache[id] = inc;
+      document.getElementById('modal-case-num').textContent = `${inc.case_number} — ${inc.title}`;
+      document.getElementById('modal-body').innerHTML = `
+        <div class="space-y-4 text-sm">
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Severity</p>${severityBadge(inc.severity)}</div>
+            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Status</p>${statusBadge(inc.status)}</div>
+            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Priority</p>${severityBadge(inc.priority)}</div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Assigned To</p><p>${inc.assigned_to || '—'}</p></div>
+            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Category</p><p class="capitalize">${inc.category?.replace('_',' ') || '—'}</p></div>
+          </div>
+          ${inc.description ? `<div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Description</p><p class="text-gray-200">${inc.description}</p></div>` : ''}
+          ${inc.ai_summary ? `<div class="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3"><p class="text-emerald-400 text-xs font-semibold mb-2"><i class="fa-solid fa-robot mr-1"></i>AI Summary</p><p class="text-gray-300">${inc.ai_summary}</p></div>` : ''}
+          ${inc.ai_recommendations ? `<div class="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3"><p class="text-blue-400 text-xs font-semibold mb-2"><i class="fa-solid fa-list-check mr-1"></i>Recommendations</p><pre class="text-gray-300 whitespace-pre-wrap text-xs">${inc.ai_recommendations}</pre></div>` : ''}
+
+          ${inc.iocs?.length ? `<div>
+            <p class="text-gray-400 text-xs font-semibold mb-2">IOCs (${inc.iocs.length})</p>
+            <div class="space-y-1">${inc.iocs.map(i => `
+              <div class="flex items-center gap-2 bg-gray-800 rounded px-3 py-2">
+                <span class="badge badge-${i.is_malicious ? 'critical' : 'low'}">${i.ioc_type.toUpperCase()}</span>
+                <span class="font-mono text-xs flex-1">${i.value}</span>
+                ${i.vt_score ? `<span class="text-xs text-gray-500">VT: ${i.vt_score}</span>` : ''}
+                <button onclick="enrichIoc(${i.id})" class="text-xs text-purple-400 hover:text-purple-300"><i class="fa-solid fa-magnifying-glass"></i></button>
+              </div>`).join('')}
+            </div>
+          </div>` : ''}
+
+          ${inc.alerts?.length ? `<div>
+            <p class="text-gray-400 text-xs font-semibold mb-2">Related Alerts (${inc.alerts.length})</p>
+            <div class="space-y-1">${inc.alerts.map(a => `
+              <div class="flex items-center gap-2 bg-gray-800 rounded px-3 py-1.5">
+                ${severityBadge(a.severity)}
+                <span class="text-xs flex-1">${a.title}</span>
+              </div>`).join('')}
+            </div>
+          </div>` : ''}
+
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button onclick="updateStatus(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Update Status</button>
+            <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> Add IOC</button>
+            <button onclick="bulkEnrich(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400">
+              <i class="fa-solid fa-virus-covid-slash"></i> Enrich IOCs
+            </button>
+            <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+              <i class="fa-solid fa-robot"></i> AI Analysis
+            </button>
+            <a href="/reports.html?incident=${inc.id}" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400">
+              <i class="fa-solid fa-file-lines"></i> Report
+            </a>
+          </div>
+        </div>`;
+      document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function updateStatus(id) {
+      // Find current status from the loaded incident
+      const incidentData = allIncidentsCache[id];
+      document.getElementById('status-incident-id').value = id;
+      document.getElementById('status-current').innerHTML = incidentData
+        ? statusBadge(incidentData.status)
+        : '<span class="text-gray-500">Loading...</span>';
+      if (incidentData) {
+        document.getElementById('status-select').value = incidentData.status;
+      }
+      document.getElementById('status-modal').classList.remove('hidden');
+    }
+
+    async function submitStatusUpdate() {
+      const id = document.getElementById('status-incident-id').value;
+      const status = document.getElementById('status-select').value;
+      try {
+        await apiPatch(`/api/incidents/${id}`, { status });
+        showToast('Status updated successfully', 'success');
+        closeModal('status-modal');
+        closeModal('detail-modal');
+        loadIncidents(currentPage);
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    function openIocModal(incidentId) {
+      document.getElementById('ioc-incident-id').value = incidentId;
+      document.getElementById('ioc-form').reset();
+      document.getElementById('ioc-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('ioc-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const incidentId = document.getElementById('ioc-incident-id').value;
+      try {
+        await apiPost('/api/ioc', {
+          value: document.getElementById('ioc-value').value,
+          ioc_type: document.getElementById('ioc-type').value,
+          incident_id: parseInt(incidentId)
+        });
+        showToast('IOC added', 'success');
+        closeModal('ioc-modal');
+        showDetail(incidentId);
+      } catch (err) { showToast(err.message, 'error'); }
+    });
+
+    async function enrichIoc(iocId) {
+      try {
+        const result = await apiFetch(`/api/ioc/${iocId}/enrich`, { method: 'POST' });
+        showToast(`Enriched: ${result.vt_score} — ${result.is_malicious ? 'MALICIOUS' : 'Clean'}`, result.is_malicious ? 'error' : 'success');
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    async function bulkEnrich(incidentId) {
+      try {
+        const r = await apiFetch(`/api/ioc/bulk-enrich?incident_id=${incidentId}`, { method: 'POST' });
+        showToast(r.message, 'success');
+        showDetail(incidentId);
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    async function openAiAnalysis(incidentId) {
+      showToast('Running AI analysis...', 'info');
+      try {
+        await apiPost('/api/ai/analyze-incident', { incident_id: incidentId });
+        showToast('AI analysis complete!', 'success');
+        closeModal('detail-modal');
+        await showDetail(incidentId);
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    function openCreateModal() {
+      document.getElementById('create-form').reset();
+      document.getElementById('create-modal').classList.remove('hidden');
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await apiPost('/api/incidents', {
+          title: document.getElementById('c-title').value,
+          severity: document.getElementById('c-severity').value,
+          priority: document.getElementById('c-priority').value,
+          category: document.getElementById('c-category').value || null,
+          assigned_to: document.getElementById('c-assigned').value || null,
+          description: document.getElementById('c-description').value || null,
+          tags: document.getElementById('c-tags').value || null,
+        });
+        showToast('Incident created', 'success');
+        closeModal('create-modal');
+        loadIncidents();
+      } catch (err) { showToast(err.message, 'error'); }
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+      m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+    });
+
+    loadIncidents();
+  </script>
+</body>
+</html>
