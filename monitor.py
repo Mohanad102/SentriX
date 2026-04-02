@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 SentriX Device Monitor
-يراقب الجهاز ويرسل alerts حقيقية للتطبيق تلقائياً
+Monitors the device and sends real alerts to the SentriX platform.
 """
 
 import psutil
@@ -13,33 +13,33 @@ import json
 import hashlib
 from datetime import datetime
 
-# ─── الإعدادات ───────────────────────────────────────────────
-API_URL      = "http://localhost:8000"
-USERNAME     = "admin"
-PASSWORD     = "admin123"
-INTERVAL     = 30        # ثانية بين كل فحص
-HOSTNAME     = socket.gethostname()
+# ─── Configuration ────────────────────────────────────────────
+API_URL   = "http://localhost:8000"
+USERNAME  = "admin"
+PASSWORD  = "admin123"
+INTERVAL  = 30        # seconds between each scan
+HOSTNAME  = socket.gethostname()
 
-# العمليات المشبوهة للمراقبة
+# Suspicious process names to watch for
 SUSPICIOUS_PROCESSES = [
     "nmap", "masscan", "hydra", "sqlmap", "metasploit", "msfconsole",
     "nc", "netcat", "socat", "tcpdump", "wireshark", "aircrack",
     "hashcat", "john", "mimikatz", "cobalt", "empire"
 ]
 
-# المنافذ المشبوهة (خارج الاستخدام العادي)
+# Suspicious remote ports and their known associations
 SUSPICIOUS_PORTS = {
-    4444: "Metasploit default",
-    1337: "Common backdoor",
+    4444:  "Metasploit default",
+    1337:  "Common backdoor",
     31337: "Elite backdoor",
     12345: "NetBus RAT",
-    5555: "Android ADB / RAT",
-    6667: "IRC (C2 common)",
-    9001: "Tor relay",
-    9050: "Tor SOCKS proxy",
+    5555:  "Android ADB / RAT",
+    6667:  "IRC (C2 common)",
+    9001:  "Tor relay",
+    9050:  "Tor SOCKS proxy",
 }
 
-# الملفات الحساسة للمراقبة
+# Sensitive files to monitor for changes
 WATCHED_FILES = [
     "/etc/passwd",
     "/etc/shadow",
@@ -48,18 +48,18 @@ WATCHED_FILES = [
     "/root/.ssh/authorized_keys",
 ]
 
-# ─── الحالة السابقة (للمقارنة) ───────────────────────────────
+# ─── State ────────────────────────────────────────────────────
 _state = {
     "token": None,
     "prev_connections": set(),
     "prev_processes": set(),
     "file_hashes": {},
     "prev_cpu_alert": 0,
-    "sent_alerts": set(),   # لتجنب التكرار
+    "sent_alerts": set(),   # deduplication cache
 }
 
 
-# ─── المصادقة ─────────────────────────────────────────────────
+# ─── Authentication ───────────────────────────────────────────
 def login():
     try:
         resp = requests.post(
@@ -69,10 +69,10 @@ def login():
         )
         if resp.ok:
             _state["token"] = resp.json()["access_token"]
-            print(f"[✓] تم تسجيل الدخول كـ {USERNAME}")
+            print(f"[+] Logged in as {USERNAME}")
             return True
     except Exception as e:
-        print(f"[!] فشل الاتصال بالتطبيق: {e}")
+        print(f"[!] Failed to connect to SentriX: {e}")
     return False
 
 
@@ -80,16 +80,15 @@ def get_headers():
     return {"Authorization": f"Bearer {_state['token']}"}
 
 
-# ─── إرسال Alert ─────────────────────────────────────────────
+# ─── Send Alert ───────────────────────────────────────────────
 def send_alert(title, description, severity, category,
                source_ip=None, dest_ip=None, rule_id=None, rule_level=None, raw_data=None):
 
-    # تجنب إرسال نفس الـ alert مرتين في نفس الدقيقة
+    # Deduplicate: skip if same alert was already sent this session
     key = hashlib.md5(f"{title}{source_ip}{dest_ip}".encode()).hexdigest()
     if key in _state["sent_alerts"]:
         return
     _state["sent_alerts"].add(key)
-    # نظف القائمة كل 500 عنصر
     if len(_state["sent_alerts"]) > 500:
         _state["sent_alerts"].clear()
 
@@ -117,12 +116,12 @@ def send_alert(title, description, severity, category,
             login()
         elif resp.ok:
             ts = datetime.now().strftime("%H:%M:%S")
-            print(f"[{ts}] 🔔 Alert أُرسل: [{severity.upper()}] {title}")
+            print(f"[{ts}] Alert sent: [{severity.upper()}] {title}")
     except Exception as e:
-        print(f"[!] خطأ في إرسال alert: {e}")
+        print(f"[!] Failed to send alert: {e}")
 
 
-# ─── 1. مراقبة العمليات المشبوهة ─────────────────────────────
+# ─── 1. Suspicious Process Detection ─────────────────────────
 def check_suspicious_processes():
     current = set()
     for proc in psutil.process_iter(["pid", "name", "username", "cmdline", "create_time"]):
@@ -135,11 +134,11 @@ def check_suspicious_processes():
                     current.add(key)
                     if key not in _state["prev_processes"]:
                         send_alert(
-                            title=f"عملية مشبوهة: {proc.info['name']}",
+                            title=f"Suspicious Process Detected: {proc.info['name']}",
                             description=(
-                                f"تم اكتشاف عملية مشبوهة على الجهاز.\n"
-                                f"PID: {proc.pid} | المستخدم: {proc.info['username']}\n"
-                                f"الأمر: {cmdline[:200]}"
+                                f"A suspicious process was detected on the system.\n"
+                                f"PID: {proc.pid} | User: {proc.info['username']}\n"
+                                f"Command: {cmdline[:200]}"
                             ),
                             severity="high",
                             category="execution",
@@ -152,7 +151,7 @@ def check_suspicious_processes():
     _state["prev_processes"] = current
 
 
-# ─── 2. مراقبة الاتصالات الشبكية ─────────────────────────────
+# ─── 2. Network Connection Monitoring ────────────────────────
 def check_network_connections():
     current = set()
     try:
@@ -167,7 +166,7 @@ def check_network_connections():
             continue
 
         rip, rport = conn.raddr.ip, conn.raddr.port
-        lip = conn.laddr.ip if conn.laddr else None
+        lip   = conn.laddr.ip   if conn.laddr else None
         lport = conn.laddr.port if conn.laddr else None
 
         key = f"{lip}:{lport}->{rip}:{rport}"
@@ -176,14 +175,13 @@ def check_network_connections():
         if key in _state["prev_connections"]:
             continue
 
-        # منفذ مشبوه؟
         if rport in SUSPICIOUS_PORTS:
             send_alert(
-                title=f"اتصال بمنفذ مشبوه: {rport}",
+                title=f"Connection to Suspicious Port: {rport}",
                 description=(
-                    f"اتصال نشط بمنفذ مشبوه.\n"
-                    f"من: {lip}:{lport} → إلى: {rip}:{rport}\n"
-                    f"السبب: {SUSPICIOUS_PORTS[rport]}"
+                    f"Active connection to a known suspicious port.\n"
+                    f"From: {lip}:{lport} -> To: {rip}:{rport}\n"
+                    f"Reason: {SUSPICIOUS_PORTS[rport]}"
                 ),
                 severity="critical",
                 category="c2",
@@ -193,14 +191,12 @@ def check_network_connections():
                 rule_level=14,
                 raw_data=json.dumps({"local": f"{lip}:{lport}", "remote": f"{rip}:{rport}"}),
             )
-
-        # اتصال خارجي جديد (غير local)
         elif not rip.startswith(("127.", "10.", "192.168.", "172.")):
             send_alert(
-                title=f"اتصال خارجي جديد → {rip}:{rport}",
+                title=f"New Outbound Connection -> {rip}:{rport}",
                 description=(
-                    f"اتصال جديد بعنوان IP خارجي.\n"
-                    f"من: {lip}:{lport} → إلى: {rip}:{rport}"
+                    f"New connection established to an external IP address.\n"
+                    f"From: {lip}:{lport} -> To: {rip}:{rport}"
                 ),
                 severity="low",
                 category="network",
@@ -214,7 +210,7 @@ def check_network_connections():
     _state["prev_connections"] = current
 
 
-# ─── 3. مراقبة استخدام CPU/RAM ───────────────────────────────
+# ─── 3. CPU / RAM Usage ───────────────────────────────────────
 def check_resource_usage():
     cpu = psutil.cpu_percent(interval=1)
     ram = psutil.virtual_memory().percent
@@ -223,7 +219,6 @@ def check_resource_usage():
     if cpu > 90 and (now - _state["prev_cpu_alert"]) > 300:
         _state["prev_cpu_alert"] = now
 
-        # أعلى 5 عمليات استهلاكاً
         top_procs = sorted(
             psutil.process_iter(["name", "cpu_percent"]),
             key=lambda p: p.info.get("cpu_percent") or 0,
@@ -232,11 +227,11 @@ def check_resource_usage():
         top_names = [p.info["name"] for p in top_procs if p.info.get("name")]
 
         send_alert(
-            title=f"استخدام CPU مرتفع جداً: {cpu:.0f}%",
+            title=f"High CPU Usage Detected: {cpu:.0f}%",
             description=(
-                f"استخدام CPU وصل {cpu:.1f}% وRAM {ram:.1f}%.\n"
-                f"أعلى العمليات: {', '.join(top_names)}\n"
-                f"قد يكون دليلاً على Cryptominer أو هجوم."
+                f"CPU usage reached {cpu:.1f}% and RAM {ram:.1f}%.\n"
+                f"Top processes: {', '.join(top_names)}\n"
+                f"Possible cryptominer or denial-of-service activity."
             ),
             severity="high" if cpu > 95 else "medium",
             category="execution",
@@ -246,7 +241,7 @@ def check_resource_usage():
         )
 
 
-# ─── 4. مراقبة الملفات الحساسة ───────────────────────────────
+# ─── 4. Sensitive File Integrity Monitoring ───────────────────
 def init_file_hashes():
     for path in WATCHED_FILES:
         if os.path.exists(path):
@@ -275,12 +270,12 @@ def check_file_changes():
         if current_hash != prev_hash:
             _state["file_hashes"][path] = current_hash
             send_alert(
-                title=f"تغيير في ملف حساس: {path}",
+                title=f"Sensitive File Modified: {path}",
                 description=(
-                    f"تم اكتشاف تعديل على ملف حساس في النظام.\n"
-                    f"الملف: {path}\n"
-                    f"الـ Hash السابق: {prev_hash}\n"
-                    f"الـ Hash الجديد: {current_hash}"
+                    f"A sensitive system file was modified.\n"
+                    f"File: {path}\n"
+                    f"Previous hash: {prev_hash}\n"
+                    f"Current hash:  {current_hash}"
                 ),
                 severity="critical",
                 category="persistence",
@@ -290,7 +285,7 @@ def check_file_changes():
             )
 
 
-# ─── 5. مراقبة المستخدمين المسجلين دخولاً ───────────────────
+# ─── 5. Logged-in User Monitoring ────────────────────────────
 _prev_users = set()
 
 def check_logged_in_users():
@@ -303,8 +298,8 @@ def check_logged_in_users():
         new_users = current_users - _prev_users
         for u in new_users:
             send_alert(
-                title=f"مستخدم جديد سجّل دخوله: {u}",
-                description=f"تم اكتشاف جلسة مستخدم جديدة على الجهاز: {u}",
+                title=f"New User Session Detected: {u}",
+                description=f"A new user session was opened on the system: {u}",
                 severity="medium",
                 category="authentication",
                 rule_id="MON-006",
@@ -316,23 +311,23 @@ def check_logged_in_users():
         pass
 
 
-# ─── الحلقة الرئيسية ─────────────────────────────────────────
+# ─── Main Loop ────────────────────────────────────────────────
 def main():
     print("=" * 55)
     print("  SentriX Device Monitor")
-    print(f"  الجهاز: {HOSTNAME}")
-    print(f"  الفحص كل: {INTERVAL} ثانية")
+    print(f"  Host    : {HOSTNAME}")
+    print(f"  Interval: {INTERVAL}s")
     print("=" * 55)
 
     if not login():
-        print("[!] تأكد أن التطبيق يعمل على localhost:8000")
+        print("[!] Make sure SentriX is running on localhost:8000")
         return
 
     init_file_hashes()
-    print(f"[✓] مراقبة {len(WATCHED_FILES)} ملف حساس")
-    print(f"[✓] مراقبة {len(SUSPICIOUS_PROCESSES)} نوع عملية مشبوهة")
-    print(f"[✓] مراقبة {len(SUSPICIOUS_PORTS)} منفذ مشبوه")
-    print("[✓] بدأت المراقبة... (Ctrl+C للإيقاف)\n")
+    print(f"[+] Watching {len(WATCHED_FILES)} sensitive files")
+    print(f"[+] Watching {len(SUSPICIOUS_PROCESSES)} suspicious process names")
+    print(f"[+] Watching {len(SUSPICIOUS_PORTS)} suspicious ports")
+    print("[+] Monitoring started... (Ctrl+C to stop)\n")
 
     while True:
         try:
@@ -343,10 +338,10 @@ def main():
             check_logged_in_users()
             time.sleep(INTERVAL)
         except KeyboardInterrupt:
-            print("\n[!] تم إيقاف المراقبة.")
+            print("\n[!] Monitor stopped.")
             break
         except Exception as e:
-            print(f"[!] خطأ: {e}")
+            print(f"[!] Error: {e}")
             time.sleep(5)
 
 
