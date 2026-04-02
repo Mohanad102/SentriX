@@ -14,7 +14,7 @@ import hashlib
 from datetime import datetime
 
 # ─── Configuration ────────────────────────────────────────────
-API_URL   = "http://localhost:8000"
+API_URL   = "https://miniature-space-capybara-w65p479x5pgcwjw-8000.app.github.dev"
 USERNAME  = "admin"
 PASSWORD  = "admin123"
 INTERVAL  = 30        # seconds between each scan
