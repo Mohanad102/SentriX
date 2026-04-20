@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SentriX — Alerts</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -20,16 +23,7 @@
         <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
       </div>
     </div>
-    <nav class="p-3 flex-1 space-y-1">
-      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
-      <a href="/alerts.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
-      <a href="/incidents.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
-      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
-      <a href="/virustotal.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
-      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
-      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
-      <a href="/rules.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
-    </nav>
+    <nav id="sidebar-nav" class="p-3 flex-1 space-y-1"></nav>
     <div class="p-3 border-t border-gray-800">
       <div class="flex items-center gap-3 px-2 py-2">
         <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
@@ -52,9 +46,6 @@
       <div class="flex items-center gap-2">
         <button onclick="toggleAutoRefresh()" id="refresh-toggle-btn" class="btn btn-secondary btn-sm">
           <i class="fa-solid fa-pause" id="refresh-icon"></i> Pause
-        </button>
-        <button onclick="openCreateModal()" class="btn btn-primary">
-          <i class="fa-solid fa-plus"></i> New Alert
         </button>
       </div>
     </header>
@@ -80,13 +71,30 @@
           <option value="closed">Closed</option>
           <option value="false_positive">False Positive</option>
         </select>
+        <select id="filter-category" class="form-input form-select w-36" onchange="loadAlerts()">
+          <option value="">All Categories</option>
+          <option value="malware">Malware</option>
+          <option value="network">Network</option>
+          <option value="authentication">Authentication</option>
+          <option value="execution">Execution</option>
+          <option value="lateral_movement">Lateral Movement</option>
+          <option value="exfiltration">Exfiltration</option>
+          <option value="persistence">Persistence</option>
+          <option value="privilege_escalation">Privilege Escalation</option>
+          <option value="ransomware">Ransomware</option>
+          <option value="c2">C2</option>
+          <option value="exploit">Exploit</option>
+          <option value="phishing">Phishing</option>
+          <option value="web_attack">Web Attack</option>
+          <option value="apt">APT</option>
+        </select>
         <button onclick="loadAlerts()" class="btn btn-secondary btn-sm">
           <i class="fa-solid fa-rotate-right"></i>
         </button>
       </div>
 
-      <!-- Bulk Action Bar (hidden until selection) -->
-      <div id="bulk-bar" class="hidden bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+      <!-- Bulk Action Bar (invisible until selection) -->
+      <div id="bulk-bar" class="invisible bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
         <span class="text-emerald-400 text-sm font-medium"><span id="selected-count">0</span> selected</span>
         <div class="flex gap-2 ml-auto">
           <button onclick="bulkStatus('closed')" class="btn btn-sm bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600">
@@ -122,6 +130,7 @@
                 <th>Source IP</th>
                 <th>Hostname</th>
                 <th>Category</th>
+                <th>Threat</th>
                 <th>Status</th>
                 <th>Time</th>
                 <th>Actions</th>
@@ -275,7 +284,7 @@
     function updateBulkBar() {
       const bar = document.getElementById('bulk-bar');
       document.getElementById('selected-count').textContent = selectedIds.size;
-      bar.classList.toggle('hidden', selectedIds.size === 0);
+      bar.classList.toggle('invisible', selectedIds.size === 0);
     }
 
     // ── Bulk Actions ──────────────────────────────────────────
@@ -300,6 +309,7 @@
     // ── Load & Render ─────────────────────────────────────────
     async function loadAlerts(page = 1) {
       currentPage = page;
+      const savedScroll = window.scrollY;
       document.getElementById('table-loading').classList.remove('hidden');
       document.getElementById('table-container').classList.add('hidden');
 
@@ -308,6 +318,7 @@
         search:   document.getElementById('search-input').value,
         severity: document.getElementById('filter-severity').value,
         status:   document.getElementById('filter-status').value,
+        category: document.getElementById('filter-category').value,
       };
       Object.keys(params).forEach(k => !params[k] && delete params[k]);
 
@@ -320,6 +331,7 @@
         document.getElementById('table-loading').classList.add('hidden');
         document.getElementById('table-container').classList.remove('hidden');
         document.getElementById('no-results').classList.toggle('hidden', data.items.length > 0);
+        window.scrollTo(0, savedScroll);
         scheduleRefresh();
       } catch (err) {
         document.getElementById('table-loading').innerHTML =
@@ -341,10 +353,20 @@
           <td class="max-w-xs">
             <p class="truncate text-gray-100 text-sm" title="${a.title}">${a.title}</p>
           </td>
-          <td>${severityBadge(a.severity)}</td>
+          <td>
+            <select onchange="changeSeverity(${a.id}, this.value)" onclick="event.stopPropagation()"
+              class="text-xs font-medium rounded-md px-2 py-1 border cursor-pointer focus:outline-none bg-gray-800 border-gray-700
+              ${a.severity==='critical'?'text-red-400 border-red-500/40':a.severity==='high'?'text-orange-400 border-orange-500/40':a.severity==='medium'?'text-yellow-400 border-yellow-500/40':'text-green-400 border-green-500/40'}">
+              <option value="critical" ${a.severity==='critical'?'selected':''}>Critical</option>
+              <option value="high"     ${a.severity==='high'?'selected':''}>High</option>
+              <option value="medium"   ${a.severity==='medium'?'selected':''}>Medium</option>
+              <option value="low"      ${a.severity==='low'?'selected':''}>Low</option>
+            </select>
+          </td>
           <td><span class="font-mono text-xs text-gray-400">${a.source_ip||'—'}</span></td>
           <td><span class="text-xs text-gray-400">${a.hostname||'—'}</span></td>
           <td><span class="text-xs text-gray-400 capitalize">${a.category?.replace('_',' ')||'—'}</span></td>
+          <td>${a.is_malicious === true ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400"><i class="fa-solid fa-triangle-exclamation text-[10px]"></i>Malicious</span>' : a.is_malicious === false ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400"><i class="fa-solid fa-shield-check text-[10px]"></i>Clean</span>' : '<span class="text-xs text-gray-600">—</span>'}</td>
           <td>${statusBadge(a.status)}</td>
           <td><span class="text-xs text-gray-500">${timeAgo(a.created_at)}</span></td>
           <td>
@@ -354,9 +376,6 @@
               </button>
               <button onclick="escalate(${a.id})" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20" title="Escalate">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
-              </button>
-              <button onclick="changeStatus(${a.id},'${a.status}')" class="btn btn-secondary btn-sm" title="Change Status">
-                <i class="fa-solid fa-pen"></i>
               </button>
             </div>
           </td>
@@ -410,6 +429,14 @@
       } catch(err) { showToast(err.message, 'error'); }
     }
 
+    async function changeSeverity(id, severity) {
+      try {
+        await apiPatch(`/api/alerts/${id}`, { severity });
+        showToast('Severity updated', 'success');
+        loadAlerts(currentPage);
+      } catch(err) { showToast(err.message, 'error'); }
+    }
+
     async function changeStatus(id, current) {
       const statuses = ['open','in_progress','closed','false_positive'];
       const next = statuses[(statuses.indexOf(current)+1) % statuses.length];
@@ -451,5 +478,6 @@
 
     loadAlerts();
   </script>
+  <script src="/static/js/sidebar.js"></script>
 </body>
 </html>

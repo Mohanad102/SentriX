@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     WAZUH_USER: str = "wazuh"
     WAZUH_PASSWORD: str = "wazuh"
     WAZUH_ENABLED: bool = False  # Set True when Wazuh is running
+    WAZUH_ALERTS_LOG: str = "/wazuh/alerts/alerts.json"  # path inside Docker volume
 
     # TheHive SOAR
     THEHIVE_URL: str = "http://localhost:9000"

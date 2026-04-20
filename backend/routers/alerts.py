@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from pydantic import BaseModel
 from typing import Optional, List
-from backend.database import get_db
+from backend.database import get_db, SessionLocal
 from backend.models.alert import Alert
 from backend.utils.auth import get_current_user
 from backend.models.user import User
@@ -32,7 +32,7 @@ class AlertUpdate(BaseModel):
     incident_id: Optional[int] = None
 
 
-def alert_to_dict(a: Alert):
+def alert_to_dict(a: Alert, is_malicious: bool = None):
     return {
         "id": a.id,
         "alert_id": a.alert_id,
@@ -49,6 +49,8 @@ def alert_to_dict(a: Alert):
         "status": a.status,
         "raw_data": a.raw_data,
         "incident_id": a.incident_id,
+        "vt_enriched": a.vt_enriched or False,
+        "is_malicious": is_malicious,
         "created_at": a.created_at.isoformat() if a.created_at else None,
         "updated_at": a.updated_at.isoformat() if a.updated_at else None,
     }
@@ -60,6 +62,7 @@ def list_alerts(
     page_size: int = Query(20, ge=1, le=100),
     severity: Optional[str] = None,
     status: Optional[str] = None,
+    category: Optional[str] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -69,6 +72,8 @@ def list_alerts(
         query = query.filter(Alert.severity == severity)
     if status:
         query = query.filter(Alert.status == status)
+    if category:
+        query = query.filter(Alert.category == category)
     if search:
         query = query.filter(
             or_(
@@ -80,12 +85,13 @@ def list_alerts(
         )
     total = query.count()
     alerts = query.order_by(Alert.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+
     return {
         "total": total,
         "page": page,
         "page_size": page_size,
         "pages": (total + page_size - 1) // page_size,
-        "items": [alert_to_dict(a) for a in alerts]
+        "items": [alert_to_dict(a, a.vt_malicious) for a in alerts]
     }
 
 
@@ -101,9 +107,25 @@ def get_alert(
     return alert_to_dict(alert)
 
 
+async def _bg_enrich_alert(alert_id: int):
+    """Background task: run VT enrichment for an alert using its own DB session."""
+    import asyncio
+    from backend.services.virustotal_service import auto_enrich_alert
+    db = SessionLocal()
+    try:
+        alert = db.query(Alert).filter(Alert.id == alert_id).first()
+        if alert:
+            await auto_enrich_alert(db, alert)
+    except Exception:
+        pass
+    finally:
+        db.close()
+
+
 @router.post("")
-def create_alert(
+async def create_alert(
     data: AlertCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -124,6 +146,7 @@ def create_alert(
     db.add(alert)
     db.commit()
     db.refresh(alert)
+    background_tasks.add_task(_bg_enrich_alert, alert.id)
     return alert_to_dict(alert)
 
 
