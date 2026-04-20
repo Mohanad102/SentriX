@@ -36,6 +36,7 @@
       <a href="/ai_analyst.html" class="sidebar-link" data-page="ai">
         <span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst
       </a>
+      <a href="/virustotal.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
       <a href="/reports.html" class="sidebar-link" data-page="reports">
         <span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports
       </a>
@@ -153,10 +154,20 @@
         <!-- Charts Row -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <h3 class="text-white font-medium mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-chart-line text-emerald-400 text-sm"></i>
-              Alerts — Last 7 Days
-            </h3>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-white font-medium flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-emerald-400 text-sm"></i>
+                Alerts Over Time
+              </h3>
+              <select id="alertsTimePeriod" onchange="loadAlertsChart(this.value)"
+                class="bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-emerald-500">
+                <option value="1">Last 24 Hours</option>
+                <option value="7" selected>Last Week</option>
+                <option value="14">Last 2 Weeks</option>
+                <option value="21">Last 3 Weeks</option>
+                <option value="30">Last Month</option>
+              </select>
+            </div>
             <div class="chart-container" style="height:200px">
               <canvas id="alertsTimeChart"></canvas>
             </div>
@@ -173,52 +184,47 @@
           </div>
         </div>
 
-        <!-- Live Feed + Categories + Incident Status -->
+        <!-- Recent Alerts (Live) + Categories + Incident Status -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <!-- Live Alert Feed -->
-          <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-white font-medium flex items-center gap-2">
-                <i class="fa-solid fa-satellite-dish text-emerald-400 text-sm"></i>
-                Live Feed
-              </h3>
-              <div class="flex items-center gap-1.5 text-xs text-emerald-400">
-                <div class="live-dot"></div> Real-time
-              </div>
-            </div>
-            <div id="live-feed" class="space-y-2 max-h-56 overflow-y-auto">
-              <p class="text-gray-500 text-sm text-center py-4">Waiting for alerts...</p>
-            </div>
-          </div>
-
-          <!-- Recent Alerts -->
-          <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <!-- Merged Recent Alerts Live Feed -->
+          <div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-white font-medium flex items-center gap-2">
                 <i class="fa-solid fa-clock-rotate-left text-emerald-400 text-sm"></i>
                 Recent Alerts
               </h3>
-              <a href="/alerts.html" class="text-xs text-emerald-400 hover:text-emerald-300">View all →</a>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1.5 text-xs text-emerald-400">
+                  <div class="live-dot"></div> Real-time
+                </div>
+                <a href="/alerts.html" class="text-xs text-emerald-400 hover:text-emerald-300">View all →</a>
+              </div>
             </div>
-            <div id="recent-alerts-list" class="space-y-2"></div>
+            <div id="live-feed" class="space-y-1.5 max-h-72 overflow-y-auto">
+              <p class="text-gray-500 text-sm text-center py-4">Waiting for alerts...</p>
+            </div>
           </div>
 
-          <!-- Top Categories + Incident Status -->
+          <!-- Incident Status + Services -->
           <div class="space-y-4">
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
-              <h3 class="text-white font-medium mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-tags text-emerald-400 text-sm"></i>
-                Top Categories
-              </h3>
-              <div id="categories-list" class="space-y-2"></div>
-            </div>
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
-              <h3 class="text-white font-medium mb-4 flex items-center gap-2">
+              <h3 class="text-white font-medium mb-3 flex items-center gap-2">
                 <i class="fa-solid fa-circle-half-stroke text-emerald-400 text-sm"></i>
                 Incident Status
               </h3>
               <div class="chart-container" style="height:120px">
                 <canvas id="incidentStatusChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Services Status -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 class="text-white font-medium mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-server text-emerald-400 text-sm"></i>
+                Services
+              </h3>
+              <div id="services-list" class="space-y-2">
+                <p class="text-gray-500 text-xs text-center py-2">Checking...</p>
               </div>
             </div>
           </div>
@@ -292,13 +298,13 @@
       document.getElementById('loading').classList.remove('hidden');
       document.getElementById('stats-grid').classList.add('hidden');
       try {
-        const [stats, bySev, overTime, recentAlerts, incByStatus, topCats] = await Promise.all([
+        const selectedDays = document.getElementById('alertsTimePeriod')?.value || '7';
+        const [stats, bySev, overTime, recentAlerts, incByStatus] = await Promise.all([
           apiGet('/api/dashboard/stats'),
           apiGet('/api/dashboard/alerts-by-severity'),
-          apiGet('/api/dashboard/alerts-over-time'),
+          apiGet(`/api/dashboard/alerts-over-time?days=${selectedDays}`),
           apiGet('/api/dashboard/recent-alerts'),
           apiGet('/api/dashboard/incidents-by-status'),
-          apiGet('/api/dashboard/top-categories')
         ]);
 
         document.getElementById('stat-critical').textContent = stats.alerts.critical;
@@ -316,11 +322,9 @@
           badge.classList.remove('hidden');
         }
 
-        renderAlertsTimeChart(overTime);
+        renderAlertsTimeChart(overTime, parseInt(selectedDays));
         renderSeverityChart(bySev);
         renderIncidentStatusChart(incByStatus);
-        renderRecentAlerts(recentAlerts);
-        renderCategories(topCats);
         updateNotifications(recentAlerts);
 
         document.getElementById('loading').classList.add('hidden');
@@ -337,7 +341,6 @@
         const feed = document.getElementById('live-feed');
         const newAlerts = data.filter(a => !_lastAlertIds.has(a.id));
 
-        // Play sound for new critical alerts
         if (newAlerts.some(a => a.severity === 'critical') && _lastAlertIds.size > 0) {
           playCriticalSound();
         }
@@ -349,14 +352,17 @@
 
         _lastAlertIds = new Set(data.map(a => a.id));
 
-        feed.innerHTML = data.slice(0, 8).map(a => {
+        feed.innerHTML = data.map(a => {
           const isNew = newAlerts.find(n => n.id === a.id);
-          const sevColor = {critical:'text-red-400 bg-red-500/10',high:'text-orange-400 bg-orange-500/10',medium:'text-yellow-400 bg-yellow-500/10',low:'text-green-400 bg-green-500/10'}[a.severity] || 'text-gray-400 bg-gray-500/10';
+          const dotColor = {critical:'bg-red-400',high:'bg-orange-400',medium:'bg-yellow-400',low:'bg-green-400'}[a.severity] || 'bg-gray-400';
           return `
-          <div class="flex items-center gap-2 p-2 rounded-lg ${isNew ? 'bg-emerald-500/5 border border-emerald-500/20' : 'hover:bg-gray-800/50'} transition">
-            <span class="text-xs px-1.5 py-0.5 rounded font-medium ${sevColor}">${a.severity?.toUpperCase()}</span>
-            <span class="text-xs text-gray-300 flex-1 truncate">${a.title}</span>
-            <span class="text-xs text-gray-600 flex-shrink-0">${timeAgo(a.created_at)}</span>
+          <div class="flex items-start gap-3 p-2 rounded-lg ${isNew ? 'bg-emerald-500/5 border border-emerald-500/20' : 'hover:bg-gray-800/50'} transition cursor-pointer" onclick="window.location='/alerts.html'">
+            <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${dotColor}${isNew ? ' animate-pulse' : ''}"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-gray-200 truncate">${a.title}</p>
+              <p class="text-xs text-gray-500">${a.hostname||a.source_ip||'Unknown'} · ${timeAgo(a.created_at)}</p>
+            </div>
+            ${severityBadge(a.severity)}
           </div>`;
         }).join('');
       } catch(e) {}
@@ -383,13 +389,24 @@
         </div>`).join('');
     }
 
-    function renderAlertsTimeChart(data) {
+    async function loadAlertsChart(days) {
+      const data = await apiGet(`/api/dashboard/alerts-over-time?days=${days}`);
+      renderAlertsTimeChart(data, parseInt(days));
+    }
+
+    function renderAlertsTimeChart(data, days) {
       const ctx = document.getElementById('alertsTimeChart').getContext('2d');
       if (alertsTimeChart) alertsTimeChart.destroy();
+      const labels = data.map(d => {
+        const dt = new Date(d.date);
+        if (days === 1) return dt.toLocaleTimeString('en', {hour: '2-digit', minute: '2-digit'});
+        if (days <= 7) return dt.toLocaleDateString('en', {weekday:'short', month:'short', day:'numeric'});
+        return dt.toLocaleDateString('en', {month:'short', day:'numeric'});
+      });
       alertsTimeChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: data.map(d => new Date(d.date).toLocaleDateString('en', {weekday:'short', month:'short', day:'numeric'})),
+          labels,
           datasets: [{
             label: 'Alerts',
             data: data.map(d => d.count),
@@ -413,17 +430,19 @@
     function renderSeverityChart(data) {
       const ctx = document.getElementById('severityChart').getContext('2d');
       const colors = { critical:'#ef4444', high:'#f97316', medium:'#eab308', low:'#22c55e' };
-      const labels = Object.keys(data), values = Object.values(data);
+      const order = ['critical', 'high', 'medium', 'low'];
+      const labels = order;
+      const values = order.map(k => data[k] || 0);
       if (severityChart) severityChart.destroy();
       severityChart = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels, datasets: [{ data: values, backgroundColor: labels.map(l => colors[l] || '#6b7280'), borderWidth: 0, hoverOffset: 4 }] },
+        data: { labels, datasets: [{ data: values, backgroundColor: labels.map(l => colors[l]), borderWidth: 0, hoverOffset: 4 }] },
         options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
       });
       document.getElementById('severity-legend').innerHTML = labels.map((l, i) => `
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <div class="w-2.5 h-2.5 rounded-full" style="background:${colors[l] || '#6b7280'}"></div>
+            <div class="w-2.5 h-2.5 rounded-full" style="background:${colors[l]}"></div>
             <span class="text-xs text-gray-400 capitalize">${l}</span>
           </div>
           <span class="text-xs font-medium text-white">${values[i]}</span>
@@ -454,6 +473,7 @@
 
     function renderRecentAlerts(alerts) {
       const container = document.getElementById('recent-alerts-list');
+      if (!container) return;
       if (!alerts.length) {
         container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">No alerts yet</p>';
         return;
@@ -470,8 +490,28 @@
         </div>`).join('');
     }
 
+    async function loadServicesStatus() {
+      try {
+        const services = await apiGet('/api/dashboard/services-status');
+        const container = document.getElementById('services-list');
+        if (!container) return;
+        const badge = s => {
+          if (s === 'live')     return '<span class="flex items-center gap-1 text-xs text-emerald-400"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block"></span>Live</span>';
+          if (s === 'offline')  return '<span class="flex items-center gap-1 text-xs text-red-400"><span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span>Offline</span>';
+          if (s === 'error')    return '<span class="flex items-center gap-1 text-xs text-yellow-400"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span>Error</span>';
+          return '<span class="flex items-center gap-1 text-xs text-gray-500"><span class="w-2 h-2 rounded-full bg-gray-600 inline-block"></span>Disabled</span>';
+        };
+        container.innerHTML = services.map(s => `
+          <div class="flex items-center justify-between py-1.5 border-b border-gray-800/60 last:border-0">
+            <span class="text-sm text-gray-300">${s.name}</span>
+            ${badge(s.status)}
+          </div>`).join('');
+      } catch(e) {}
+    }
+
     function renderCategories(data) {
       const container = document.getElementById('categories-list');
+      if (!container) return;
       if (!data.length) { container.innerHTML = '<p class="text-gray-500 text-sm">No data</p>'; return; }
       const max = Math.max(...data.map(d => d.count));
       container.innerHTML = data.map(d => `
@@ -487,8 +527,10 @@
     // ── Init ──────────────────────────────────────────────────
     loadDashboard();
     updateLiveFeed();
+    loadServicesStatus();
     setInterval(loadDashboard, 60000);
-    setInterval(updateLiveFeed, 10000); // Live feed every 10s
+    setInterval(updateLiveFeed, 10000);
+    setInterval(loadServicesStatus, 30000);
   </script>
 </body>
 </html>

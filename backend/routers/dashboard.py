@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.database import get_db
@@ -7,7 +7,9 @@ from backend.models.incident import Incident
 from backend.models.ioc import IOC
 from backend.utils.auth import get_current_user
 from backend.models.user import User
+from backend.config import settings
 from datetime import datetime, timedelta
+import httpx
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -66,18 +68,27 @@ def get_alerts_by_severity(
 
 @router.get("/alerts-over-time")
 def get_alerts_over_time(
+    days: int = Query(default=7, ge=1, le=30),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Last 7 days
-    days = []
-    for i in range(6, -1, -1):
-        day = datetime.utcnow() - timedelta(days=i)
-        start = day.replace(hour=0, minute=0, second=0, microsecond=0)
-        end = start + timedelta(days=1)
-        count = db.query(Alert).filter(Alert.created_at >= start, Alert.created_at < end).count()
-        days.append({"date": start.strftime("%Y-%m-%d"), "count": count})
-    return days
+    now = datetime.utcnow()
+    buckets = []
+    if days == 1:
+        # Hourly buckets for last 24 hours
+        for i in range(23, -1, -1):
+            start = (now - timedelta(hours=i)).replace(minute=0, second=0, microsecond=0)
+            end = start + timedelta(hours=1)
+            count = db.query(Alert).filter(Alert.created_at >= start, Alert.created_at < end).count()
+            buckets.append({"date": start.strftime("%Y-%m-%dT%H:00"), "count": count})
+    else:
+        for i in range(days - 1, -1, -1):
+            day = now - timedelta(days=i)
+            start = day.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=1)
+            count = db.query(Alert).filter(Alert.created_at >= start, Alert.created_at < end).count()
+            buckets.append({"date": start.strftime("%Y-%m-%d"), "count": count})
+    return buckets
 
 
 @router.get("/recent-alerts")
@@ -129,3 +140,32 @@ def get_top_categories(
         .all()
     )
     return [{"category": cat, "count": cnt} for cat, cnt in results]
+
+
+@router.get("/services-status")
+async def get_services_status(current_user: User = Depends(get_current_user)):
+    async def check(url: str, enabled: bool, **kwargs) -> str:
+        if not enabled:
+            return "disabled"
+        try:
+            async with httpx.AsyncClient(verify=False, timeout=3) as client:
+                r = await client.get(url, **kwargs)
+                return "live" if r.status_code < 500 else "error"
+        except Exception:
+            return "offline"
+
+    wazuh   = await check(f"{settings.WAZUH_URL}/", settings.WAZUH_ENABLED,
+                          auth=(settings.WAZUH_USER, settings.WAZUH_PASSWORD))
+    thehive = await check(f"{settings.THEHIVE_URL}/api/status", settings.THEHIVE_ENABLED,
+                          headers={"Authorization": f"Bearer {settings.THEHIVE_API_KEY}"})
+    cortex  = await check(f"{settings.CORTEX_URL}/api/status", settings.CORTEX_ENABLED,
+                          headers={"Authorization": f"Bearer {settings.CORTEX_API_KEY}"})
+    vt      = await check("https://www.virustotal.com/api/v3/metadata", settings.VIRUSTOTAL_ENABLED,
+                          headers={"x-apikey": settings.VIRUSTOTAL_API_KEY})
+
+    return [
+        {"name": "SIEM (Wazuh)", "status": wazuh},
+        {"name": "TheHive",      "status": thehive},
+        {"name": "Cortex",       "status": cortex},
+        {"name": "VirusTotal",   "status": vt},
+    ]
