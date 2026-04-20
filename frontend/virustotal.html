@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — VirusTotal Scanner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="bg-gray-950 text-gray-100 flex" id="body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
+    <div class="p-5 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
+        </div>
+        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
+      </div>
+    </div>
+    <nav class="p-3 flex-1 space-y-1">
+      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
+      <a href="/alerts.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
+      <a href="/incidents.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
+      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
+      <a href="/virustotal.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
+      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
+      <a href="/rules.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
+    </nav>
+    <div class="p-3 border-t border-gray-800">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-white truncate user-name">Admin</p>
+          <p class="text-xs text-gray-500 user-role">ADMIN</p>
+        </div>
+        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-h-screen overflow-auto">
+    <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 sticky top-0 backdrop-blur z-10">
+      <div>
+        <h1 class="text-white font-semibold text-lg flex items-center gap-2">
+          <i class="fa-solid fa-virus-slash text-emerald-400"></i> VirusTotal Scanner
+        </h1>
+        <p class="text-gray-500 text-xs">Scan IPs, domains, URLs, and file hashes</p>
+      </div>
+    </header>
+
+    <div class="p-6 page-fade max-w-4xl mx-auto">
+
+      <!-- Search Card -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
+        <div class="flex flex-col gap-4">
+          <div class="flex gap-2 flex-wrap">
+            <button onclick="setType('auto')"   id="btn-auto"   class="type-btn active">Auto-detect</button>
+            <button onclick="setType('ip')"     id="btn-ip"     class="type-btn">IP Address</button>
+            <button onclick="setType('domain')" id="btn-domain" class="type-btn">Domain</button>
+            <button onclick="setType('url')"    id="btn-url"    class="type-btn">URL</button>
+            <button onclick="setType('hash')"   id="btn-hash"   class="type-btn">File Hash</button>
+          </div>
+          <div class="flex gap-3">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+              <input id="scan-input" type="text"
+                placeholder="Enter IP, domain, URL, or MD5/SHA256 hash..."
+                class="form-input pl-9 w-full text-sm"
+                onkeydown="if(event.key==='Enter') scan()" />
+            </div>
+            <button onclick="scan()" id="scan-btn" class="btn btn-primary px-6">
+              <i class="fa-solid fa-search mr-1"></i> Scan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="result-area"></div>
+
+      <!-- History -->
+      <div id="history-section" class="hidden">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-white font-medium flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-emerald-400 text-sm"></i> Recent Scans
+          </h3>
+          <button onclick="clearHistory()" class="text-xs text-gray-500 hover:text-red-400 transition">Clear</button>
+        </div>
+        <div id="history-list" class="space-y-2"></div>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .type-btn {
+      @apply px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-700 text-gray-400 hover:border-emerald-500/50 hover:text-emerald-400 transition;
+    }
+    .type-btn.active {
+      @apply border-emerald-500 text-emerald-400 bg-emerald-500/10;
+    }
+    .stat-box {
+      @apply bg-gray-800/60 rounded-lg p-3 text-center;
+    }
+  </style>
+
+  <script src="/static/js/api.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error('Not authenticated');
+
+    let selectedType = 'auto';
+    const HISTORY_KEY = 'vt_scan_history';
+
+    function setType(t) {
+      selectedType = t;
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`btn-${t}`).classList.add('active');
+    }
+
+    function detectType(value) {
+      value = value.trim();
+      if (/^(https?:\/\/)/.test(value)) return 'url';
+      if (/^[a-fA-F0-9]{32}$|^[a-fA-F0-9]{40}$|^[a-fA-F0-9]{64}$/.test(value)) return 'hash';
+      if (/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) return 'ip';
+      return 'domain';
+    }
+
+    async function scan() {
+      const input = document.getElementById('scan-input').value.trim();
+      if (!input) return;
+
+      const type = selectedType === 'auto' ? detectType(input) : selectedType;
+      const btn = document.getElementById('scan-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Scanning...';
+
+      document.getElementById('result-area').innerHTML = `
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center mb-6">
+          <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl mb-3"></i>
+          <p class="text-gray-400 text-sm">Querying VirusTotal...</p>
+        </div>`;
+
+      try {
+        const result = await apiPost('/api/virustotal/scan', { value: input, ioc_type: type });
+        renderResult(input, type, result);
+        saveHistory(input, type, result);
+      } catch (e) {
+        document.getElementById('result-area').innerHTML = `
+          <div class="bg-gray-900 border border-red-500/30 rounded-xl p-6 mb-6 text-center">
+            <i class="fa-solid fa-triangle-exclamation text-red-400 text-xl mb-2"></i>
+            <p class="text-red-400 text-sm">${e.message || 'Scan failed'}</p>
+          </div>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-search mr-1"></i> Scan';
+      }
+    }
+
+    function renderResult(value, type, r) {
+      const stats   = r.report?.stats || {};
+      const malicious   = stats.malicious   ?? 0;
+      const suspicious  = stats.suspicious  ?? 0;
+      const undetected  = stats.undetected  ?? 0;
+      const harmless    = stats.harmless    ?? 0;
+      const total = malicious + suspicious + undetected + harmless || 1;
+
+      const verdict = r.is_malicious
+        ? { label: 'Malicious', cls: 'text-red-400', icon: 'fa-skull-crossbones', bg: 'border-red-500/40 bg-red-500/5' }
+        : malicious > 0 || suspicious > 0
+        ? { label: 'Suspicious', cls: 'text-yellow-400', icon: 'fa-triangle-exclamation', bg: 'border-yellow-500/40 bg-yellow-500/5' }
+        : { label: 'Clean', cls: 'text-emerald-400', icon: 'fa-circle-check', bg: 'border-emerald-500/40 bg-emerald-500/5' };
+
+      const isMock = r.report?.note?.includes('Mock');
+      const mockBanner = isMock ? `
+        <div class="mb-4 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-center gap-2 text-xs text-yellow-400">
+          <i class="fa-solid fa-flask"></i>
+          Demo mode — configure <code class="bg-yellow-500/10 px-1 rounded">VIRUSTOTAL_API_KEY</code> in <code class="bg-yellow-500/10 px-1 rounded">.env</code> for real results
+        </div>` : '';
+
+      const barPct = (n) => ((n / total) * 100).toFixed(1);
+
+      document.getElementById('result-area').innerHTML = `
+        <div class="bg-gray-900 border ${verdict.bg} rounded-xl p-6 mb-6">
+          ${mockBanner}
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">${type.toUpperCase()}</p>
+              <p class="text-white font-mono text-sm break-all">${value}</p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+              <i class="fa-solid ${verdict.icon} ${verdict.cls} text-xl"></i>
+              <span class="font-semibold text-lg ${verdict.cls}">${verdict.label}</span>
+            </div>
+          </div>
+
+          <!-- Score -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="stat-box">
+              <p class="text-red-400 font-bold text-xl">${malicious}</p>
+              <p class="text-gray-500 text-xs mt-0.5">Malicious</p>
+            </div>
+            <div class="stat-box">
+              <p class="text-yellow-400 font-bold text-xl">${suspicious}</p>
+              <p class="text-gray-500 text-xs mt-0.5">Suspicious</p>
+            </div>
+            <div class="stat-box">
+              <p class="text-emerald-400 font-bold text-xl">${harmless}</p>
+              <p class="text-gray-500 text-xs mt-0.5">Harmless</p>
+            </div>
+            <div class="stat-box">
+              <p class="text-gray-400 font-bold text-xl">${undetected}</p>
+              <p class="text-gray-500 text-xs mt-0.5">Undetected</p>
+            </div>
+          </div>
+
+          <!-- Bar -->
+          <div class="mb-4">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Detection breakdown</span>
+              <span class="font-medium ${verdict.cls}">${r.score}</span>
+            </div>
+            <div class="flex rounded-full overflow-hidden h-3 bg-gray-800">
+              ${malicious  ? `<div class="bg-red-500 h-full"    style="width:${barPct(malicious)}%"   title="Malicious: ${malicious}"></div>`  : ''}
+              ${suspicious ? `<div class="bg-yellow-500 h-full" style="width:${barPct(suspicious)}%"  title="Suspicious: ${suspicious}"></div>` : ''}
+              ${harmless   ? `<div class="bg-emerald-500 h-full"style="width:${barPct(harmless)}%"    title="Harmless: ${harmless}"></div>`    : ''}
+              ${undetected ? `<div class="bg-gray-600 h-full"   style="width:${barPct(undetected)}%"  title="Undetected: ${undetected}"></div>` : ''}
+            </div>
+            <div class="flex gap-4 mt-1.5 flex-wrap">
+              <span class="text-xs text-red-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>Malicious</span>
+              <span class="text-xs text-yellow-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span>Suspicious</span>
+              <span class="text-xs text-emerald-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>Harmless</span>
+              <span class="text-xs text-gray-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-gray-600 inline-block"></span>Undetected</span>
+            </div>
+          </div>
+
+          ${r.report?.reputation !== undefined ? `
+          <div class="border-t border-gray-800 pt-3 mt-3">
+            <span class="text-xs text-gray-500">Reputation score: </span>
+            <span class="text-xs font-medium ${r.report.reputation < 0 ? 'text-red-400' : 'text-emerald-400'}">${r.report.reputation}</span>
+          </div>` : ''}
+        </div>`;
+    }
+
+    function saveHistory(value, type, result) {
+      const hist = getHistory();
+      hist.unshift({ value, type, score: result.score, is_malicious: result.is_malicious, ts: Date.now() });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(hist.slice(0, 20)));
+      renderHistory();
+    }
+
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+    }
+
+    function clearHistory() {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const hist = getHistory();
+      const section = document.getElementById('history-section');
+      const list    = document.getElementById('history-list');
+      if (!hist.length) { section.classList.add('hidden'); return; }
+      section.classList.remove('hidden');
+      list.innerHTML = hist.map(h => {
+        const ago = Math.round((Date.now() - h.ts) / 60000);
+        const agoStr = ago < 1 ? 'just now' : ago < 60 ? `${ago}m ago` : `${Math.round(ago/60)}h ago`;
+        const dot = h.is_malicious ? 'bg-red-400' : 'bg-emerald-400';
+        return `
+        <div class="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 hover:border-gray-700 transition cursor-pointer"
+             onclick="document.getElementById('scan-input').value='${h.value.replace(/'/g,"\\'")}'; setType('${h.type}'); scan()">
+          <div class="w-2 h-2 rounded-full flex-shrink-0 ${dot}"></div>
+          <span class="text-xs text-gray-500 uppercase w-14 flex-shrink-0">${h.type}</span>
+          <span class="text-sm text-gray-200 font-mono flex-1 truncate">${h.value}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${h.score}</span>
+          <span class="text-xs text-gray-600 flex-shrink-0">${agoStr}</span>
+        </div>`;
+      }).join('');
+    }
+
+    renderHistory();
+  </script>
+</body>
+</html>
