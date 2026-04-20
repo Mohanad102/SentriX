@@ -77,9 +77,16 @@ function statusBadge(status) {
   return `<span class="badge badge-${status}">${label}</span>`;
 }
 
+function _parseUTC(dateStr) {
+  if (!dateStr) return null;
+  // Append Z if no timezone info so JS treats it as UTC, not local time
+  const s = /[Zz+]/.test(dateStr.slice(10)) ? dateStr : dateStr + 'Z';
+  return new Date(s);
+}
+
 function timeAgo(dateStr) {
   if (!dateStr) return 'N/A';
-  const diff = Date.now() - new Date(dateStr).getTime();
+  const diff = Date.now() - _parseUTC(dateStr).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 1) return 'just now';
   if (m < 60) return `${m}m ago`;
@@ -90,7 +97,7 @@ function timeAgo(dateStr) {
 
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
-  return new Date(dateStr).toLocaleString();
+  return _parseUTC(dateStr).toLocaleString();
 }
 
 // Markdown-like renderer for AI responses

@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SentriX — Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -22,31 +25,7 @@
       </div>
     </div>
 
-    <nav class="p-3 flex-1 space-y-1">
-      <a href="/dashboard.html" class="sidebar-link active" data-page="dashboard">
-        <span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard
-      </a>
-      <a href="/alerts.html" class="sidebar-link" data-page="alerts">
-        <span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts
-        <span id="alert-badge" class="ml-auto bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded-full hidden"></span>
-      </a>
-      <a href="/incidents.html" class="sidebar-link" data-page="incidents">
-        <span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents
-      </a>
-      <a href="/ai_analyst.html" class="sidebar-link" data-page="ai">
-        <span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst
-      </a>
-      <a href="/virustotal.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
-      <a href="/reports.html" class="sidebar-link" data-page="reports">
-        <span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports
-      </a>
-      <a href="/users.html" class="sidebar-link" data-page="users" id="nav-users">
-        <span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users
-      </a>
-      <a href="/rules.html" class="sidebar-link" data-page="rules">
-        <span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules
-      </a>
-    </nav>
+    <nav id="sidebar-nav" class="p-3 flex-1 space-y-1"></nav>
 
     <div class="p-3 border-t border-gray-800">
       <div class="flex items-center gap-3 px-2 py-2 rounded-lg">
@@ -90,7 +69,10 @@
           <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50">
             <div class="p-3 border-b border-gray-800 flex items-center justify-between">
               <span class="text-sm font-medium text-white">Recent Alerts</span>
-              <a href="/alerts.html" class="text-xs text-emerald-400 hover:text-emerald-300">View all</a>
+              <div class="flex items-center gap-3">
+                <button onclick="markAllSeen()" class="text-xs text-gray-400 hover:text-white transition">Mark all seen</button>
+                <a href="/alerts.html" class="text-xs text-emerald-400 hover:text-emerald-300">View all</a>
+              </div>
             </div>
             <div id="notif-list" class="max-h-64 overflow-y-auto divide-y divide-gray-800/50"></div>
           </div>
@@ -316,8 +298,8 @@
         document.getElementById('stat-iocs-sub').textContent = `${stats.iocs.total} total tracked`;
 
         // Badge
-        if (stats.alerts.open > 0) {
-          const badge = document.getElementById('alert-badge');
+        const badge = document.getElementById('alert-badge');
+        if (badge && stats.alerts.open > 0) {
           badge.textContent = stats.alerts.open;
           badge.classList.remove('hidden');
         }
@@ -368,17 +350,29 @@
       } catch(e) {}
     }
 
+    const _seenIds = new Set(JSON.parse(localStorage.getItem('sentrix_seen_alerts') || '[]'));
+
+    function markAllSeen() {
+      _latestAlerts.forEach(a => _seenIds.add(a.id));
+      localStorage.setItem('sentrix_seen_alerts', JSON.stringify([..._seenIds]));
+      updateNotifications(_latestAlerts);
+    }
+
+    let _latestAlerts = [];
+
     function updateNotifications(alerts) {
+      _latestAlerts = alerts;
+      const unseen = alerts.filter(a => !_seenIds.has(a.id));
       const count = document.getElementById('notif-count');
       const list  = document.getElementById('notif-list');
-      if (!alerts.length) {
+      if (!unseen.length) {
         count.classList.add('hidden');
-        list.innerHTML = '<p class="text-gray-500 text-sm text-center p-4">No alerts</p>';
+        list.innerHTML = '<p class="text-gray-500 text-sm text-center p-4">All caught up</p>';
         return;
       }
-      count.textContent = alerts.length;
+      count.textContent = unseen.length;
       count.classList.remove('hidden');
-      list.innerHTML = alerts.slice(0, 8).map(a => `
+      list.innerHTML = unseen.slice(0, 8).map(a => `
         <div class="p-3 hover:bg-gray-800/50 transition cursor-pointer" onclick="window.location='/alerts.html'">
           <div class="flex items-center gap-2 mb-1">
             ${severityBadge(a.severity)}
@@ -532,5 +526,6 @@
     setInterval(updateLiveFeed, 10000);
     setInterval(loadServicesStatus, 30000);
   </script>
+  <script src="/static/js/sidebar.js"></script>
 </body>
 </html>
