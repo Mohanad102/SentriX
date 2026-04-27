@@ -1,0 +1,21 @@
+{
+  "name": "SentriX SOC Platform",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "postCreateCommand": "pip install -r backend/requirements.txt",
+  "postStartCommand": "python run.py",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "SentriX API",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  }
+}
