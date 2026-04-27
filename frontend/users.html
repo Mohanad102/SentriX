@@ -8,10 +8,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body class="bg-gray-950 text-gray-100 flex">
+<body class="text-gray-100 flex" style="background:#020817;">
+
+  <div class="mesh-bg"></div>
 
   <!-- Sidebar -->
-  <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
+  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;">
     <div class="p-5 border-b border-gray-800">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
@@ -45,11 +47,11 @@
   </aside>
 
   <!-- Main -->
-  <main class="flex-1 min-h-screen overflow-auto">
-    <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 backdrop-blur z-10">
+  <main class="flex-1 min-h-screen overflow-auto" style="position:relative;z-index:1;">
+    <header class="px-6 py-4 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
       <div>
         <h1 class="text-white font-semibold text-lg">User Management</h1>
-        <p class="text-gray-500 text-xs">Manage accounts, roles, and access</p>
+        <p class="text-xs mt-0.5" style="color:#475569;">Manage accounts, roles, and access</p>
       </div>
       <button onclick="openCreateModal()" class="btn btn-primary">
         <i class="fa-solid fa-user-plus"></i> New User
@@ -59,7 +61,7 @@
     <div class="p-6 page-fade">
 
       <!-- Tab Bar -->
-      <div class="flex gap-1 mb-5 bg-gray-900 border border-gray-800 rounded-xl p-1 w-fit">
+      <div class="flex gap-1 mb-5 panel p-1 w-fit rounded-xl">
         <button onclick="showTab('users')" id="tab-users-btn"
           class="px-4 py-1.5 rounded text-xs font-medium transition bg-gray-700 text-white">
           <i class="fa-solid fa-users mr-1"></i> Users
@@ -74,7 +76,7 @@
       <div id="panel-users">
         <!-- Stats row -->
         <div class="grid grid-cols-3 gap-4 mb-5" id="user-stats">
-          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+          <div class="panel p-4 flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
               <i class="fa-solid fa-users text-emerald-400 text-sm"></i>
             </div>
@@ -83,7 +85,7 @@
               <p class="text-xs text-gray-500">Total Users</p>
             </div>
           </div>
-          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+          <div class="panel p-4 flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center">
               <i class="fa-solid fa-user-shield text-red-400 text-sm"></i>
             </div>
@@ -92,7 +94,7 @@
               <p class="text-xs text-gray-500">Admins</p>
             </div>
           </div>
-          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+          <div class="panel p-4 flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
               <i class="fa-solid fa-user-check text-blue-400 text-sm"></i>
             </div>
@@ -104,7 +106,7 @@
         </div>
 
         <!-- Users Table -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div class="panel overflow-hidden">
           <div id="users-loading" class="flex items-center justify-center py-16">
             <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
           </div>
@@ -129,8 +131,8 @@
 
       <!-- Audit Log Panel -->
       <div id="panel-audit" class="hidden">
-        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-          <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+        <div class="panel overflow-hidden">
+          <div class="p-4 flex items-center justify-between" style="border-bottom:1px solid rgba(255,255,255,0.05);">
             <p class="text-sm text-gray-400">System activity log — admin actions only</p>
             <button onclick="loadAudit()" class="btn btn-secondary btn-sm">
               <i class="fa-solid fa-rotate-right"></i> Refresh
@@ -255,6 +257,7 @@
     </div>
   </div>
 
+  <script src="/static/js/sidebar.js"></script>
   <script src="/static/js/api.js"></script>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
