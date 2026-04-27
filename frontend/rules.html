@@ -8,10 +8,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body class="bg-gray-950 text-gray-100 flex">
+<body class="text-gray-100 flex" style="background:#020817;">
+
+  <div class="mesh-bg"></div>
 
   <!-- Sidebar -->
-  <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
+  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;">
     <div class="p-5 border-b border-gray-800">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
@@ -45,11 +47,11 @@
   </aside>
 
   <!-- Main -->
-  <main class="flex-1 min-h-screen overflow-auto">
-    <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 backdrop-blur z-10">
+  <main class="flex-1 min-h-screen overflow-auto" style="position:relative;z-index:1;">
+    <header class="px-6 py-4 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
       <div>
         <h1 class="text-white font-semibold text-lg">Alert Rules Engine</h1>
-        <p class="text-gray-500 text-xs">Automate escalation and severity adjustments</p>
+        <p class="text-xs mt-0.5" style="color:#475569;">Automate escalation and severity adjustments</p>
       </div>
       <button onclick="openModal()" class="btn btn-primary">
         <i class="fa-solid fa-plus"></i> New Rule
@@ -73,7 +75,7 @@
 
       <!-- Stats row -->
       <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div class="panel p-4 flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
             <i class="fa-solid fa-sliders text-emerald-400 text-sm"></i>
           </div>
@@ -82,7 +84,7 @@
             <p class="text-xs text-gray-500">Total Rules</p>
           </div>
         </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div class="panel p-4 flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
             <i class="fa-solid fa-play text-green-400 text-sm"></i>
           </div>
@@ -91,7 +93,7 @@
             <p class="text-xs text-gray-500">Active</p>
           </div>
         </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div class="panel p-4 flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-yellow-500/10 flex items-center justify-center">
             <i class="fa-solid fa-pause text-yellow-400 text-sm"></i>
           </div>
@@ -250,6 +252,7 @@
     </div>
   </div>
 
+  <script src="/static/js/sidebar.js"></script>
   <script src="/static/js/api.js"></script>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
@@ -309,7 +312,7 @@
         const grid = document.getElementById('rules-grid');
         grid.classList.remove('hidden');
         grid.innerHTML = data.items.map(r => `
-          <div class="bg-gray-900 border ${r.is_active ? 'border-gray-800' : 'border-gray-800/40 opacity-60'} rounded-xl p-5 flex flex-col gap-4">
+          <div class="panel p-5 flex flex-col gap-4 ${r.is_active ? '' : 'opacity-60'}">
 
             <!-- Header -->
             <div class="flex items-start justify-between gap-2">
