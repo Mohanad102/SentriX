@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SentriX — VirusTotal Scanner</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +20,16 @@
         <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
       </div>
     </div>
-    <nav id="sidebar-nav" class="p-3 flex-1 space-y-1"></nav>
+    <nav class="p-3 flex-1 space-y-1">
+      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
+      <a href="/alerts.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
+      <a href="/incidents.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
+      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
+      <a href="/virustotal.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
+      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
+      <a href="/rules.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
+    </nav>
     <div class="p-3 border-t border-gray-800">
       <div class="flex items-center gap-3 px-2 py-2">
         <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
@@ -39,113 +45,54 @@
   <!-- Main -->
   <main class="flex-1 min-h-screen overflow-auto">
     <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 sticky top-0 backdrop-blur z-10">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-white font-semibold text-lg flex items-center gap-2">
-            <i class="fa-solid fa-virus-slash text-emerald-400"></i> VirusTotal Scanner
-          </h1>
-          <p class="text-gray-500 text-xs">Scan IPs, domains, URLs, and file hashes</p>
-        </div>
-        <!-- Stats bar -->
-        <div id="stats-bar" class="hidden sm:flex items-center gap-4 text-xs text-gray-500">
-          <span><span id="stat-total" class="text-white font-semibold">—</span> IOCs tracked</span>
-          <span><span id="stat-malicious" class="text-red-400 font-semibold">—</span> malicious</span>
-          <span><span id="stat-pending" class="text-yellow-400 font-semibold">—</span> pending</span>
-          <button onclick="triggerEnrich()" id="enrich-btn"
-            class="ml-2 px-3 py-1.5 rounded-lg border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 transition text-xs font-medium flex items-center gap-1">
-            <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Enrich Pending
-          </button>
-        </div>
+      <div>
+        <h1 class="text-white font-semibold text-lg flex items-center gap-2">
+          <i class="fa-solid fa-virus-slash text-emerald-400"></i> VirusTotal Scanner
+        </h1>
+        <p class="text-gray-500 text-xs">Scan IPs, domains, URLs, and file hashes</p>
       </div>
     </header>
 
-    <div class="p-6 page-fade max-w-5xl mx-auto">
+    <div class="p-6 page-fade max-w-4xl mx-auto">
 
-      <!-- Tabs -->
-      <div class="flex gap-1 mb-6 bg-gray-900 border border-gray-800 rounded-xl p-1 w-fit">
-        <button onclick="showTab('scan')" id="tab-scan"
-          class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition">
-          <i class="fa-solid fa-magnifying-glass mr-1.5"></i>Manual Scan
-        </button>
-        <button onclick="showTab('iocs')" id="tab-iocs"
-          class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition">
-          <i class="fa-solid fa-database mr-1.5"></i>Auto-Enriched IOCs
-        </button>
-      </div>
-
-      <!-- ===== MANUAL SCAN TAB ===== -->
-      <div id="panel-scan">
-        <!-- Search Card -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-          <div class="flex flex-col gap-4">
-            <div class="flex gap-2 flex-wrap">
-              <button onclick="setType('auto')"   id="btn-auto"   class="type-btn active">Auto-detect</button>
-              <button onclick="setType('ip')"     id="btn-ip"     class="type-btn">IP Address</button>
-              <button onclick="setType('domain')" id="btn-domain" class="type-btn">Domain</button>
-              <button onclick="setType('url')"    id="btn-url"    class="type-btn">URL</button>
-              <button onclick="setType('hash')"   id="btn-hash"   class="type-btn">File Hash</button>
+      <!-- Search Card -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
+        <div class="flex flex-col gap-4">
+          <div class="flex gap-2 flex-wrap">
+            <button onclick="setType('auto')"   id="btn-auto"   class="type-btn active">Auto-detect</button>
+            <button onclick="setType('ip')"     id="btn-ip"     class="type-btn">IP Address</button>
+            <button onclick="setType('domain')" id="btn-domain" class="type-btn">Domain</button>
+            <button onclick="setType('url')"    id="btn-url"    class="type-btn">URL</button>
+            <button onclick="setType('hash')"   id="btn-hash"   class="type-btn">File Hash</button>
+          </div>
+          <div class="flex gap-3">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+              <input id="scan-input" type="text"
+                placeholder="Enter IP, domain, URL, or MD5/SHA256 hash..."
+                class="form-input pl-9 w-full text-sm"
+                onkeydown="if(event.key==='Enter') scan()" />
             </div>
-            <div class="flex gap-3">
-              <div class="relative flex-1">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
-                <input id="scan-input" type="text"
-                  placeholder="Enter IP, domain, URL, or MD5/SHA256 hash..."
-                  class="form-input pl-9 w-full text-sm"
-                  onkeydown="if(event.key==='Enter') scan()" />
-              </div>
-              <button onclick="scan()" id="scan-btn" class="btn btn-primary px-6">
-                <i class="fa-solid fa-search mr-1"></i> Scan
-              </button>
-            </div>
+            <button onclick="scan()" id="scan-btn" class="btn btn-primary px-6">
+              <i class="fa-solid fa-search mr-1"></i> Scan
+            </button>
           </div>
-        </div>
-
-        <!-- Result -->
-        <div id="result-area"></div>
-
-        <!-- History -->
-        <div id="history-section" class="hidden">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-white font-medium flex items-center gap-2">
-              <i class="fa-solid fa-clock-rotate-left text-emerald-400 text-sm"></i> Recent Scans
-            </h3>
-            <button onclick="clearHistory()" class="text-xs text-gray-500 hover:text-red-400 transition">Clear</button>
-          </div>
-          <div id="history-list" class="space-y-2"></div>
         </div>
       </div>
 
-      <!-- ===== AUTO-ENRICHED IOCs TAB ===== -->
-      <div id="panel-iocs" class="hidden">
-        <!-- Filters -->
-        <div class="flex flex-wrap gap-2 mb-4">
-          <select id="filter-type" onchange="loadIocs(1)"
-            class="form-input text-xs py-1.5 px-3 w-36">
-            <option value="">All Types</option>
-            <option value="ip">IP Address</option>
-            <option value="domain">Domain</option>
-            <option value="url">URL</option>
-            <option value="hash">Hash</option>
-          </select>
-          <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-700 text-xs text-gray-400 cursor-pointer hover:border-gray-600">
-            <input type="checkbox" id="filter-malicious" onchange="loadIocs(1)" class="accent-red-400"> Malicious only
-          </label>
-          <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-700 text-xs text-gray-400 cursor-pointer hover:border-gray-600">
-            <input type="checkbox" id="filter-enriched" onchange="loadIocs(1)" class="accent-emerald-400"> Enriched only
-          </label>
-          <button onclick="loadIocs(1)" class="ml-auto text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
-            <i class="fa-solid fa-arrows-rotate"></i> Refresh
-          </button>
-        </div>
+      <!-- Result -->
+      <div id="result-area"></div>
 
-        <div id="ioc-table-wrap">
-          <div class="text-center py-10 text-gray-500 text-sm">
-            <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-xl mb-2"></i><br>Loading...
-          </div>
+      <!-- History -->
+      <div id="history-section" class="hidden">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-white font-medium flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-emerald-400 text-sm"></i> Recent Scans
+          </h3>
+          <button onclick="clearHistory()" class="text-xs text-gray-500 hover:text-red-400 transition">Clear</button>
         </div>
-        <div id="ioc-pagination" class="flex justify-center gap-2 mt-4"></div>
+        <div id="history-list" class="space-y-2"></div>
       </div>
-
     </div>
   </main>
 
@@ -159,13 +106,6 @@
     .stat-box {
       @apply bg-gray-800/60 rounded-lg p-3 text-center;
     }
-    .tab-btn {
-      color: theme('colors.gray.400');
-    }
-    .tab-btn.active {
-      background: theme('colors.emerald.500 / 10%');
-      color: theme('colors.emerald.400');
-    }
   </style>
 
   <script src="/static/js/api.js"></script>
@@ -174,160 +114,7 @@
 
     let selectedType = 'auto';
     const HISTORY_KEY = 'vt_scan_history';
-    let iocPage = 1;
 
-    // ── Tab switching ──────────────────────────────────────────────
-    function showTab(tab) {
-      document.getElementById('panel-scan').classList.toggle('hidden', tab !== 'scan');
-      document.getElementById('panel-iocs').classList.toggle('hidden', tab !== 'iocs');
-      document.getElementById('tab-scan').classList.toggle('active', tab === 'scan');
-      document.getElementById('tab-iocs').classList.toggle('active', tab === 'iocs');
-      if (tab === 'iocs') loadIocs(1);
-    }
-
-    // ── Stats bar ──────────────────────────────────────────────────
-    async function loadStats() {
-      try {
-        const s = await apiGet('/api/virustotal/stats');
-        document.getElementById('stat-total').textContent    = s.total;
-        document.getElementById('stat-malicious').textContent = s.malicious;
-        document.getElementById('stat-pending').textContent  = s.pending;
-        document.getElementById('stats-bar').classList.remove('hidden');
-      } catch {}
-    }
-
-    async function triggerEnrich() {
-      const btn = document.getElementById('enrich-btn');
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Enriching...';
-      try {
-        const r = await apiPost('/api/virustotal/enrich-pending', {});
-        btn.innerHTML = `<i class="fa-solid fa-check text-xs"></i> ${r.message}`;
-        setTimeout(() => {
-          btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Enrich Pending';
-          btn.disabled = false;
-          loadStats();
-          if (!document.getElementById('panel-iocs').classList.contains('hidden')) loadIocs(iocPage);
-        }, 2000);
-      } catch {
-        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Enrich Pending';
-        btn.disabled = false;
-      }
-    }
-
-    // ── IOC table ──────────────────────────────────────────────────
-    async function loadIocs(page) {
-      iocPage = page;
-      const wrap = document.getElementById('ioc-table-wrap');
-      wrap.innerHTML = `<div class="text-center py-10 text-gray-500 text-sm">
-        <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-xl mb-2"></i><br>Loading...</div>`;
-
-      const type      = document.getElementById('filter-type').value;
-      const malicious = document.getElementById('filter-malicious').checked;
-      const enriched  = document.getElementById('filter-enriched').checked;
-
-      let qs = `?page=${page}&page_size=15`;
-      if (type)      qs += `&ioc_type=${type}`;
-      if (malicious) qs += `&malicious_only=true`;
-      if (enriched)  qs += `&enriched_only=true`;
-
-      try {
-        const data = await apiGet(`/api/virustotal/iocs${qs}`);
-        renderIocTable(data);
-      } catch (e) {
-        wrap.innerHTML = `<div class="text-center py-10 text-red-400 text-sm">${e.message || 'Failed to load'}</div>`;
-      }
-    }
-
-    function renderIocTable(data) {
-      const wrap = document.getElementById('ioc-table-wrap');
-      if (!data.items.length) {
-        wrap.innerHTML = `<div class="text-center py-14 text-gray-500">
-          <i class="fa-solid fa-database text-3xl mb-3 opacity-30"></i>
-          <p class="text-sm">No IOCs found. New alerts will be auto-enriched as they arrive.</p></div>`;
-        document.getElementById('ioc-pagination').innerHTML = '';
-        return;
-      }
-
-      const rows = data.items.map(ioc => {
-        const verdict = ioc.is_malicious === true
-          ? `<span class="inline-flex items-center gap-1 text-red-400 text-xs font-medium"><i class="fa-solid fa-skull-crossbones"></i>Malicious</span>`
-          : ioc.is_malicious === false
-          ? `<span class="inline-flex items-center gap-1 text-emerald-400 text-xs font-medium"><i class="fa-solid fa-circle-check"></i>Clean</span>`
-          : `<span class="text-gray-500 text-xs">—</span>`;
-
-        const enrichedBadge = ioc.enriched
-          ? `<span class="text-emerald-400 text-xs"><i class="fa-solid fa-circle-check"></i></span>`
-          : `<span class="text-yellow-400 text-xs"><i class="fa-solid fa-clock"></i></span>`;
-
-        const typeIcon = {ip:'fa-network-wired', domain:'fa-globe', url:'fa-link', hash:'fa-fingerprint'}[ioc.ioc_type] || 'fa-tag';
-        const ago = ioc.enriched_at ? timeAgo(ioc.enriched_at) : (ioc.created_at ? timeAgo(ioc.created_at) : '—');
-
-        return `<tr class="border-t border-gray-800 hover:bg-gray-800/40 transition">
-          <td class="px-4 py-3">
-            <span class="inline-flex items-center gap-1.5 text-xs text-gray-400">
-              <i class="fa-solid ${typeIcon} w-3"></i>${ioc.ioc_type.toUpperCase()}
-            </span>
-          </td>
-          <td class="px-4 py-3 font-mono text-sm text-gray-200 max-w-xs truncate" title="${ioc.value}">${ioc.value}</td>
-          <td class="px-4 py-3 text-center">${verdict}</td>
-          <td class="px-4 py-3 text-center text-sm font-mono ${ioc.is_malicious ? 'text-red-400' : 'text-gray-400'}">${ioc.vt_score || '—'}</td>
-          <td class="px-4 py-3 text-center">${enrichedBadge}</td>
-          <td class="px-4 py-3 text-xs text-gray-500">${ago}</td>
-          <td class="px-4 py-3 text-center">
-            <button onclick="quickScanFromDb('${ioc.value}','${ioc.ioc_type}')"
-              class="text-xs text-emerald-400 hover:text-emerald-300 transition" title="Re-scan">
-              <i class="fa-solid fa-arrows-rotate"></i>
-            </button>
-          </td>
-        </tr>`;
-      }).join('');
-
-      wrap.innerHTML = `
-        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-xs text-gray-500 uppercase tracking-wider">
-                <th class="px-4 py-3 text-left">Type</th>
-                <th class="px-4 py-3 text-left">Value</th>
-                <th class="px-4 py-3 text-center">Verdict</th>
-                <th class="px-4 py-3 text-center">Score</th>
-                <th class="px-4 py-3 text-center">Enriched</th>
-                <th class="px-4 py-3 text-left">Age</th>
-                <th class="px-4 py-3 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>`;
-
-      // Pagination
-      const pag = document.getElementById('ioc-pagination');
-      if (data.pages <= 1) { pag.innerHTML = ''; return; }
-      let btns = '';
-      for (let p = 1; p <= data.pages; p++) {
-        btns += `<button onclick="loadIocs(${p})"
-          class="px-3 py-1 rounded text-xs ${p === data.page ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-gray-500 border border-gray-700 hover:border-gray-600'}">${p}</button>`;
-      }
-      pag.innerHTML = btns;
-    }
-
-    function quickScanFromDb(value, type) {
-      showTab('scan');
-      document.getElementById('scan-input').value = value;
-      setType(type);
-      scan();
-    }
-
-    function timeAgo(isoStr) {
-      const diff = Math.round((Date.now() - new Date(isoStr).getTime()) / 60000);
-      if (diff < 1) return 'just now';
-      if (diff < 60) return `${diff}m ago`;
-      if (diff < 1440) return `${Math.round(diff/60)}h ago`;
-      return `${Math.round(diff/1440)}d ago`;
-    }
-
-    // ── Manual scan ────────────────────────────────────────────────
     function setType(t) {
       selectedType = t;
       document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
@@ -361,7 +148,6 @@
         const result = await apiPost('/api/virustotal/scan', { value: input, ioc_type: type });
         renderResult(input, type, result);
         saveHistory(input, type, result);
-        loadStats();
       } catch (e) {
         document.getElementById('result-area').innerHTML = `
           <div class="bg-gray-900 border border-red-500/30 rounded-xl p-6 mb-6 text-center">
@@ -411,6 +197,7 @@
             </div>
           </div>
 
+          <!-- Score -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
             <div class="stat-box">
               <p class="text-red-400 font-bold text-xl">${malicious}</p>
@@ -430,6 +217,7 @@
             </div>
           </div>
 
+          <!-- Bar -->
           <div class="mb-4">
             <div class="flex justify-between text-xs text-gray-500 mb-1">
               <span>Detection breakdown</span>
@@ -459,19 +247,9 @@
 
     function saveHistory(value, type, result) {
       const hist = getHistory();
-      const deduped = hist.filter(h => h.value !== value);
-      deduped.unshift({ value, type, score: result.score, is_malicious: result.is_malicious, result, ts: Date.now() });
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(deduped.slice(0, 20)));
+      hist.unshift({ value, type, score: result.score, is_malicious: result.is_malicious, ts: Date.now() });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(hist.slice(0, 20)));
       renderHistory();
-    }
-
-    function showFromHistory(idx) {
-      const h = getHistory()[idx];
-      if (!h) return;
-      document.getElementById('scan-input').value = h.value;
-      setType(h.type);
-      renderResult(h.value, h.type, h.result);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function getHistory() {
@@ -489,25 +267,23 @@
       const list    = document.getElementById('history-list');
       if (!hist.length) { section.classList.add('hidden'); return; }
       section.classList.remove('hidden');
-      list.innerHTML = hist.map((h, i) => {
-        const ago = timeAgo(new Date(h.ts).toISOString());
+      list.innerHTML = hist.map(h => {
+        const ago = Math.round((Date.now() - h.ts) / 60000);
+        const agoStr = ago < 1 ? 'just now' : ago < 60 ? `${ago}m ago` : `${Math.round(ago/60)}h ago`;
         const dot = h.is_malicious ? 'bg-red-400' : 'bg-emerald-400';
         return `
         <div class="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 hover:border-gray-700 transition cursor-pointer"
-             onclick="showFromHistory(${i})">
+             onclick="document.getElementById('scan-input').value='${h.value.replace(/'/g,"\\'")}'; setType('${h.type}'); scan()">
           <div class="w-2 h-2 rounded-full flex-shrink-0 ${dot}"></div>
           <span class="text-xs text-gray-500 uppercase w-14 flex-shrink-0">${h.type}</span>
           <span class="text-sm text-gray-200 font-mono flex-1 truncate">${h.value}</span>
           <span class="text-xs text-gray-500 flex-shrink-0">${h.score}</span>
-          <span class="text-xs text-gray-600 flex-shrink-0">${ago}</span>
+          <span class="text-xs text-gray-600 flex-shrink-0">${agoStr}</span>
         </div>`;
       }).join('');
     }
 
-    // Init
-    loadStats();
     renderHistory();
   </script>
-  <script src="/static/js/sidebar.js"></script>
 </body>
 </html>

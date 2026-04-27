@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SentriX — Incidents</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -32,7 +29,16 @@
         <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
       </div>
     </div>
-    <nav id="sidebar-nav" class="p-3 flex-1 space-y-1"></nav>
+    <nav class="p-3 flex-1 space-y-1">
+      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
+      <a href="/alerts.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
+      <a href="/incidents.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
+      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
+      <a href="/virustotal.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
+      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
+      <a href="/rules.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
+    </nav>
     <div class="p-3 border-t border-gray-800">
       <div class="flex items-center gap-3 px-2 py-2">
         <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
@@ -529,6 +535,5 @@
 
     loadIncidents();
   </script>
-  <script src="/static/js/sidebar.js"></script>
 </body>
 </html>
