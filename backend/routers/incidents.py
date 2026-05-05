@@ -35,6 +35,9 @@ class IncidentUpdate(BaseModel):
     ai_summary: Optional[str] = None
     ai_iocs: Optional[str] = None
     ai_recommendations: Optional[str] = None
+    investigation_notes: Optional[str] = None
+    l2_status: Optional[str] = None   # under_investigation | contained | escalated_to_ir
+    ir_status: Optional[str] = None   # new | investigating | contained | eradicated | recovered
 
 
 class TaskCreate(BaseModel):
@@ -43,7 +46,7 @@ class TaskCreate(BaseModel):
     assigned_to: Optional[str] = None
 
 
-def incident_to_dict(inc: Incident):
+def incident_to_dict(inc: Incident, malicious_ioc_count: int = 0, ioc_count: int = 0):
     return {
         "id": inc.id,
         "case_number": inc.case_number,
@@ -59,10 +62,16 @@ def incident_to_dict(inc: Incident):
         "ai_iocs": inc.ai_iocs,
         "ai_recommendations": inc.ai_recommendations,
         "tags": inc.tags,
+        "investigation_notes": inc.investigation_notes,
+        "l2_status": inc.l2_status,
+        "ir_status": inc.ir_status,
+        "contained_at": inc.contained_at.isoformat() if inc.contained_at else None,
         "created_by": inc.created_by,
         "created_at": inc.created_at.isoformat() if inc.created_at else None,
         "updated_at": inc.updated_at.isoformat() if inc.updated_at else None,
         "closed_at": inc.closed_at.isoformat() if inc.closed_at else None,
+        "malicious_ioc_count": malicious_ioc_count,
+        "ioc_count": ioc_count,
     }
 
 
@@ -89,14 +98,31 @@ def list_incidents(
                 Incident.assigned_to.ilike(f"%{search}%"),
             )
         )
+    from backend.models.ioc import IOC
+    from sqlalchemy import func as sqlfunc
     total = query.count()
     items = query.order_by(Incident.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    inc_ids = [i.id for i in items]
+    ioc_totals = {
+        row[0]: row[1]
+        for row in db.query(IOC.incident_id, sqlfunc.count(IOC.id))
+            .filter(IOC.incident_id.in_(inc_ids)).group_by(IOC.incident_id).all()
+    }
+    ioc_malicious = {
+        row[0]: row[1]
+        for row in db.query(IOC.incident_id, sqlfunc.count(IOC.id))
+            .filter(IOC.incident_id.in_(inc_ids), IOC.is_malicious == True)
+            .group_by(IOC.incident_id).all()
+    }
     return {
         "total": total,
         "page": page,
         "page_size": page_size,
         "pages": (total + page_size - 1) // page_size,
-        "items": [incident_to_dict(i) for i in items]
+        "items": [
+            incident_to_dict(i, ioc_malicious.get(i.id, 0), ioc_totals.get(i.id, 0))
+            for i in items
+        ]
     }
 
 
@@ -171,6 +197,8 @@ def update_incident(
 
     if data.status == "closed" and not inc.closed_at:
         inc.closed_at = datetime.utcnow()
+    if data.l2_status == "contained" and not inc.contained_at:
+        inc.contained_at = datetime.utcnow()
 
     inc.updated_at = datetime.utcnow()
     db.commit()

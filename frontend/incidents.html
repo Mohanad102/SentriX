@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SentriX — Incidents</title>
+  <title>SentriX — IR Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
@@ -11,10 +11,29 @@
     .kanban-col { min-height: 200px; }
     .kanban-card { cursor: grab; transition: all .15s; }
     .kanban-card:active { cursor: grabbing; opacity: .7; }
-    .kanban-card.drag-over { border-color: #10b981; background: rgba(16,185,129,.08); }
     .drop-zone.drag-active { background: rgba(16,185,129,.04); border-color: rgba(16,185,129,.3); }
-    .timeline-line { position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: #374151; }
+    .timeline-line { position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: #1f2937; }
     .timeline-dot  { position: relative; z-index: 1; }
+    .tab-btn { color: #6b7280; transition: all .15s; }
+    .tab-btn.active { background: #374151; color: #fff; }
+    .conf-bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg,#10b981,#3b82f6); }
+    .pb-card { background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;transition:border-color .2s; }
+    .pb-card:hover { border-color:rgba(16,185,129,.25); }
+    .action-card { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 10px; padding: 14px; }
+    .action-card:hover { border-color: rgba(16,185,129,.2); }
+    .notif-item { border-left:3px solid;padding:10px 12px;border-radius:0 8px 8px 0;margin-bottom:8px; }
+    .notif-info     { border-color:#3b82f6;background:rgba(59,130,246,.06); }
+    .notif-warning  { border-color:#f59e0b;background:rgba(245,158,11,.06); }
+    .notif-critical { border-color:#ef4444;background:rgba(239,68,68,.06); }
+    .ev-type-badge  { display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em; }
+    .lifecycle-step { display:flex;flex-direction:column;align-items:center;flex:1; }
+    .lifecycle-step .dot { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;border:2px solid;transition:all .2s; }
+    .lifecycle-step.done   .dot { background:#10b981;border-color:#10b981;color:#fff; }
+    .lifecycle-step.active .dot { background:#f59e0b;border-color:#f59e0b;color:#fff;box-shadow:0 0 12px rgba(245,158,11,.4); }
+    .lifecycle-step.idle   .dot { background:#111827;border-color:#374151;color:#6b7280; }
+    .lifecycle-step .step-label { font-size:0.6rem;margin-top:4px;color:#6b7280;letter-spacing:.04em;text-transform:uppercase; }
+    .lifecycle-step.active .step-label { color:#f59e0b; }
+    .lifecycle-step.done   .step-label { color:#10b981; }
   </style>
 </head>
 <body class="text-gray-100 flex" id="body" style="background:#020817;">
@@ -22,43 +41,28 @@
   <div class="mesh-bg"></div>
 
   <!-- Sidebar -->
-  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;">
-    <div class="p-5 border-b border-gray-800">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
-        </div>
-        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
-      </div>
-    </div>
-    <nav class="p-3 flex-1 space-y-1">
-      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
-      <a href="/alerts.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
-      <a href="/incidents.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
-      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
-      <a href="/virustotal.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
-      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
-      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
-      <a href="/rules.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
-    </nav>
-    <div class="p-3 border-t border-gray-800">
-      <div class="flex items-center gap-3 px-2 py-2">
-        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
-        <div class="flex-1 min-w-0"><p class="text-sm font-medium text-white truncate user-name">Admin</p><p class="text-xs text-gray-500 user-role">ADMIN</p></div>
-        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
-      </div>
-    </div>
-  </aside>
+  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;"></aside>
 
   <!-- Main -->
-  <main class="flex-1 min-h-screen overflow-auto" style="position:relative;z-index:1;">
+  <main class="flex-1 min-h-screen overflow-auto min-w-0" style="position:relative;z-index:1;">
     <header class="px-6 py-4 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
       <div>
-        <h1 class="text-white font-semibold text-lg">Incident Management</h1>
-        <p class="text-gray-500 text-xs">Case tracking and response orchestration</p>
+        <h1 class="text-white font-semibold text-lg flex items-center gap-2">
+          <i class="fa-solid fa-shield-virus text-red-400"></i> IR Dashboard
+        </h1>
+        <p class="text-gray-500 text-xs">Case tracking · Containment · Mitigation · Recovery</p>
       </div>
       <div class="flex items-center gap-2">
-        <!-- View toggle -->
+        <!-- Notification Bell -->
+        <div class="relative">
+          <button onclick="toggleNotifPanel()" id="notif-bell-btn"
+            class="relative w-9 h-9 rounded-lg flex items-center justify-center transition"
+            style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);">
+            <i class="fa-solid fa-bell text-gray-400 text-sm"></i>
+            <span id="notif-count-badge" class="absolute -top-1 -right-1 hidden text-xs font-bold px-1.5 rounded-full"
+              style="background:#ef4444;color:#fff;min-width:18px;text-align:center;line-height:18px;font-size:0.6rem;"></span>
+          </button>
+        </div>
         <div class="flex bg-gray-800 rounded-lg p-0.5 gap-0.5">
           <button onclick="setView('list')" id="btn-list"
             class="px-3 py-1.5 rounded text-xs font-medium transition bg-gray-700 text-white">
@@ -75,7 +79,28 @@
       </div>
     </header>
 
-    <div class="p-6 page-fade">
+    <div class="p-4 page-fade">
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="panel p-4">
+          <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-fire text-red-400 text-sm"></i><span class="text-gray-500 text-xs">Active Incidents</span></div>
+          <p class="text-3xl font-bold text-white" id="stat-active">—</p>
+        </div>
+        <div class="panel p-4">
+          <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-bolt text-yellow-400 text-sm"></i><span class="text-gray-500 text-xs">Actions Today</span></div>
+          <p class="text-3xl font-bold text-yellow-400" id="stat-actions">—</p>
+        </div>
+        <div class="panel p-4">
+          <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-book-open text-blue-400 text-sm"></i><span class="text-gray-500 text-xs">Playbooks Run Today</span></div>
+          <p class="text-3xl font-bold text-blue-400" id="stat-playbooks">—</p>
+        </div>
+        <div class="panel p-4">
+          <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-bell text-orange-400 text-sm"></i><span class="text-gray-500 text-xs">Unread Alerts</span></div>
+          <p class="text-3xl font-bold text-orange-400" id="stat-notifs">—</p>
+        </div>
+      </div>
+
       <!-- Filters -->
       <div class="panel p-4 mb-4 flex flex-wrap items-center gap-3">
         <div class="relative flex-1 min-w-48">
@@ -98,96 +123,154 @@
         </select>
       </div>
 
-      <!-- List View -->
-      <div id="list-view">
-        <div class="panel overflow-hidden">
-          <div id="table-loading" class="flex items-center justify-center py-16">
-            <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
-          </div>
-          <div id="table-container" class="hidden overflow-x-auto">
-            <table class="data-table">
-              <thead class="bg-gray-800/50">
-                <tr>
-                  <th>Case #</th><th>Title</th><th>Severity</th><th>Priority</th>
-                  <th>Status</th><th>Assigned To</th><th>Created</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="incidents-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="flex items-center justify-between mt-4">
-          <p class="text-xs text-gray-500" id="pagination-info"></p>
-          <div class="flex gap-1" id="pagination-btns"></div>
-        </div>
-      </div>
+      <!-- Main Area: Incidents + Playbook Sidebar -->
+      <div id="main-grid" class="grid gap-4" style="grid-template-columns:1fr 270px;">
 
-      <!-- Kanban View -->
-      <div id="kanban-view" class="hidden">
-        <div class="grid grid-cols-4 gap-4">
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-2 h-2 rounded-full bg-blue-400"></div>
-              <span class="text-sm font-medium text-gray-300">Open</span>
-              <span class="ml-auto text-xs text-gray-500" id="k-count-open">0</span>
+        <!-- Left: List / Kanban -->
+        <div class="min-w-0">
+          <!-- List View -->
+          <div id="list-view">
+            <div class="panel" style="overflow:hidden;">
+              <div id="table-loading" class="flex items-center justify-center py-16">
+                <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+              </div>
+              <div id="table-container" class="hidden" style="overflow-x:auto;max-width:100%;">
+                <table class="data-table">
+                  <thead class="bg-gray-800/50">
+                    <tr>
+                      <th>Case #</th><th>Title</th><th>Severity</th>
+                      <th>Threat</th><th>Status</th><th>IR Phase</th><th>Assigned</th><th>Created</th><th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="incidents-tbody"></tbody>
+                </table>
+              </div>
             </div>
-            <div id="k-open" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
-              ondragover="onDragOver(event,'open')" ondrop="onDrop(event,'open')" ondragleave="onDragLeave(event)"></div>
+            <div class="flex items-center justify-between mt-4">
+              <p class="text-xs text-gray-500" id="pagination-info"></p>
+              <div class="flex gap-1" id="pagination-btns"></div>
+            </div>
           </div>
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
-              <span class="text-sm font-medium text-gray-300">In Progress</span>
-              <span class="ml-auto text-xs text-gray-500" id="k-count-in_progress">0</span>
+
+          <!-- Kanban View -->
+          <div id="kanban-view" class="hidden" style="overflow-x:auto;">
+            <div class="grid gap-4" style="grid-template-columns:repeat(4,minmax(200px,1fr));min-width:800px;">
+              <div>
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                  <span class="text-sm font-medium text-gray-300">Open</span>
+                  <span class="ml-auto text-xs text-gray-500" id="k-count-open">0</span>
+                </div>
+                <div id="k-open" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
+                  ondragover="onDragOver(event,'open')" ondrop="onDrop(event,'open')" ondragleave="onDragLeave(event)"></div>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                  <span class="text-sm font-medium text-gray-300">In Progress</span>
+                  <span class="ml-auto text-xs text-gray-500" id="k-count-in_progress">0</span>
+                </div>
+                <div id="k-in_progress" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
+                  ondragover="onDragOver(event,'in_progress')" ondrop="onDrop(event,'in_progress')" ondragleave="onDragLeave(event)"></div>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                  <span class="text-sm font-medium text-gray-300">Resolved</span>
+                  <span class="ml-auto text-xs text-gray-500" id="k-count-resolved">0</span>
+                </div>
+                <div id="k-resolved" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
+                  ondragover="onDragOver(event,'resolved')" ondrop="onDrop(event,'resolved')" ondragleave="onDragLeave(event)"></div>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-2 h-2 rounded-full bg-gray-500"></div>
+                  <span class="text-sm font-medium text-gray-300">Closed</span>
+                  <span class="ml-auto text-xs text-gray-500" id="k-count-closed">0</span>
+                </div>
+                <div id="k-closed" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
+                  ondragover="onDragOver(event,'closed')" ondrop="onDrop(event,'closed')" ondragleave="onDragLeave(event)"></div>
+              </div>
             </div>
-            <div id="k-in_progress" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
-              ondragover="onDragOver(event,'in_progress')" ondrop="onDrop(event,'in_progress')" ondragleave="onDragLeave(event)"></div>
-          </div>
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
-              <span class="text-sm font-medium text-gray-300">Resolved</span>
-              <span class="ml-auto text-xs text-gray-500" id="k-count-resolved">0</span>
-            </div>
-            <div id="k-resolved" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
-              ondragover="onDragOver(event,'resolved')" ondrop="onDrop(event,'resolved')" ondragleave="onDragLeave(event)"></div>
-          </div>
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-2 h-2 rounded-full bg-gray-500"></div>
-              <span class="text-sm font-medium text-gray-300">Closed</span>
-              <span class="ml-auto text-xs text-gray-500" id="k-count-closed">0</span>
-            </div>
-            <div id="k-closed" class="kanban-col drop-zone space-y-2 min-h-32 p-2 rounded-xl border border-dashed border-gray-800"
-              ondragover="onDragOver(event,'closed')" ondrop="onDrop(event,'closed')" ondragleave="onDragLeave(event)"></div>
           </div>
         </div>
+
+        <!-- Right: Playbook Library -->
+        <div id="pb-sidebar">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-sm font-semibold text-gray-300"><i class="fa-solid fa-book-open text-blue-400 mr-1"></i>Playbook Library</p>
+            <span class="text-xs text-gray-600" id="pb-count"></span>
+          </div>
+          <div id="pb-list" class="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+            <div class="text-center py-6 text-gray-600"><i class="fa-solid fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </main>
 
-  <!-- Detail Modal -->
-  <div id="detail-modal" class="modal-overlay hidden">
-    <div class="modal-box w-full max-w-3xl">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-white font-semibold text-lg" id="modal-case-num">Incident Details</h3>
-        <button onclick="closeModal('detail-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+  <!-- ═══════ Notification Side Panel ═══════ -->
+  <div id="notif-panel" class="fixed top-0 right-0 h-full w-80 hidden flex flex-col"
+    style="z-index:50;background:#0d1526;border-left:1px solid rgba(255,255,255,.07);">
+    <div class="flex items-center justify-between p-4 border-b" style="border-color:rgba(255,255,255,.07);">
+      <p class="text-sm font-semibold text-white"><i class="fa-solid fa-bell text-orange-400 mr-2"></i>Notifications</p>
+      <div class="flex gap-2">
+        <button onclick="markAllRead()" class="text-xs text-gray-500 hover:text-white">Mark all read</button>
+        <button onclick="toggleNotifPanel()" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <!-- Tab Bar -->
-      <div class="flex gap-1 mb-5 bg-gray-800/50 rounded-lg p-1">
-        <button onclick="switchTab('details')" id="tab-details" class="tab-btn active flex-1 py-1.5 text-xs font-medium rounded">Details</button>
-        <button onclick="switchTab('timeline')" id="tab-timeline" class="tab-btn flex-1 py-1.5 text-xs font-medium rounded">Timeline</button>
-        <button onclick="switchTab('iocs')" id="tab-iocs" class="tab-btn flex-1 py-1.5 text-xs font-medium rounded">IOCs</button>
-        <button onclick="switchTab('alerts')" id="tab-alerts" class="tab-btn flex-1 py-1.5 text-xs font-medium rounded">Alerts</button>
-      </div>
-      <div id="tab-details-content" class="tab-content"></div>
-      <div id="tab-timeline-content" class="tab-content hidden"></div>
-      <div id="tab-iocs-content" class="tab-content hidden"></div>
-      <div id="tab-alerts-content" class="tab-content hidden"></div>
+    </div>
+    <div id="notif-list" class="flex-1 overflow-y-auto p-4 space-y-0">
+      <div class="text-center py-8 text-gray-600 text-sm">Loading...</div>
     </div>
   </div>
 
-  <!-- Create Modal -->
+  <!-- ═══════ Detail Modal ═══════ -->
+  <div id="detail-modal" class="modal-overlay hidden">
+    <div class="modal-box w-full" style="max-width:880px;max-height:92vh;overflow-y:auto;">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-white font-semibold text-base" id="modal-case-num">Incident Details</h3>
+            <span id="modal-severity-badge"></span>
+            <span id="modal-ir-status-badge"></span>
+          </div>
+          <p class="text-gray-500 text-xs mt-0.5" id="modal-case-sub"></p>
+        </div>
+        <button onclick="closeModal('detail-modal')" class="text-gray-500 hover:text-white ml-4 shrink-0"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <!-- IR Lifecycle Stepper -->
+      <div class="mb-5 p-4 rounded-xl" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">IR Lifecycle</p>
+        <div class="flex items-start gap-0" id="lifecycle-stepper"></div>
+        <div class="flex gap-2 mt-4 flex-wrap" id="lifecycle-btns"></div>
+      </div>
+
+      <!-- Tab Bar -->
+      <div class="flex gap-0.5 mb-5 bg-gray-800/50 rounded-lg p-1 overflow-x-auto">
+        <button onclick="switchTab('details')"      id="tab-details"      class="tab-btn active shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-circle-info mr-1"></i>Details</button>
+        <button onclick="switchTab('timeline')"     id="tab-timeline"     class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-timeline mr-1"></i>Timeline</button>
+        <button onclick="switchTab('correlations')" id="tab-correlations" class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-diagram-project mr-1"></i>Correlations</button>
+        <button onclick="switchTab('ti')"           id="tab-ti"           class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-fingerprint mr-1"></i>Threat Intel</button>
+        <button onclick="switchTab('actions')"      id="tab-actions"      class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-bolt mr-1"></i>Actions</button>
+        <button onclick="switchTab('playbooks')"    id="tab-playbooks"    class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-book-open mr-1"></i>Playbooks</button>
+        <button onclick="switchTab('evidence')"     id="tab-evidence"     class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-box-archive mr-1"></i>Evidence</button>
+        <button onclick="switchTab('alerts')"       id="tab-alerts"       class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-bell mr-1"></i>Alerts</button>
+      </div>
+
+      <div id="tab-details-content"      class="tab-content"></div>
+      <div id="tab-timeline-content"     class="tab-content hidden"></div>
+      <div id="tab-correlations-content" class="tab-content hidden"></div>
+      <div id="tab-ti-content"           class="tab-content hidden"></div>
+      <div id="tab-actions-content"      class="tab-content hidden"></div>
+      <div id="tab-playbooks-content"    class="tab-content hidden"></div>
+      <div id="tab-evidence-content"     class="tab-content hidden"></div>
+      <div id="tab-alerts-content"       class="tab-content hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══════ Create Modal ═══════ -->
   <div id="create-modal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="flex items-center justify-between mb-5">
@@ -227,7 +310,7 @@
     </div>
   </div>
 
-  <!-- IOC Add Modal -->
+  <!-- ═══════ IOC Modal ═══════ -->
   <div id="ioc-modal" class="modal-overlay hidden">
     <div class="modal-box max-w-md">
       <div class="flex items-center justify-between mb-5">
@@ -251,38 +334,104 @@
     </div>
   </div>
 
+  <!-- ═══════ Run Playbook Modal ═══════ -->
+  <div id="pb-modal" class="modal-overlay hidden">
+    <div class="modal-box w-full max-w-lg" style="max-height:90vh;overflow-y:auto;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-white font-semibold" id="pb-modal-title">Run Playbook</h3>
+        <button onclick="closeModal('pb-modal')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <p class="text-gray-400 text-xs mb-4" id="pb-modal-desc"></p>
+      <div id="pb-steps-form" class="space-y-3 mb-5"></div>
+      <div id="pb-result" class="hidden mb-4"></div>
+      <div class="flex gap-2">
+        <button onclick="confirmRunPlaybook()" id="pb-run-btn" class="btn btn-primary flex-1">
+          <i class="fa-solid fa-play mr-1"></i>Execute Playbook
+        </button>
+        <button onclick="closeModal('pb-modal')" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/static/js/sidebar.js"></script>
   <script src="/static/js/api.js"></script>
-  <style>
-    .tab-btn { color: #6b7280; }
-    .tab-btn.active { background: #374151; color: #fff; }
-  </style>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
 
-    let currentPage = 1, debounceTimer, allIncidents = [], currentView = 'list';
-    let dragId = null, currentIncId = null;
+    const IR_LIFECYCLE  = ['new','investigating','contained','eradicated','recovered'];
+    const IR_LABELS     = { new:'New', investigating:'Investigating', contained:'Contained', eradicated:'Eradicated', recovered:'Recovered' };
+    const IR_ICONS      = { new:'fa-circle-plus', investigating:'fa-magnifying-glass', contained:'fa-shield-halved', eradicated:'fa-trash-can', recovered:'fa-heart-pulse' };
+    const IR_NEXT_LABEL = { new:'Start Investigation', investigating:'Mark Contained', contained:'Mark Eradicated', eradicated:'Mark Recovered' };
+    const TABS = ['details','timeline','correlations','ti','actions','playbooks','evidence','alerts'];
+    const STATUSES = ['open','in_progress','resolved','closed'];
+
+    const user   = JSON.parse(localStorage.getItem('sentrix_user') || '{}');
+    const role   = user.role || '';
+    const canL2  = (role === 'soc_analyst_l2' || role === 'admin' || role === 'incident_responder');
+    const canAct = canL2;
+
+    let currentPage  = 1, debounceTimer, allIncidents = [], currentView = 'list';
+    let dragId = null, currentInc = null;
+    let allPlaybooks = [], pendingPbId = null, notifOpen = false;
+
     const debouncedLoad = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadIncidents, 400); };
+
+    // ── Helpers ────────────────────────────────────────────────
+    function irStatusBadge(s) {
+      if (!s) return '<span class="text-gray-600 text-xs">—</span>';
+      const colors = { new:'text-gray-400 bg-gray-800', investigating:'text-yellow-400 bg-yellow-500/10',
+                       contained:'text-blue-400 bg-blue-500/10', eradicated:'text-purple-400 bg-purple-500/10',
+                       recovered:'text-emerald-400 bg-emerald-500/10' };
+      return `<span class="px-2 py-0.5 rounded text-xs font-semibold ${colors[s]||'text-gray-400'}">${IR_LABELS[s]||s}</span>`;
+    }
+
+    function l2StatusBadge(s) {
+      if (!s) return '<span class="text-gray-600 text-xs">—</span>';
+      const map = { under_investigation:['badge-info','Under Investigation'], contained:['badge-medium','Contained'], escalated_to_ir:['badge-critical','Escalated to IR'] };
+      const [cls, label] = map[s] || ['','Unknown'];
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
+
+    function incThreatBadge(inc) {
+      if (!inc.ioc_count) return '<span class="text-gray-600 text-xs">—</span>';
+      if (inc.malicious_ioc_count > 0)
+        return `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+          style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);"
+          title="${inc.malicious_ioc_count} malicious IOC(s)">
+          <i class="fa-solid fa-skull-crossbones"></i> ${inc.malicious_ioc_count}/${inc.ioc_count}</span>`;
+      return `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+        style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">
+        <i class="fa-solid fa-shield-check"></i> Clean</span>`;
+    }
+
+    function pbCatColor(cat) {
+      const m = { brute_force:'text-red-400', malware:'text-orange-400', ransomware:'text-red-500',
+                  exfiltration:'text-purple-400', phishing:'text-yellow-400',
+                  privilege_escalation:'text-pink-400', lateral_movement:'text-blue-400' };
+      return m[cat] || 'text-gray-400';
+    }
 
     // ── View ──────────────────────────────────────────────────
     function setView(v) {
       currentView = v;
       document.getElementById('list-view').classList.toggle('hidden', v !== 'list');
       document.getElementById('kanban-view').classList.toggle('hidden', v !== 'kanban');
+      document.getElementById('pb-sidebar').classList.toggle('hidden', v === 'kanban');
+      document.getElementById('main-grid').style.gridTemplateColumns = v === 'kanban' ? '1fr' : '1fr 270px';
       document.getElementById('btn-list').className   = `px-3 py-1.5 rounded text-xs font-medium transition ${v==='list'   ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
       document.getElementById('btn-kanban').className = `px-3 py-1.5 rounded text-xs font-medium transition ${v==='kanban' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
       if (v === 'kanban') renderKanban(allIncidents);
     }
 
-    // ── Load ──────────────────────────────────────────────────
+    // ── Load Incidents ────────────────────────────────────────
     async function loadIncidents(page = 1) {
       currentPage = page;
       document.getElementById('table-loading').classList.remove('hidden');
       document.getElementById('table-container').classList.add('hidden');
       const params = { page, page_size: 50,
-        search: document.getElementById('search-input').value,
+        search:   document.getElementById('search-input').value,
         severity: document.getElementById('filter-severity').value,
-        status: document.getElementById('filter-status').value };
+        status:   document.getElementById('filter-status').value };
       Object.keys(params).forEach(k => !params[k] && delete params[k]);
       try {
         const data = await apiGet('/api/incidents', params);
@@ -299,31 +448,66 @@
       }
     }
 
-    // ── List Render ───────────────────────────────────────────
+    // ── Load Dashboard Stats + Playbooks ──────────────────────
+    async function loadDashboard() {
+      try {
+        const [dash, pbs] = await Promise.all([
+          apiGet('/api/ir/dashboard'),
+          apiGet('/api/ir/playbooks'),
+        ]);
+        allPlaybooks = pbs.items || [];
+        document.getElementById('stat-active').textContent    = dash.stats.active_incidents;
+        document.getElementById('stat-actions').textContent   = dash.stats.actions_today;
+        document.getElementById('stat-playbooks').textContent = dash.stats.playbooks_today;
+        document.getElementById('stat-notifs').textContent    = dash.stats.unread_total;
+        renderPlaybooks(allPlaybooks);
+        pollNotifBell();
+      } catch {}
+    }
+
+    // ── Table Render ──────────────────────────────────────────
     function renderTable(items) {
       document.getElementById('incidents-tbody').innerHTML = items.map(inc => `
         <tr>
           <td><span class="font-mono text-xs text-emerald-400">${inc.case_number}</span></td>
-          <td class="max-w-xs"><p class="truncate text-sm" title="${inc.title}">${inc.title}</p></td>
+          <td style="max-width:200px"><p class="truncate text-sm" title="${inc.title}">${inc.title}</p></td>
           <td>${severityBadge(inc.severity)}</td>
-          <td>${severityBadge(inc.priority)}</td>
+          <td>${incThreatBadge(inc)}</td>
           <td>${statusBadge(inc.status)}</td>
+          <td>${irStatusBadge(inc.ir_status)}</td>
           <td><span class="text-xs text-gray-400">${inc.assigned_to||'—'}</span></td>
-          <td><span class="text-xs text-gray-500">${timeAgo(inc.created_at)}</span></td>
+          <td><span class="text-xs text-gray-500 whitespace-nowrap">${timeAgo(inc.created_at)}</span></td>
           <td>
             <div class="flex gap-1">
               <button onclick="showDetail(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-folder-open"></i></button>
-              <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20">
+              <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20" title="AI Analysis">
                 <i class="fa-solid fa-robot"></i>
               </button>
             </div>
           </td>
-        </tr>`).join('') || '<tr><td colspan="8" class="text-center text-gray-500 py-10">No incidents found</td></tr>';
+        </tr>`).join('') || '<tr><td colspan="9" class="text-center text-gray-500 py-10">No incidents found</td></tr>';
+    }
+
+    // ── Playbook Library ──────────────────────────────────────
+    function renderPlaybooks(pbs) {
+      document.getElementById('pb-count').textContent = `${pbs.length} playbooks`;
+      document.getElementById('pb-list').innerHTML = pbs.map(pb => `
+        <div class="pb-card">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <p class="text-sm font-medium text-gray-200">${pb.name}</p>
+            <span class="text-xs ${pbCatColor(pb.category)} shrink-0">${(pb.category||'').replace(/_/g,' ')}</span>
+          </div>
+          <p class="text-xs text-gray-500 mb-2">${pb.description||''}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-600">${pb.steps.length} step${pb.steps.length!==1?'s':''}</span>
+            <button onclick="openPbModal(${pb.id})" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs">
+              <i class="fa-solid fa-play mr-1"></i>Run
+            </button>
+          </div>
+        </div>`).join('') || '<p class="text-center text-gray-600 text-xs py-6">No playbooks available</p>';
     }
 
     // ── Kanban ────────────────────────────────────────────────
-    const STATUSES = ['open','in_progress','resolved','closed'];
-
     function renderKanban(items) {
       const grouped = {};
       STATUSES.forEach(s => grouped[s] = []);
@@ -365,19 +549,29 @@
 
     // ── Tabs ──────────────────────────────────────────────────
     function switchTab(tab) {
-      ['details','timeline','iocs','alerts'].forEach(t => {
+      TABS.forEach(t => {
         document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
         document.getElementById(`tab-${t}-content`).classList.toggle('hidden', t !== tab);
       });
+      if (tab === 'correlations' && currentInc) loadCorrelations(currentInc.id);
+      if (tab === 'actions'      && currentInc) loadActionsTab(currentInc.id);
+      if (tab === 'playbooks'    && currentInc) renderPbTab();
+      if (tab === 'evidence'     && currentInc) loadEvidenceTab(currentInc.id);
     }
 
-    // ── Detail ────────────────────────────────────────────────
+    // ── Detail Modal ──────────────────────────────────────────
     async function showDetail(id) {
-      currentIncId = id;
       const inc = await apiGet(`/api/incidents/${id}`);
+      currentInc = inc;
 
-      // Details tab
       document.getElementById('modal-case-num').textContent = `${inc.case_number} — ${inc.title}`;
+      document.getElementById('modal-case-sub').textContent = `Category: ${inc.category || '—'} · Assigned: ${inc.assigned_to || '—'}`;
+      document.getElementById('modal-severity-badge').innerHTML  = severityBadge(inc.severity);
+      document.getElementById('modal-ir-status-badge').innerHTML = irStatusBadge(inc.ir_status);
+
+      renderLifecycle(inc);
+
+      // ── Details Tab ─────────────────────────────────────────
       document.getElementById('tab-details-content').innerHTML = `
         <div class="space-y-4 text-sm">
           <div class="grid grid-cols-3 gap-3">
@@ -385,35 +579,62 @@
             <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Status</p>${statusBadge(inc.status)}</div>
             <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Priority</p>${severityBadge(inc.priority)}</div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Assigned To</p><p>${inc.assigned_to||'—'}</p></div>
-            <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Category</p><p class="capitalize">${inc.category?.replace('_',' ')||'—'}</p></div>
-          </div>
           ${inc.description ? `<div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Description</p><p class="text-gray-200">${inc.description}</p></div>` : ''}
           ${inc.ai_summary ? `<div class="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3"><p class="text-emerald-400 text-xs font-semibold mb-2"><i class="fa-solid fa-robot mr-1"></i>AI Summary</p><p class="text-gray-300">${inc.ai_summary}</p></div>` : ''}
           ${inc.ai_recommendations ? `<div class="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3"><p class="text-blue-400 text-xs font-semibold mb-2"><i class="fa-solid fa-list-check mr-1"></i>Recommendations</p><pre class="text-gray-300 whitespace-pre-wrap text-xs">${inc.ai_recommendations}</pre></div>` : ''}
-          <div class="flex flex-wrap gap-2 pt-2">
+          ${canL2 ? `
+          <div class="border border-yellow-500/20 bg-yellow-500/5 rounded-xl p-4 space-y-3">
+            <p class="text-yellow-400 text-xs font-semibold uppercase tracking-wide"><i class="fa-solid fa-user-shield mr-1"></i>L2 Investigation</p>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-gray-400 text-xs mb-1">L2 Status</label>
+                <select id="l2-status-sel" class="form-input form-select text-xs">
+                  <option value="">— Not Set —</option>
+                  <option value="under_investigation" ${inc.l2_status==='under_investigation'?'selected':''}>Under Investigation</option>
+                  <option value="contained"           ${inc.l2_status==='contained'?'selected':''}>Contained</option>
+                  <option value="escalated_to_ir"     ${inc.l2_status==='escalated_to_ir'?'selected':''}>Escalated to IR</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                ${l2StatusBadge(inc.l2_status)}
+                ${inc.contained_at ? `<span class="text-xs text-gray-500 ml-2">Contained: ${formatDate(inc.contained_at)}</span>` : ''}
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-400 text-xs mb-1">Investigation Notes</label>
+              <textarea id="l2-notes-ta" rows="4" class="form-input resize-none text-xs" placeholder="Document your investigation findings...">${inc.investigation_notes || ''}</textarea>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="saveL2Fields(${inc.id})" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk mr-1"></i>Save</button>
+              ${inc.l2_status !== 'escalated_to_ir' ? `<button onclick="escalateIncidentToIR(${inc.id})" class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"><i class="fa-solid fa-arrow-up-right-dots mr-1"></i>Escalate to IR</button>` : ''}
+            </div>
+          </div>` : (inc.investigation_notes ? `
+          <div class="bg-gray-800 rounded-lg p-3">
+            <p class="text-gray-500 text-xs mb-1"><i class="fa-solid fa-user-shield mr-1"></i>L2 Investigation Notes</p>
+            <p class="text-gray-300 text-xs">${inc.investigation_notes}</p>
+          </div>` : '')}
+          <div class="flex flex-wrap gap-2 pt-1">
             <button onclick="changeStatus(${inc.id},'${inc.status}')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Status</button>
-            <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> IOC</button>
-            <button onclick="bulkEnrich(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400"><i class="fa-solid fa-virus-covid-slash"></i> Enrich</button>
             <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"><i class="fa-solid fa-robot"></i> AI Analysis</button>
-            <a href="/reports.html?incident=${inc.id}" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400"><i class="fa-solid fa-file-lines"></i> Report</a>
           </div>
         </div>`;
 
-      // Timeline tab
+      // ── Timeline Tab ─────────────────────────────────────────
       const events = [];
       if (inc.created_at) events.push({ time: inc.created_at, label: 'Incident Created', icon: 'fa-circle-plus', color: 'text-emerald-400' });
-      (inc.alerts || []).forEach(a => events.push({ time: a.created_at, label: `Alert: ${a.title}`, icon: 'fa-bell', color: 'text-orange-400' }));
-      (inc.iocs || []).forEach(i => events.push({ time: i.created_at, label: `IOC Added: ${i.value}`, icon: 'fa-fingerprint', color: 'text-purple-400' }));
+      (inc.alerts||[]).forEach(a => events.push({ time: a.created_at, label: `Alert: ${a.title}`, icon:'fa-bell', color:'text-orange-400' }));
+      (inc.iocs||[]).forEach(i  => events.push({ time: i.created_at,  label: `IOC: ${i.value} (${i.ioc_type})`, icon:'fa-fingerprint', color:'text-purple-400' }));
       if (inc.closed_at) events.push({ time: inc.closed_at, label: 'Incident Closed', icon: 'fa-circle-check', color: 'text-gray-400' });
-      events.sort((a, b) => new Date(b.time) - new Date(a.time));
-
+      events.sort((a,b) => new Date(b.time) - new Date(a.time));
       document.getElementById('tab-timeline-content').innerHTML = `
-        <div class="relative pl-8">
+        <div class="mb-3 flex items-center gap-2">
+          <p class="text-xs text-gray-500">Basic timeline from incident data.</p>
+          <button onclick="loadEnhancedTimeline(${inc.id})" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs"><i class="fa-solid fa-arrows-rotate mr-1"></i>Load Correlated Timeline</button>
+        </div>
+        <div id="timeline-body" class="relative pl-8">
           <div class="timeline-line"></div>
           ${events.length ? events.map(ev => `
-            <div class="relative mb-5">
+            <div class="relative mb-4">
               <div class="timeline-dot absolute -left-8 top-0 w-6 h-6 rounded-full bg-gray-800 border-2 border-gray-700 flex items-center justify-center">
                 <i class="fa-solid ${ev.icon} text-xs ${ev.color}"></i>
               </div>
@@ -424,22 +645,37 @@
             </div>`).join('') : '<p class="text-gray-500 text-sm">No timeline events yet.</p>'}
         </div>`;
 
-      // IOCs tab
-      document.getElementById('tab-iocs-content').innerHTML = inc.iocs?.length ? `
-        <div class="space-y-2">
-          ${inc.iocs.map(i => `
-            <div class="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
-              <span class="badge badge-${i.is_malicious?'critical':'low'}">${i.ioc_type.toUpperCase()}</span>
-              <span class="font-mono text-xs flex-1">${i.value}</span>
-              ${i.vt_score ? `<span class="text-xs text-gray-500">${i.vt_score}</span>` : ''}
-              <button onclick="enrichIoc(${i.id})" class="text-xs text-purple-400 hover:text-purple-300 ml-1" title="Enrich"><i class="fa-solid fa-magnifying-glass"></i></button>
-            </div>`).join('')}
-        </div>
-        <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm mt-3"><i class="fa-solid fa-plus"></i> Add IOC</button>` :
-        `<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-fingerprint text-2xl mb-2 block"></i>No IOCs yet</div>
-         <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> Add IOC</button>`;
+      // ── Correlations Tab (placeholder) ────────────────────────
+      document.getElementById('tab-correlations-content').innerHTML = `
+        <div class="text-center py-8 text-gray-500">
+          <i class="fa-solid fa-diagram-project text-2xl mb-2 block"></i>
+          <p class="text-sm">Click the tab to run correlation analysis</p>
+        </div>`;
 
-      // Alerts tab
+      // ── Threat Intel Tab ──────────────────────────────────────
+      renderTITab(inc);
+
+      // ── Actions Tab (placeholder) ─────────────────────────────
+      document.getElementById('tab-actions-content').innerHTML = `
+        <div class="text-center py-8 text-gray-500">
+          <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+        </div>`;
+
+      // ── Playbooks Tab (placeholder) ───────────────────────────
+      document.getElementById('tab-playbooks-content').innerHTML = `
+        <div class="text-center py-8 text-gray-500">
+          <i class="fa-solid fa-book-open text-2xl mb-2 block"></i>
+          <p class="text-sm">Click the tab to view playbooks</p>
+        </div>`;
+
+      // ── Evidence Tab (placeholder) ────────────────────────────
+      document.getElementById('tab-evidence-content').innerHTML = `
+        <div class="text-center py-8 text-gray-500">
+          <i class="fa-solid fa-box-archive text-2xl mb-2 block"></i>
+          <p class="text-sm">Click the tab to view evidence</p>
+        </div>`;
+
+      // ── Alerts Tab ────────────────────────────────────────────
       document.getElementById('tab-alerts-content').innerHTML = inc.alerts?.length ? `
         <div class="space-y-2">${inc.alerts.map(a => `
           <div class="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
@@ -450,7 +686,473 @@
         '<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-bell-slash text-2xl mb-2 block"></i>No related alerts</div>';
 
       switchTab('details');
+      loadActionsTab(inc.id);
       document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    // ── IR Lifecycle ──────────────────────────────────────────
+    function renderLifecycle(inc) {
+      const cur = inc.ir_status || null;
+      const curIdx = cur ? IR_LIFECYCLE.indexOf(cur) : -1;
+      document.getElementById('lifecycle-stepper').innerHTML = IR_LIFECYCLE.map((s, i) => {
+        const cls = i < curIdx ? 'done' : i === curIdx ? 'active' : 'idle';
+        return `
+          <div class="lifecycle-step ${cls}">
+            <div class="dot"><i class="fa-solid ${IR_ICONS[s]}"></i></div>
+            <p class="step-label">${IR_LABELS[s]}</p>
+          </div>
+          ${i < IR_LIFECYCLE.length - 1 ? '<div class="flex-1" style="height:2px;background:#1f2937;margin-top:14px;"></div>' : ''}`;
+      }).join('');
+
+      const btns = [];
+      if (canAct) {
+        if (!cur) {
+          btns.push(`<button onclick="updateLifecycle('new')" class="btn btn-sm bg-gray-500/10 border border-gray-500/30 text-gray-300"><i class="fa-solid fa-circle-plus mr-1"></i>Set as New IR</button>`);
+        } else if (cur !== 'recovered') {
+          const next = IR_LIFECYCLE[curIdx + 1];
+          if (next) btns.push(`<button onclick="updateLifecycle('${next}')" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-right mr-1"></i>${IR_NEXT_LABEL[cur]||'Advance'}</button>`);
+        }
+        btns.push(`<button onclick="updateLifecycle('recovered')" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400" ${cur==='recovered'?'disabled':''}>
+          <i class="fa-solid fa-heart-pulse mr-1"></i>Mark Recovered
+        </button>`);
+      }
+      document.getElementById('lifecycle-btns').innerHTML = btns.join('');
+    }
+
+    async function updateLifecycle(status) {
+      if (!currentInc) return;
+      try {
+        await apiPatch(`/api/ir/incidents/${currentInc.id}/lifecycle`, { ir_status: status });
+        showToast(`IR status → ${IR_LABELS[status]}`, 'success');
+        const inc = await apiGet(`/api/incidents/${currentInc.id}`);
+        currentInc = inc;
+        document.getElementById('modal-ir-status-badge').innerHTML = irStatusBadge(inc.ir_status);
+        renderLifecycle(inc);
+        loadDashboard();
+      } catch(err) { showToast(err.message, 'error'); }
+    }
+
+    // ── Threat Intel Tab ──────────────────────────────────────
+    function renderTITab(inc) {
+      const iocHtml = inc.iocs?.length ? `
+        <div class="space-y-2 mb-4">${inc.iocs.map(i => `
+          <div class="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
+            <span class="badge badge-${i.is_malicious?'critical':'low'}">${i.ioc_type.toUpperCase()}</span>
+            <span class="font-mono text-xs flex-1">${i.value}</span>
+            ${i.vt_score ? `<span class="text-xs ${i.is_malicious?'text-red-400':'text-emerald-400'}">${i.vt_score}</span>` : ''}
+            <button onclick="enrichIoc(${i.id})" class="text-purple-400 hover:text-purple-300 text-xs" title="Enrich"><i class="fa-solid fa-magnifying-glass"></i></button>
+          </div>`).join('')}
+        </div>` :
+        '<div class="text-center py-6 text-gray-500 text-xs mb-4"><i class="fa-solid fa-fingerprint text-xl mb-1 block"></i>No IOCs yet</div>';
+      document.getElementById('tab-ti-content').innerHTML = `
+        ${iocHtml}
+        <div class="flex gap-2 mb-5">
+          <button onclick="openIocModal(${inc.id})" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus mr-1"></i>Add IOC</button>
+          <button onclick="bulkEnrich(${inc.id})" class="btn btn-sm bg-purple-500/10 border border-purple-500/30 text-purple-400"><i class="fa-solid fa-virus-covid-slash mr-1"></i>Bulk Enrich</button>
+        </div>
+        <div class="border border-gray-700 rounded-xl p-4" style="background:rgba(255,255,255,.02);">
+          <p class="text-xs font-semibold text-gray-300 mb-3"><i class="fa-solid fa-satellite-dish mr-1 text-emerald-400"></i>Quick TI Lookup</p>
+          <div class="flex gap-2 flex-wrap">
+            <input id="ti-value" type="text" class="form-input flex-1 min-w-40 text-xs" placeholder="IP, domain, hash, URL..." />
+            <select id="ti-type" class="form-input form-select w-32 text-xs">
+              <option value="ip">IP</option><option value="domain">Domain</option>
+              <option value="url">URL</option><option value="hash">Hash</option>
+            </select>
+            <select id="ti-provider" class="form-input form-select w-36 text-xs">
+              <option value="vt">VirusTotal</option>
+              <option value="abuse">AbuseIPDB</option>
+            </select>
+            <button onclick="runTILookup()" class="btn btn-primary btn-sm"><i class="fa-solid fa-search mr-1"></i>Lookup</button>
+          </div>
+          <div id="ti-result" class="mt-3 hidden"></div>
+        </div>`;
+    }
+
+    async function runTILookup() {
+      const value    = document.getElementById('ti-value').value.trim();
+      const ioc_type = document.getElementById('ti-type').value;
+      const provider = document.getElementById('ti-provider').value;
+      if (!value) return showToast('Enter a value to look up', 'error');
+      const resultEl = document.getElementById('ti-result');
+      resultEl.innerHTML = '<span class="text-xs text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Looking up...</span>';
+      resultEl.classList.remove('hidden');
+      try {
+        const r = await apiPost('/api/investigation/ti-lookup', { value, ioc_type, provider });
+        const malicious = r.is_malicious;
+        resultEl.innerHTML = `
+          <div class="rounded-lg p-3 ${malicious ? 'bg-red-500/10 border border-red-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fa-solid ${malicious?'fa-triangle-exclamation text-red-400':'fa-circle-check text-emerald-400'}"></i>
+              <span class="text-sm font-semibold ${malicious?'text-red-300':'text-emerald-300'}">${malicious ? 'MALICIOUS' : 'CLEAN'}</span>
+              <span class="ml-auto text-xs text-gray-500">Score: ${r.score??'—'} · ${r.source==='cache'?'Cached':provider.toUpperCase()}</span>
+            </div>
+            <pre class="text-xs text-gray-400 whitespace-pre-wrap overflow-auto max-h-40">${JSON.stringify(r.report||r, null, 2)}</pre>
+          </div>`;
+      } catch(err) {
+        resultEl.innerHTML = `<p class="text-xs text-red-400">${err.message}</p>`;
+      }
+    }
+
+    // ── Enhanced Timeline ─────────────────────────────────────
+    async function loadEnhancedTimeline(id) {
+      document.getElementById('timeline-body').innerHTML = '<div class="text-center py-6 text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Loading correlated timeline...</div>';
+      try {
+        const data = await apiGet(`/api/investigation/${id}/correlate`);
+        const events = data.attack_timeline || [];
+        document.getElementById('timeline-body').innerHTML = `
+          <div class="grid grid-cols-4 gap-3 mb-4 text-center">
+            <div class="bg-gray-800 rounded-lg p-2"><p class="text-xl font-bold text-emerald-400">${data.stats.linked_alerts}</p><p class="text-xs text-gray-500">Linked Alerts</p></div>
+            <div class="bg-gray-800 rounded-lg p-2"><p class="text-xl font-bold text-blue-400">${data.stats.unique_source_ips}</p><p class="text-xs text-gray-500">Source IPs</p></div>
+            <div class="bg-gray-800 rounded-lg p-2"><p class="text-xl font-bold text-purple-400">${data.stats.ip_correlated_alerts}</p><p class="text-xs text-gray-500">IP Correlated</p></div>
+            <div class="bg-gray-800 rounded-lg p-2"><p class="text-xl font-bold text-yellow-400">${data.stats.time_correlated_alerts}</p><p class="text-xs text-gray-500">Time Window</p></div>
+          </div>
+          <div class="relative pl-8">
+            <div class="timeline-line"></div>
+            ${events.map(ev => `
+              <div class="relative mb-4">
+                <div class="timeline-dot absolute -left-8 top-0 w-6 h-6 rounded-full bg-gray-800 border-2 border-gray-700 flex items-center justify-center">
+                  <i class="fa-solid ${ev.icon} text-xs ${ev.color}"></i>
+                </div>
+                <div class="bg-gray-800 rounded-lg px-3 py-2">
+                  <p class="text-sm text-gray-200">${ev.label}</p>
+                  ${ev.meta ? `<p class="text-xs text-gray-500 mt-0.5">${ev.meta}</p>` : ''}
+                  <p class="text-xs text-gray-600 mt-0.5">${formatDate(ev.time)}</p>
+                </div>
+              </div>`).join('') || '<p class="text-gray-500 text-sm">No timeline events.</p>'}
+          </div>`;
+      } catch(err) { document.getElementById('timeline-body').innerHTML = `<p class="text-red-400 text-sm">${err.message}</p>`; }
+    }
+
+    // ── Correlations + RCA ────────────────────────────────────
+    async function loadCorrelations(id) {
+      document.getElementById('tab-correlations-content').innerHTML =
+        '<div class="text-center py-8"><i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i></div>';
+      try {
+        const [corr, rca] = await Promise.all([
+          apiGet(`/api/investigation/${id}/correlate`),
+          apiGet(`/api/investigation/${id}/root-cause`),
+        ]);
+        document.getElementById('tab-correlations-content').innerHTML = buildCorrelationsHTML(corr, rca);
+      } catch(err) {
+        document.getElementById('tab-correlations-content').innerHTML = `<p class="text-red-400 text-sm">${err.message}</p>`;
+      }
+    }
+
+    function buildCorrelationsHTML(corr, rca) {
+      const ipRows = corr.ip_correlated.map(g => `
+        <div class="bg-gray-800 rounded-lg p-3 mb-2">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="font-mono text-xs text-emerald-400">${g.ip}</span>
+            <span class="badge badge-info">${g.count} alert${g.count!==1?'s':''}</span>
+          </div>
+          <div class="space-y-1">${g.alerts.map(a => `
+            <div class="flex items-center gap-2 text-xs text-gray-400">
+              ${severityBadge(a.severity)}
+              <span class="flex-1 truncate">${a.title}</span>
+              <span class="text-gray-600">${timeAgo(a.created_at)}</span>
+            </div>`).join('')}
+          </div>
+        </div>`).join('');
+      const timeRows = corr.time_correlated.map(a => `
+        <div class="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2 text-xs mb-1">
+          ${severityBadge(a.severity)}
+          <span class="flex-1 truncate">${a.title}</span>
+          <span class="text-gray-500">${a.time_delta}</span>
+        </div>`).join('');
+      const rcaRows = rca.hypotheses.map((h,i) => `
+        <div class="bg-gray-800/60 border border-gray-700 rounded-xl p-4 mb-3">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <span class="text-sm font-semibold text-gray-200">${i+1}. ${h.label}</span>
+              <span class="ml-2 text-xs text-gray-500 font-mono">${h.mitre_id}</span>
+              <span class="ml-1 text-xs text-gray-500">· ${h.mitre_name}</span>
+            </div>
+            <span class="text-sm font-bold ${h.confidence>=70?'text-red-400':h.confidence>=40?'text-yellow-400':'text-emerald-400'}">${h.confidence}%</span>
+          </div>
+          <div class="mb-2" style="background:#1f2937;border-radius:3px;height:6px;">
+            <div class="conf-bar" style="width:${h.confidence}%"></div>
+          </div>
+          <p class="text-xs text-gray-400 mb-2">${h.description}</p>
+          <div class="space-y-1">${h.recommended_actions.map(a => `
+            <div class="flex items-start gap-2 text-xs text-gray-500">
+              <i class="fa-solid fa-circle-arrow-right text-emerald-500 mt-0.5 shrink-0"></i>${a}
+            </div>`).join('')}
+          </div>
+        </div>`).join('');
+      return `
+        <div class="space-y-5 text-sm">
+          <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3">
+            <p class="text-emerald-400 text-xs font-semibold mb-1"><i class="fa-solid fa-brain mr-1"></i>RCA Summary</p>
+            <p class="text-gray-300 text-xs">${rca.summary}</p>
+            <p class="text-gray-500 text-xs mt-1">Analyzed ${rca.analyzed_alerts} linked alert${rca.analyzed_alerts!==1?'s':''}</p>
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Root Cause Hypotheses</p>
+            ${rcaRows || '<p class="text-gray-500 text-xs">No hypotheses — add more alerts to this incident.</p>'}
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">IP Correlation</p>
+            ${ipRows || '<p class="text-gray-500 text-xs">No IP-correlated alerts found.</p>'}
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Time-Window Correlation (±2h)</p>
+            ${timeRows || '<p class="text-gray-500 text-xs">No alerts found in the time window.</p>'}
+          </div>
+        </div>`;
+    }
+
+    // ── Actions Tab ───────────────────────────────────────────
+    async function loadActionsTab(incId) {
+      document.getElementById('tab-actions-content').innerHTML =
+        '<div class="text-center py-8"><i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i></div>';
+      try {
+        const data = await apiGet(`/api/investigation/${incId}/actions`);
+        document.getElementById('tab-actions-content').innerHTML = buildActionsHTML(incId, data.items || []);
+      } catch(err) {
+        document.getElementById('tab-actions-content').innerHTML = `<p class="text-red-400 text-sm">${err.message}</p>`;
+      }
+    }
+
+    function buildActionsHTML(incId, actions) {
+      const defs = [
+        { type:'block_ip',          icon:'fa-ban',                label:'Block IP',           ph:'192.168.1.100', col:'red' },
+        { type:'disable_user',      icon:'fa-user-slash',         label:'Disable User',       ph:'username',      col:'orange' },
+        { type:'isolate_endpoint',  icon:'fa-network-wired',      label:'Isolate Endpoint',   ph:'hostname',      col:'yellow' },
+        { type:'kill_process',      icon:'fa-skull',              label:'Kill Process',       ph:'process name',  col:'pink' },
+        { type:'remove_file',       icon:'fa-file-circle-xmark',  label:'Remove File',        ph:'file path',     col:'purple' },
+        { type:'reset_credentials', icon:'fa-key',                label:'Reset Credentials',  ph:'username',      col:'blue' },
+        { type:'reset_password',    icon:'fa-lock-open',          label:'Reset Password',     ph:'username',      col:'teal' },
+      ];
+      const colorMap = {
+        red:'text-red-400 bg-red-500/10 border-red-500/30', orange:'text-orange-400 bg-orange-500/10 border-orange-500/30',
+        yellow:'text-yellow-400 bg-yellow-500/10 border-yellow-500/30', pink:'text-pink-400 bg-pink-500/10 border-pink-500/30',
+        purple:'text-purple-400 bg-purple-500/10 border-purple-500/30', blue:'text-blue-400 bg-blue-500/10 border-blue-500/30',
+        teal:'text-teal-400 bg-teal-500/10 border-teal-500/30',
+      };
+      const formCards = canAct ? `
+        <div class="grid grid-cols-2 gap-3 mb-5">
+          ${defs.map(a => `
+            <div class="pb-card">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="fa-solid ${a.icon} text-sm ${colorMap[a.col].split(' ')[0]}"></i>
+                <span class="text-xs font-medium text-gray-300">${a.label}</span>
+              </div>
+              <div class="flex gap-1">
+                <input id="act-${a.type}" type="text" class="form-input flex-1 text-xs" placeholder="${a.ph}" />
+                <button onclick="execAction(${incId},'${a.type}')" class="btn btn-sm border ${colorMap[a.col]} shrink-0">
+                  <i class="fa-solid fa-play"></i>
+                </button>
+              </div>
+            </div>`).join('')}
+        </div>` :
+        '<div class="mb-4 p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20 text-xs text-yellow-400">Response actions require L2 Analyst, Incident Responder, or Admin access.</div>';
+
+      const historyRows = actions.length ? actions.map(a => `
+        <tr>
+          <td><span class="badge badge-info">${a.action_label}</span></td>
+          <td class="font-mono text-xs">${a.target}</td>
+          <td><span class="badge badge-${a.status==='executed'?'low':'critical'}">${a.status}</span></td>
+          <td class="text-xs text-gray-500">${a.executed_by||'—'}</td>
+          <td class="text-xs text-gray-500">${timeAgo(a.executed_at)}</td>
+          <td class="text-xs text-gray-500 max-w-32 truncate" title="${a.notes||''}">${a.notes||'—'}</td>
+        </tr>`).join('') :
+        '<tr><td colspan="6" class="text-center text-gray-500 py-6 text-xs">No actions executed yet</td></tr>';
+
+      return `
+        ${formCards}
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Action History</p>
+        <div class="panel overflow-hidden">
+          <table class="data-table text-xs">
+            <thead><tr><th>Action</th><th>Target</th><th>Status</th><th>By</th><th>When</th><th>Notes</th></tr></thead>
+            <tbody>${historyRows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    async function execAction(incId, actionType) {
+      const target = document.getElementById(`act-${actionType}`)?.value.trim();
+      if (!target) return showToast('Enter a target value', 'error');
+      if (!confirm(`Execute "${actionType.replace(/_/g,' ')}" on "${target}"?`)) return;
+      try {
+        const r = await apiPost(`/api/investigation/${incId}/actions`, { action_type: actionType, target });
+        showToast(r.message || 'Action executed', 'success');
+        loadActionsTab(incId);
+        loadDashboard();
+      } catch(err) { showToast(err.message, 'error'); }
+    }
+
+    // ── Playbooks Tab ─────────────────────────────────────────
+    function renderPbTab() {
+      document.getElementById('tab-playbooks-content').innerHTML = allPlaybooks.map(pb => `
+        <div class="pb-card mb-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="text-sm font-medium text-gray-200">${pb.name}</p>
+              <p class="text-xs text-gray-500 mt-0.5">${pb.description||''}</p>
+              <div class="flex flex-wrap gap-1 mt-2">
+                ${pb.steps.map(s=>`<span class="text-xs text-gray-600 bg-gray-800 rounded px-1.5 py-0.5">${s.action_label}</span>`).join('')}
+              </div>
+            </div>
+            ${canAct ? `<button onclick="openPbModal(${pb.id})" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 shrink-0">
+              <i class="fa-solid fa-play"></i>
+            </button>` : ''}
+          </div>
+        </div>`).join('') || '<p class="text-gray-500 text-sm text-center py-8">No playbooks available</p>';
+    }
+
+    // ── Run Playbook Modal ────────────────────────────────────
+    function openPbModal(pbId) {
+      const pb = allPlaybooks.find(p => p.id === pbId);
+      if (!pb) return;
+      if (!currentInc) { showToast('Open an incident first', 'error'); return; }
+      pendingPbId = pbId;
+      document.getElementById('pb-modal-title').textContent = pb.name;
+      document.getElementById('pb-modal-desc').textContent  = pb.description || '';
+      document.getElementById('pb-result').classList.add('hidden');
+      document.getElementById('pb-steps-form').innerHTML = pb.steps.map(s => {
+        const needsInput = s.target_field === 'custom' && !s.target_override;
+        return `
+          <div class="pb-card">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-bold text-gray-500">${s.step_order}.</span>
+              <span class="text-sm text-gray-200">${s.action_label}</span>
+            </div>
+            <p class="text-xs text-gray-500 mb-2">${s.description||''}</p>
+            ${needsInput ? `
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-yellow-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Manual target required</span>
+                <input type="text" id="pb-step-${s.step_order}" class="form-input flex-1 text-xs" placeholder="Enter target..." />
+              </div>` :
+              `<p class="text-xs text-gray-600"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>Target auto-resolved from incident</p>`}
+          </div>`;
+      }).join('');
+      document.getElementById('pb-modal').classList.remove('hidden');
+    }
+
+    async function confirmRunPlaybook() {
+      if (!currentInc || !pendingPbId) { showToast('No incident or playbook selected', 'error'); return; }
+      const pb = allPlaybooks.find(p => p.id === pendingPbId);
+      if (!pb) return;
+      const targets = {};
+      pb.steps.forEach(s => {
+        if (s.target_field === 'custom' && !s.target_override) {
+          const val = document.getElementById(`pb-step-${s.step_order}`)?.value.trim();
+          if (val) targets[`step_${s.step_order}`] = val;
+        }
+      });
+      const btn = document.getElementById('pb-run-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Executing...';
+      try {
+        const r = await apiPost(`/api/ir/playbooks/${pendingPbId}/run`, { incident_id: currentInc.id, targets });
+        const resultEl = document.getElementById('pb-result');
+        resultEl.innerHTML = `
+          <div class="rounded-xl p-4 bg-emerald-500/5 border border-emerald-500/20">
+            <p class="text-emerald-400 text-sm font-semibold mb-2"><i class="fa-solid fa-circle-check mr-1"></i>Playbook Complete</p>
+            <p class="text-xs text-gray-400 mb-3">${r.executed_count} action(s) executed · ${r.skipped_count} skipped</p>
+            <div class="space-y-1">
+              ${r.executed.map(e=>`<div class="text-xs text-gray-300 flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5 shrink-0"></i>${e.message}</div>`).join('')}
+              ${r.skipped.map(e=>`<div class="text-xs text-gray-500 flex items-start gap-2"><i class="fa-solid fa-minus text-gray-600 mt-0.5 shrink-0"></i>Step ${e.step}: skipped (${e.reason})</div>`).join('')}
+            </div>
+          </div>`;
+        resultEl.classList.remove('hidden');
+        showToast(`Playbook executed: ${r.executed_count} action(s)`, 'success');
+        loadActionsTab(currentInc.id);
+        loadDashboard();
+      } catch(err) { showToast(err.message, 'error'); }
+      finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-play mr-1"></i>Execute Playbook'; }
+    }
+
+    // ── Evidence Tab ──────────────────────────────────────────
+    async function loadEvidenceTab(incId) {
+      document.getElementById('tab-evidence-content').innerHTML =
+        '<div class="text-center py-8"><i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i></div>';
+      try {
+        const data = await apiGet(`/api/ir/evidence/${incId}`);
+        document.getElementById('tab-evidence-content').innerHTML = buildEvidenceHTML(incId, data.items || []);
+      } catch(err) {
+        document.getElementById('tab-evidence-content').innerHTML = `<p class="text-red-400 text-sm">${err.message}</p>`;
+      }
+    }
+
+    const EV_COLORS = { log:'text-blue-400 bg-blue-500/10', ip_address:'text-red-400 bg-red-500/10',
+      file_hash:'text-purple-400 bg-purple-500/10', network_capture:'text-cyan-400 bg-cyan-500/10',
+      process_list:'text-orange-400 bg-orange-500/10', screenshot:'text-pink-400 bg-pink-500/10', note:'text-gray-400 bg-gray-500/10' };
+
+    function buildEvidenceHTML(incId, items) {
+      const typeOptions = ['log','ip_address','file_hash','network_capture','process_list','screenshot','note']
+        .map(t=>`<option value="${t}">${t.replace(/_/g,' ')}</option>`).join('');
+      const addForm = `
+        <div class="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 mb-5">
+          <p class="text-xs font-semibold text-emerald-400 mb-3"><i class="fa-solid fa-plus mr-1"></i>Add Evidence</p>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <input id="ev-title" type="text" class="form-input text-xs" placeholder="Evidence title *" />
+            <select id="ev-type" class="form-input form-select text-xs">${typeOptions}</select>
+          </div>
+          <input id="ev-source" type="text" class="form-input text-xs mb-2 w-full" placeholder="Source (tool / system)" />
+          <textarea id="ev-content" class="form-input resize-none text-xs w-full mb-2" rows="3" placeholder="Evidence content, log extract, IOC value..."></textarea>
+          <button onclick="addEvidence(${incId})" class="btn btn-primary btn-sm"><i class="fa-solid fa-save mr-1"></i>Save Evidence</button>
+        </div>`;
+      const list = items.length ? items.map(e => `
+        <div class="border border-gray-700/50 rounded-xl p-3 mb-2 flex gap-3">
+          <div class="shrink-0 mt-0.5">
+            <span class="ev-type-badge ${EV_COLORS[e.evidence_type]||'text-gray-400 bg-gray-500/10'}">${e.evidence_type.replace(/_/g,' ')}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-200">${e.title}</p>
+            ${e.source ? `<p class="text-xs text-gray-500 mb-1">Source: ${e.source}</p>` : ''}
+            ${e.content ? `<pre class="text-xs text-gray-400 whitespace-pre-wrap break-words mt-1 max-h-24 overflow-auto">${e.content}</pre>` : ''}
+            <p class="text-xs text-gray-600 mt-1">By ${e.collected_by||'—'} · ${timeAgo(e.collected_at)}</p>
+          </div>
+          <button onclick="deleteEvidence(${e.id},${incId})" class="shrink-0 text-gray-700 hover:text-red-400 text-sm" title="Delete"><i class="fa-solid fa-trash"></i></button>
+        </div>`).join('') :
+        '<div class="text-center py-6 text-gray-600 text-xs"><i class="fa-solid fa-box-archive text-xl mb-2 block"></i>No evidence collected yet</div>';
+      return addForm + list;
+    }
+
+    async function addEvidence(incId) {
+      const title = document.getElementById('ev-title').value.trim();
+      if (!title) return showToast('Title is required', 'error');
+      try {
+        await apiPost(`/api/ir/evidence/${incId}`, {
+          title,
+          evidence_type: document.getElementById('ev-type').value,
+          source:  document.getElementById('ev-source').value || null,
+          content: document.getElementById('ev-content').value || null,
+        });
+        showToast('Evidence saved', 'success');
+        loadEvidenceTab(incId);
+      } catch(err) { showToast(err.message, 'error'); }
+    }
+
+    async function deleteEvidence(evId, incId) {
+      if (!confirm('Delete this evidence item?')) return;
+      try {
+        await apiFetch(`/api/ir/evidence/${evId}`, { method: 'DELETE' });
+        showToast('Evidence deleted', 'success');
+        loadEvidenceTab(incId);
+      } catch(err) { showToast(err.message, 'error'); }
+    }
+
+    // ── L2 Save / Escalate ────────────────────────────────────
+    async function saveL2Fields(id) {
+      const l2_status           = document.getElementById('l2-status-sel').value || null;
+      const investigation_notes = document.getElementById('l2-notes-ta').value.trim() || null;
+      try {
+        await apiPatch(`/api/incidents/${id}`, { l2_status, investigation_notes });
+        showToast('Investigation saved', 'success');
+        showDetail(id);
+      } catch(err) { showToast(err.message, 'error'); }
+    }
+
+    async function escalateIncidentToIR(id) {
+      if (!confirm('Escalate this incident to Incident Response team?')) return;
+      try {
+        await apiPatch(`/api/incidents/${id}`, { l2_status: 'escalated_to_ir', status: 'in_progress' });
+        showToast('Escalated to Incident Response', 'success');
+        showDetail(id);
+        loadIncidents(currentPage);
+      } catch(err) { showToast(err.message, 'error'); }
     }
 
     async function changeStatus(id, current) {
@@ -465,6 +1167,7 @@
       } catch(err) { showToast(err.message, 'error'); }
     }
 
+    // ── IOC ───────────────────────────────────────────────────
     function openIocModal(incidentId) {
       document.getElementById('ioc-incident-id').value = incidentId;
       document.getElementById('ioc-form').reset();
@@ -490,7 +1193,7 @@
       try {
         const r = await apiFetch(`/api/ioc/${iocId}/enrich`, { method: 'POST' });
         showToast(`Enriched: ${r.vt_score} — ${r.is_malicious?'MALICIOUS':'Clean'}`, r.is_malicious?'error':'success');
-        if (currentIncId) showDetail(currentIncId);
+        if (currentInc) showDetail(currentInc.id);
       } catch(err) { showToast(err.message, 'error'); }
     }
 
@@ -512,31 +1215,87 @@
       } catch(err) { showToast(err.message, 'error'); }
     }
 
+    // ── Create ────────────────────────────────────────────────
     function openCreateModal() { document.getElementById('create-form').reset(); document.getElementById('create-modal').classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     document.getElementById('create-form').addEventListener('submit', async e => {
       e.preventDefault();
       try {
         await apiPost('/api/incidents', {
-          title: document.getElementById('c-title').value,
-          severity: document.getElementById('c-severity').value,
-          priority: document.getElementById('c-priority').value,
-          category: document.getElementById('c-category').value || null,
+          title:       document.getElementById('c-title').value,
+          severity:    document.getElementById('c-severity').value,
+          priority:    document.getElementById('c-priority').value,
+          category:    document.getElementById('c-category').value || null,
           assigned_to: document.getElementById('c-assigned').value || null,
           description: document.getElementById('c-description').value || null,
-          tags: document.getElementById('c-tags').value || null,
+          tags:        document.getElementById('c-tags').value || null,
         });
         showToast('Incident created', 'success');
         closeModal('create-modal');
         loadIncidents();
+        loadDashboard();
       } catch(err) { showToast(err.message, 'error'); }
     });
+
+    // ── Notifications ─────────────────────────────────────────
+    function toggleNotifPanel() {
+      notifOpen = !notifOpen;
+      document.getElementById('notif-panel').classList.toggle('hidden', !notifOpen);
+      if (notifOpen) loadNotifications();
+    }
+
+    async function loadNotifications() {
+      try {
+        const data = await apiGet('/api/ir/notifications', { limit: 50 });
+        const badge = document.getElementById('notif-count-badge');
+        if (data.unread_count > 0) {
+          badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+          badge.classList.remove('hidden');
+        } else { badge.classList.add('hidden'); }
+        document.getElementById('notif-list').innerHTML = data.items.length ? data.items.map(n => `
+          <div class="notif-item notif-${n.notif_type} ${n.is_read?'opacity-50':''}">
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-xs font-semibold text-gray-200">${n.title}</p>
+              ${!n.is_read ? `<button onclick="markRead(${n.id})" class="text-gray-600 hover:text-white shrink-0 text-xs" title="Mark read"><i class="fa-solid fa-check"></i></button>` : ''}
+            </div>
+            ${n.message ? `<p class="text-xs text-gray-400 mt-0.5">${n.message}</p>` : ''}
+            <p class="text-xs text-gray-600 mt-1">${timeAgo(n.created_at)}</p>
+          </div>`).join('') :
+          '<p class="text-gray-600 text-sm text-center py-8">No notifications</p>';
+      } catch(err) { document.getElementById('notif-list').innerHTML = `<p class="text-red-400 text-xs">${err.message}</p>`; }
+    }
+
+    async function markRead(id) {
+      try { await apiFetch(`/api/ir/notifications/${id}/read`, { method: 'PATCH' }); loadNotifications(); } catch {}
+    }
+
+    async function markAllRead() {
+      try {
+        await apiPost('/api/ir/notifications/read-all', {});
+        showToast('All notifications marked read', 'success');
+        loadNotifications();
+      } catch(err) { showToast(err.message, 'error'); }
+    }
+
+    async function pollNotifBell() {
+      try {
+        const data = await apiGet('/api/ir/notifications', { unread_only: 'true', limit: 1 });
+        const badge = document.getElementById('notif-count-badge');
+        if (data.unread_count > 0) {
+          badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+          badge.classList.remove('hidden');
+        } else { badge.classList.add('hidden'); }
+      } catch {}
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     document.querySelectorAll('.modal-overlay').forEach(m =>
       m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
 
     loadIncidents();
+    loadDashboard();
+    setInterval(pollNotifBell, 30000);
   </script>
 </body>
 </html>

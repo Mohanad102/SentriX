@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 import os
 
 from backend.database import init_db
-from backend.routers import auth, alerts, incidents, ioc, dashboard, ai_analyst, reports, users, audit, rules, virustotal
+from backend.routers import auth, alerts, incidents, ioc, dashboard, ai_analyst, reports, users, audit, rules, virustotal, tickets, investigation, ir
 
 app = FastAPI(
     title="SentriX API",
@@ -33,6 +33,9 @@ app.include_router(users.router)
 app.include_router(audit.router)
 app.include_router(rules.router)
 app.include_router(virustotal.router)
+app.include_router(tickets.router)
+app.include_router(investigation.router)
+app.include_router(ir.router)
 
 # Serve frontend static files
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
@@ -61,6 +64,19 @@ def serve_page(page: str):
 def startup_event():
     init_db()
     _seed_data()
+    _seed_ir_data()
+
+
+def _seed_ir_data():
+    from backend.database import SessionLocal
+    from backend.routers.ir import seed_builtin_playbooks
+    db = SessionLocal()
+    try:
+        seed_builtin_playbooks(db)
+    except Exception as e:
+        print(f"IR seed error: {e}")
+    finally:
+        db.close()
 
 
 def _seed_data():
@@ -95,7 +111,7 @@ def _seed_data():
                 email="analyst@sentrix.local",
                 full_name="SOC Analyst",
                 hashed_password=get_password_hash("analyst123"),
-                role="analyst"
+                role="soc_analyst_l2"
             )
             db.add(analyst)
 

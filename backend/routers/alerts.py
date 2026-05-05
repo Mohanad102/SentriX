@@ -27,32 +27,37 @@ class AlertCreate(BaseModel):
 
 
 class AlertUpdate(BaseModel):
-    status: Optional[str] = None
-    severity: Optional[str] = None
-    incident_id: Optional[int] = None
+    status:        Optional[str] = None
+    severity:      Optional[str] = None
+    incident_id:   Optional[int] = None
+    triage_result: Optional[str] = None   # true_positive | false_positive | suspicious
+    notes:         Optional[str] = None
 
 
 def alert_to_dict(a: Alert, is_malicious: bool = None):
     return {
-        "id": a.id,
-        "alert_id": a.alert_id,
-        "title": a.title,
-        "description": a.description,
-        "severity": a.severity,
-        "source": a.source,
-        "source_ip": a.source_ip,
-        "dest_ip": a.dest_ip,
-        "hostname": a.hostname,
-        "rule_id": a.rule_id,
-        "rule_level": a.rule_level,
-        "category": a.category,
-        "status": a.status,
-        "raw_data": a.raw_data,
-        "incident_id": a.incident_id,
-        "vt_enriched": a.vt_enriched or False,
-        "is_malicious": is_malicious,
-        "created_at": a.created_at.isoformat() if a.created_at else None,
-        "updated_at": a.updated_at.isoformat() if a.updated_at else None,
+        "id":            a.id,
+        "alert_id":      a.alert_id,
+        "title":         a.title,
+        "description":   a.description,
+        "severity":      a.severity,
+        "source":        a.source,
+        "source_ip":     a.source_ip,
+        "dest_ip":       a.dest_ip,
+        "hostname":      a.hostname,
+        "rule_id":       a.rule_id,
+        "rule_level":    a.rule_level,
+        "category":      a.category,
+        "status":        a.status,
+        "raw_data":      a.raw_data,
+        "incident_id":   a.incident_id,
+        "vt_enriched":   a.vt_enriched or False,
+        "is_malicious":  is_malicious,
+        "triage_result": a.triage_result,
+        "notes":         a.notes,
+        "ticket_ref":    a.ticket_ref,
+        "created_at":    a.created_at.isoformat() if a.created_at else None,
+        "updated_at":    a.updated_at.isoformat() if a.updated_at else None,
     }
 
 
@@ -64,6 +69,8 @@ def list_alerts(
     status: Optional[str] = None,
     category: Optional[str] = None,
     search: Optional[str] = None,
+    time_range: Optional[str] = None,
+    sort_order: Optional[str] = Query("desc", regex="^(asc|desc)$"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -83,8 +90,14 @@ def list_alerts(
                 Alert.alert_id.ilike(f"%{search}%"),
             )
         )
+    if time_range:
+        from datetime import timedelta
+        cutoffs = {"24h": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30)}
+        if time_range in cutoffs:
+            query = query.filter(Alert.created_at >= datetime.utcnow() - cutoffs[time_range])
+    order_col = Alert.created_at.asc() if sort_order == "asc" else Alert.created_at.desc()
     total = query.count()
-    alerts = query.order_by(Alert.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    alerts = query.order_by(order_col).offset((page - 1) * page_size).limit(page_size).all()
 
     return {
         "total": total,
@@ -166,6 +179,10 @@ def update_alert(
         alert.severity = data.severity
     if data.incident_id is not None:
         alert.incident_id = data.incident_id
+    if data.triage_result is not None:
+        alert.triage_result = data.triage_result
+    if data.notes is not None:
+        alert.notes = data.notes
     alert.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(alert)
@@ -184,6 +201,24 @@ def delete_alert(
     db.delete(alert)
     db.commit()
     return {"message": "Alert deleted"}
+
+
+@router.post("/enrich-batch")
+async def enrich_batch(
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Trigger background VT enrichment for all unenriched alerts that have a source IP."""
+    unenriched = db.query(Alert).filter(
+        Alert.vt_enriched == False,
+        Alert.source_ip != None,
+        Alert.source_ip != ""
+    ).all()
+    ids = [a.id for a in unenriched]
+    for alert_id in ids:
+        background_tasks.add_task(_bg_enrich_alert, alert_id)
+    return {"queued": len(ids)}
 
 
 @router.post("/{alert_id}/escalate")

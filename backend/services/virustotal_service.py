@@ -101,25 +101,15 @@ async def enrich_and_store_ioc(db, value: str, ioc_type: str, alert_id: int = No
     """Scan value with VT and persist result to IOC table."""
     from backend.models.ioc import IOC
 
-    is_private = ioc_type == 'ip' and _is_private_ip(value)
-
-    if is_private:
-        result = {
-            "score": "N/A",
-            "is_malicious": None,
-            "report": {"note": "Private/internal IP — not submitted to VirusTotal"}
-        }
-    else:
-        result = await enrich_with_virustotal(value, ioc_type)
+    result = await enrich_with_virustotal(value, ioc_type)
 
     existing = db.query(IOC).filter(IOC.value == value).first()
     if existing:
-        if not is_private:  # overwrite with real data
-            existing.vt_score = result.get("score")
-            existing.is_malicious = result.get("is_malicious")
-            existing.vt_report = json.dumps(result.get("report", {}))
-            existing.enriched = not is_private
-            existing.enriched_at = datetime.utcnow()
+        existing.vt_score = result.get("score")
+        existing.is_malicious = result.get("is_malicious")
+        existing.vt_report = json.dumps(result.get("report", {}))
+        existing.enriched = True
+        existing.enriched_at = datetime.utcnow()
         if alert_id and not existing.alert_id:
             existing.alert_id = alert_id
     else:
@@ -131,8 +121,8 @@ async def enrich_and_store_ioc(db, value: str, ioc_type: str, alert_id: int = No
             is_malicious=result.get("is_malicious"),
             vt_score=result.get("score"),
             vt_report=json.dumps(result.get("report", {})),
-            enriched=not is_private,
-            enriched_at=datetime.utcnow() if not is_private else None,
+            enriched=True,
+            enriched_at=datetime.utcnow(),
         )
         db.add(ioc)
 

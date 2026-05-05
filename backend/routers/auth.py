@@ -25,7 +25,7 @@ class UserCreate(BaseModel):
     email: str
     full_name: str
     password: str
-    role: Optional[str] = "analyst"
+    role: Optional[str] = "soc_analyst_l2"
 
 
 class UserResponse(BaseModel):

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SentriX — User Management</title>
+  <script>(function(){var u=JSON.parse(localStorage.getItem('sentrix_user')||'{}');var r=u.role||'';if(r!=='admin')window.location.replace('/dashboard.html');})()</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
@@ -188,7 +189,9 @@
         <div>
           <label class="block text-gray-400 text-sm mb-1">Role</label>
           <select id="edit-role" class="form-input form-select">
-            <option value="analyst">Analyst</option>
+            <option value="soc_analyst_l2">SOC Analyst Level 2</option>
+            <option value="soc_analyst_l1">SOC Analyst Level 1</option>
+            <option value="incident_responder">Incident Responder</option>
             <option value="admin">Admin</option>
           </select>
         </div>
@@ -241,7 +244,9 @@
         <div>
           <label class="block text-gray-400 text-sm mb-1">Role</label>
           <select id="c-role" class="form-input form-select">
-            <option value="analyst">Analyst</option>
+            <option value="soc_analyst_l2">SOC Analyst Level 2</option>
+            <option value="soc_analyst_l1">SOC Analyst Level 1</option>
+            <option value="incident_responder">Incident Responder</option>
             <option value="admin">Admin</option>
           </select>
         </div>
@@ -298,7 +303,7 @@
             <td>
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0
-                  ${u.role === 'admin' ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}">
+                  ${u.role === 'admin' ? 'bg-red-500/20 text-red-400' : u.role === 'incident_responder' ? 'bg-orange-500/20 text-orange-400' : u.role === 'soc_analyst_l1' ? 'bg-blue-500/20 text-blue-400' : u.role === 'soc_analyst_l2' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400'}">
                   ${u.full_name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -309,9 +314,9 @@
             </td>
             <td><span class="text-xs text-gray-400">${u.email}</span></td>
             <td>
-              <span class="badge ${u.role === 'admin' ? 'badge-critical' : 'badge-low'}">
-                <i class="fa-solid ${u.role === 'admin' ? 'fa-user-shield' : 'fa-user'} text-xs"></i>
-                ${u.role.toUpperCase()}
+              <span class="badge ${u.role === 'admin' ? 'badge-critical' : u.role === 'incident_responder' ? 'badge-medium' : u.role === 'soc_analyst_l1' ? 'badge-info' : u.role === 'soc_analyst_l2' ? 'badge-purple' : 'badge-low'}">
+                <i class="fa-solid ${u.role === 'admin' ? 'fa-user-shield' : u.role === 'incident_responder' ? 'fa-fire-extinguisher' : u.role === 'soc_analyst_l1' ? 'fa-magnifying-glass' : u.role === 'soc_analyst_l2' ? 'fa-shield-halved' : 'fa-user'} text-xs"></i>
+                ${ u.role === 'soc_analyst_l1' ? 'SOC Analyst L1' : u.role === 'soc_analyst_l2' ? 'SOC Analyst L2' : u.role === 'incident_responder' ? 'Incident Responder' : u.role.toUpperCase() }
               </span>
             </td>
             <td>
