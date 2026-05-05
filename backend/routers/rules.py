@@ -122,6 +122,8 @@ def list_rules(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    if current_user.role == "soc_analyst_l1":
+        raise HTTPException(status_code=403, detail="Access denied")
     rules = db.query(AlertRule).order_by(AlertRule.created_at.desc()).all()
     return {"total": len(rules), "items": [rule_to_dict(r) for r in rules]}
 

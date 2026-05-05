@@ -128,7 +128,17 @@
       <div id="stats-grid" class="hidden">
         <!-- Stats -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div class="stat-card stat-card-red stagger-1">
+          <div class="stat-card stat-card-blue stagger-1">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">Total Alerts</span>
+              <div class="stat-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);">
+                <i class="fa-solid fa-shield-halved" style="color:#60a5fa;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="stat-total-alerts">—</p>
+            <p class="text-xs mt-2" style="color:#475569;" id="stat-24h">— in last 24h</p>
+          </div>
+          <div class="stat-card stat-card-red stagger-2">
             <div class="flex items-center justify-between mb-4">
               <span class="text-sm" style="color:#64748b;">Critical Alerts</span>
               <div class="stat-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);">
@@ -136,9 +146,9 @@
               </div>
             </div>
             <p class="stat-number" id="stat-critical">—</p>
-            <p class="text-xs mt-2" style="color:#475569;" id="stat-24h">— in last 24h</p>
+            <p class="text-xs mt-2" style="color:#475569;">Critical severity</p>
           </div>
-          <div class="stat-card stat-card-orange stagger-2">
+          <div class="stat-card stat-card-orange stagger-3">
             <div class="flex items-center justify-between mb-4">
               <span class="text-sm" style="color:#64748b;">Open Alerts</span>
               <div class="stat-icon" style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);">
@@ -148,7 +158,7 @@
             <p class="stat-number" id="stat-open-alerts">—</p>
             <p class="text-xs mt-2" style="color:#475569;">Require attention</p>
           </div>
-          <div class="stat-card stat-card-yellow stagger-3">
+          <div class="stat-card stat-card-yellow stagger-4">
             <div class="flex items-center justify-between mb-4">
               <span class="text-sm" style="color:#64748b;">Active Incidents</span>
               <div class="stat-icon" style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.2);">
@@ -157,16 +167,6 @@
             </div>
             <p class="stat-number" id="stat-incidents">—</p>
             <p class="text-xs mt-2" style="color:#475569;" id="stat-incidents-sub">— in progress</p>
-          </div>
-          <div class="stat-card stat-card-purple stagger-4">
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-sm" style="color:#64748b;">Malicious IOCs</span>
-              <div class="stat-icon" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2);">
-                <i class="fa-solid fa-virus" style="color:#c084fc;"></i>
-              </div>
-            </div>
-            <p class="stat-number" id="stat-iocs">—</p>
-            <p class="text-xs mt-2" style="color:#475569;" id="stat-iocs-sub">— total tracked</p>
           </div>
         </div>
 
@@ -180,8 +180,8 @@
               </h3>
               <select id="alertsTimePeriod" onchange="loadAlertsChart(this.value)"
                 class="form-input form-select text-xs rounded-lg px-2 py-1.5" style="width:auto;padding:5px 10px;">
-                <option value="1">Last 24 Hours</option>
-                <option value="7" selected>Last Week</option>
+                <option value="1" selected>Last 24 Hours</option>
+                <option value="7">Last Week</option>
                 <option value="14">Last 2 Weeks</option>
                 <option value="21">Last 3 Weeks</option>
                 <option value="30">Last Month</option>
@@ -316,7 +316,7 @@
       document.getElementById('loading').classList.remove('hidden');
       document.getElementById('stats-grid').classList.add('hidden');
       try {
-        const selectedDays = document.getElementById('alertsTimePeriod')?.value || '7';
+        const selectedDays = document.getElementById('alertsTimePeriod')?.value || '1';
         const [stats, bySev, overTime, recentAlerts, incByStatus] = await Promise.all([
           apiGet('/api/dashboard/stats'),
           apiGet('/api/dashboard/alerts-by-severity'),
@@ -325,14 +325,13 @@
           apiGet('/api/dashboard/incidents-by-status'),
         ]);
 
-        animateStat('stat-critical',    stats.alerts.critical);
-        animateStat('stat-open-alerts', stats.alerts.open);
-        animateStat('stat-incidents',   stats.incidents.open + stats.incidents.in_progress);
-        animateStat('stat-iocs',        stats.iocs.malicious);
+        animateStat('stat-total-alerts', stats.alerts.total);
+        animateStat('stat-critical',     stats.alerts.critical);
+        animateStat('stat-open-alerts',  stats.alerts.open);
+        animateStat('stat-incidents',    stats.incidents.open + stats.incidents.in_progress);
 
         document.getElementById('stat-24h').textContent = `${stats.alerts.last_24h} in last 24h`;
         document.getElementById('stat-incidents-sub').textContent = `${stats.incidents.in_progress} in progress`;
-        document.getElementById('stat-iocs-sub').textContent = `${stats.iocs.total} total tracked`;
 
         if (stats.alerts.open > 0) {
           const badge = document.getElementById('alert-badge');

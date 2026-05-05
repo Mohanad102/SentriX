@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — Tickets</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="text-gray-100 flex" style="background:#020817;">
+
+  <div class="mesh-bg"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;"></aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-h-screen overflow-auto" style="position:relative;z-index:1;">
+    <header class="px-6 py-4 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
+      <div>
+        <h1 class="text-white font-semibold text-lg">Ticket Management</h1>
+        <p class="text-gray-500 text-xs">SOC L1 triage tickets with auto-escalation routing</p>
+      </div>
+      <button onclick="loadTickets()" class="btn btn-secondary btn-sm">
+        <i class="fa-solid fa-rotate-right"></i> Refresh
+      </button>
+    </header>
+
+    <div class="p-6 page-fade">
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="stats-row">
+        <div class="panel p-4">
+          <p class="text-gray-500 text-xs mb-1">Total Tickets</p>
+          <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+        </div>
+        <div class="panel p-4">
+          <p class="text-gray-500 text-xs mb-1">Open</p>
+          <p class="text-2xl font-bold text-blue-400" id="stat-open">—</p>
+        </div>
+        <div class="panel p-4">
+          <p class="text-gray-500 text-xs mb-1">Escalated</p>
+          <p class="text-2xl font-bold text-orange-400" id="stat-escalated">—</p>
+        </div>
+        <div class="panel p-4">
+          <p class="text-gray-500 text-xs mb-1">Closed</p>
+          <p class="text-2xl font-bold text-gray-400" id="stat-closed">—</p>
+        </div>
+      </div>
+
+      <!-- Queue cards -->
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="panel p-4 border-t-2" style="border-top-color:#60a5fa;">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-user-shield text-blue-400 text-sm"></i>
+            <span class="text-blue-400 text-sm font-medium">L1 Analyst</span>
+          </div>
+          <p class="text-2xl font-bold text-white" id="q-it">—</p>
+          <p class="text-gray-500 text-xs mt-1">Low severity issues</p>
+        </div>
+        <div class="panel p-4 border-t-2" style="border-top-color:#facc15;">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-user-shield text-yellow-400 text-sm"></i>
+            <span class="text-yellow-400 text-sm font-medium">L2 Analyst</span>
+          </div>
+          <p class="text-2xl font-bold text-white" id="q-l2">—</p>
+          <p class="text-gray-500 text-xs mt-1">Medium severity issues</p>
+        </div>
+        <div class="panel p-4 border-t-2" style="border-top-color:#f87171;">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-fire-extinguisher text-red-400 text-sm"></i>
+            <span class="text-red-400 text-sm font-medium">Incident Response</span>
+          </div>
+          <p class="text-2xl font-bold text-white" id="q-ir">—</p>
+          <p class="text-gray-500 text-xs mt-1">High / Critical issues</p>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="panel p-4 mb-4 flex flex-wrap items-center gap-3">
+        <select id="filter-status" class="form-input form-select w-40" onchange="loadTickets()">
+          <option value="">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="in_progress">In Progress</option>
+          <option value="escalated">Escalated</option>
+          <option value="closed">Closed</option>
+        </select>
+        <select id="filter-assignee" class="form-input form-select w-48" onchange="loadTickets()">
+          <option value="">All Assignees</option>
+          <option value="L1 Analyst">L1 Analyst</option>
+          <option value="L2 Analyst">L2 Analyst</option>
+          <option value="Incident Response">Incident Response</option>
+        </select>
+        <select id="filter-severity" class="form-input form-select w-36" onchange="loadTickets()">
+          <option value="">All Severities</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <button onclick="loadTickets()" class="btn btn-secondary btn-sm ml-auto">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+      </div>
+
+      <!-- Role notice for L1 -->
+      <div id="l1-notice" class="hidden mb-4 flex items-center gap-2 px-4 py-3 rounded-xl"
+        style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);">
+        <i class="fa-solid fa-circle-info text-blue-400 text-sm"></i>
+        <span class="text-blue-300 text-sm">You can view all tickets. Ticket status updates are handled by L2 Analysts and Admins.</span>
+      </div>
+
+      <!-- Table -->
+      <div class="panel overflow-hidden">
+        <div id="table-loading" class="flex items-center justify-center py-16">
+          <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+        </div>
+        <div id="table-container" class="hidden overflow-x-auto">
+          <table class="data-table">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th>Ticket ID</th>
+                <th>Title</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Classification</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tickets-tbody"></tbody>
+          </table>
+          <div id="no-results" class="hidden text-center py-12 text-gray-500">
+            <i class="fa-solid fa-ticket-slash text-3xl mb-3 block"></i>
+            No tickets found
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mt-4">
+        <p class="text-xs text-gray-500" id="pagination-info"></p>
+        <div class="flex gap-1" id="pagination-btns"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Ticket Detail / Update Modal                           -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="detail-modal" class="modal-overlay hidden">
+    <div class="modal-box w-full max-w-2xl" style="max-height:92vh;overflow-y:auto;">
+
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h3 class="text-white font-semibold text-lg" id="d-ticket-id">Ticket</h3>
+          <p class="text-gray-500 text-xs mt-0.5" id="d-created"></p>
+        </div>
+        <button onclick="closeModal('detail-modal')" class="text-gray-500 hover:text-white transition mt-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Meta grid -->
+      <div class="grid grid-cols-2 gap-3 mb-4" id="d-meta"></div>
+
+      <!-- Description -->
+      <div class="bg-gray-800/50 rounded-xl p-3 mb-4">
+        <p class="text-gray-500 text-xs mb-1">Description</p>
+        <p class="text-gray-200 text-sm whitespace-pre-wrap" id="d-description"></p>
+      </div>
+
+      <!-- Notes -->
+      <div id="d-notes-section" class="bg-gray-800/50 rounded-xl p-3 mb-4 hidden">
+        <p class="text-gray-500 text-xs mb-1">Analyst Notes</p>
+        <p class="text-gray-200 text-sm whitespace-pre-wrap" id="d-notes"></p>
+      </div>
+
+      <!-- L2 Investigation read-only display -->
+      <div id="d-l2-display" class="hidden mb-4 border border-yellow-500/20 bg-yellow-500/5 rounded-xl p-3 space-y-2">
+        <p class="text-yellow-400 text-xs font-semibold"><i class="fa-solid fa-user-shield mr-1"></i>L2 Investigation</p>
+        <div id="d-l2-display-content"></div>
+      </div>
+
+      <!-- Escalated badge -->
+      <div id="d-escalated-banner" class="hidden mb-4 flex items-center gap-2 px-4 py-3 rounded-xl"
+        style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
+        <i class="fa-solid fa-arrow-up-right-dots text-red-400 text-sm"></i>
+        <span class="text-red-300 text-sm" id="d-escalated-text">Escalated to Incident Response</span>
+      </div>
+
+      <!-- Source alert link -->
+      <div id="d-alert-link" class="hidden mb-4"></div>
+
+      <!-- Update section (role-gated) -->
+      <div id="d-update-section" class="hidden space-y-3">
+        <div class="border-t border-gray-700/50 pt-4">
+          <p class="text-gray-400 text-sm font-medium mb-3">Update Ticket</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-gray-400 text-xs mb-1 block">Status</label>
+              <select id="d-status" class="form-input form-select">
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="escalated">Escalated</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-gray-400 text-xs mb-1 block">Assigned To</label>
+              <select id="d-assigned-to" class="form-input form-select">
+                <option value="L1 Analyst">L1 Analyst</option>
+                <option value="L2 Analyst">L2 Analyst</option>
+                <option value="Incident Response">Incident Response</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-3">
+            <label class="text-gray-400 text-xs mb-1 block">Analyst Notes</label>
+            <textarea id="d-update-notes" class="form-input resize-none" rows="2"
+              placeholder="Add notes..."></textarea>
+          </div>
+
+          <!-- L2 Investigation fields (L2/admin only) -->
+          <div id="d-l2-fields" class="hidden mt-4 space-y-3 border border-yellow-500/20 bg-yellow-500/5 rounded-xl p-4">
+            <p class="text-yellow-400 text-xs font-semibold uppercase tracking-wide"><i class="fa-solid fa-user-shield mr-1"></i>L2 Investigation</p>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-gray-400 text-xs mb-1 block">L2 Status</label>
+                <select id="d-l2-status" class="form-input form-select">
+                  <option value="">— Not Set —</option>
+                  <option value="under_investigation">Under Investigation</option>
+                  <option value="contained">Contained</option>
+                  <option value="escalated_to_ir">Escalated to IR</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button id="d-escalate-ir-btn" onclick="escalateToIR()" class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 w-full">
+                  <i class="fa-solid fa-arrow-up-right-dots mr-1"></i>Escalate to IR
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="text-gray-400 text-xs mb-1 block">Investigation Notes</label>
+              <textarea id="d-investigation-notes" class="form-input resize-none text-xs" rows="3"
+                placeholder="Document investigation steps, findings, hypotheses..."></textarea>
+            </div>
+            <div>
+              <label class="text-gray-400 text-xs mb-1 block">Evidence</label>
+              <textarea id="d-evidence" class="form-input resize-none text-xs" rows="2"
+                placeholder="Log entries, IOCs, artefacts..."></textarea>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mt-3">
+            <button onclick="submitUpdate()" id="d-update-btn" class="btn btn-primary flex-1">
+              <i class="fa-solid fa-check"></i> Save Changes
+            </button>
+            <button id="d-delete-btn" onclick="deleteTicket()" class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hidden">
+              <i class="fa-solid fa-trash"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error('Not authenticated');
+
+    // ── Role guards ───────────────────────────────────────────
+    const _user    = getUser();
+    const userRole = _user?.role || '';
+    const isAdmin  = userRole === 'admin';
+    const isL2     = userRole === 'soc_analyst_l2';
+    const isL1     = userRole === 'soc_analyst_l1';
+
+    if (isL1) document.getElementById('l1-notice').classList.remove('hidden');
+
+    let currentPage   = 1;
+    let currentTicket = null;
+
+    // ── Helpers ───────────────────────────────────────────────
+    function assigneeBadge(a) {
+      const map = {
+        'L1 Analyst':           'badge-info',
+        'L2 Analyst':        'badge-medium',
+        'Incident Response': 'badge-critical',
+      };
+      return `<span class="badge ${map[a]||'badge-low'}">${a}</span>`;
+    }
+
+    function classifyBadge(c) {
+      if (!c) return '<span class="text-gray-600 text-xs">—</span>';
+      const map = {
+        true_positive:  ['badge-true_positive',  'True Positive'],
+        false_positive: ['badge-false_positive',  'False Positive'],
+        suspicious:     ['badge-suspicious',      'Suspicious'],
+      };
+      const [cls, label] = map[c] || ['badge-low', c];
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
+
+    // L2 can update only tickets in their queue; admin can update any
+    function canUpdate(ticket) {
+      if (isAdmin) return true;
+      if (isL2 && ticket.assigned_to === 'L2 Analyst') return true;
+      return false;
+    }
+
+    // ── Load & Render ─────────────────────────────────────────
+    async function loadTickets(page = 1) {
+      currentPage = page;
+      document.getElementById('table-loading').classList.remove('hidden');
+      document.getElementById('table-container').classList.add('hidden');
+
+      const params = {
+        page, page_size: 20,
+        status:      document.getElementById('filter-status').value,
+        assigned_to: document.getElementById('filter-assignee').value,
+        severity:    document.getElementById('filter-severity').value,
+      };
+      Object.keys(params).forEach(k => !params[k] && delete params[k]);
+
+      try {
+        const data = await apiGet('/api/tickets', params);
+
+        // Stats (full unfiltered load only on page 1 with no filters)
+        const all = data.items;
+        document.getElementById('stat-total').textContent    = data.total;
+        document.getElementById('stat-open').textContent     = all.filter(t => t.status === 'open').length;
+        document.getElementById('stat-escalated').textContent= all.filter(t => t.status === 'escalated').length;
+        document.getElementById('stat-closed').textContent   = all.filter(t => t.status === 'closed').length;
+        document.getElementById('q-it').textContent  = all.filter(t => t.assigned_to === 'L1 Analyst').length;
+        document.getElementById('q-l2').textContent  = all.filter(t => t.assigned_to === 'L2 Analyst').length;
+        document.getElementById('q-ir').textContent  = all.filter(t => t.assigned_to === 'Incident Response').length;
+
+        renderTable(data.items);
+        document.getElementById('pagination-info').textContent =
+          `Showing ${(page-1)*20+1}–${Math.min(page*20, data.total)} of ${data.total} tickets`;
+        buildPagination(document.getElementById('pagination-btns'), page, data.pages, loadTickets);
+        document.getElementById('table-loading').classList.add('hidden');
+        document.getElementById('table-container').classList.remove('hidden');
+        document.getElementById('no-results').classList.toggle('hidden', data.items.length > 0);
+      } catch (err) {
+        document.getElementById('table-loading').innerHTML =
+          `<p class="text-red-400 py-8 text-center">${err.message}</p>`;
+      }
+    }
+
+    function renderTable(tickets) {
+      const tbody = document.getElementById('tickets-tbody');
+      if (!tickets.length) { tbody.innerHTML = ''; return; }
+      tbody.innerHTML = tickets.map(t => `
+        <tr>
+          <td><span class="font-mono text-xs text-emerald-400">${t.ticket_id}</span></td>
+          <td class="max-w-xs">
+            <p class="truncate text-gray-100 text-sm" title="${t.title}">${t.title}</p>
+          </td>
+          <td>${severityBadge(t.severity)}</td>
+          <td>${statusBadge(t.status)}</td>
+          <td>${assigneeBadge(t.assigned_to)}</td>
+          <td>${classifyBadge(t.triage_result)}</td>
+          <td><span class="text-xs text-gray-500">${timeAgo(t.created_at)}</span></td>
+          <td>
+            <div class="flex gap-1">
+              <button onclick="openDetail(${t.id})" class="btn btn-secondary btn-sm" title="View">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+              ${canUpdate(t) ? `
+              <button onclick="openDetail(${t.id})" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20" title="Update">
+                <i class="fa-solid fa-pen"></i>
+              </button>` : ''}
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    function l2StatusBadge(s) {
+      if (!s) return '<span class="text-gray-600 text-xs">—</span>';
+      const map = {
+        under_investigation: ['badge-info',     'Under Investigation'],
+        contained:           ['badge-medium',   'Contained'],
+        escalated_to_ir:     ['badge-critical', 'Escalated to IR'],
+      };
+      const [cls, label] = map[s] || ['badge-low', s];
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
+
+    // ── Detail Modal ──────────────────────────────────────────
+    async function openDetail(id) {
+      try {
+        const t = await apiGet(`/api/tickets/${id}`);
+        currentTicket = t;
+
+        document.getElementById('d-ticket-id').textContent = t.ticket_id;
+        document.getElementById('d-created').textContent   = `Created ${formatDate(t.created_at)}`;
+
+        document.getElementById('d-meta').innerHTML = [
+          ['Severity',       severityBadge(t.severity)],
+          ['Status',         statusBadge(t.status)],
+          ['Assigned To',    assigneeBadge(t.assigned_to)],
+          ['Classification', classifyBadge(t.triage_result)],
+          ['L2 Status',      l2StatusBadge(t.l2_status)],
+          ['Updated',        `<span class="text-xs text-gray-400">${t.updated_at ? timeAgo(t.updated_at) : '—'}</span>`],
+        ].map(([label, val]) => `
+          <div class="bg-gray-800/60 rounded-lg p-3">
+            <p class="text-gray-500 text-xs mb-1">${label}</p>
+            <div>${val}</div>
+          </div>`).join('');
+
+        document.getElementById('d-description').textContent = t.description || 'No description.';
+
+        const notesSection = document.getElementById('d-notes-section');
+        if (t.notes) {
+          document.getElementById('d-notes').textContent = t.notes;
+          notesSection.classList.remove('hidden');
+        } else {
+          notesSection.classList.add('hidden');
+        }
+
+        // L2 investigation display (read-only view for L1/IR)
+        const l2Display = document.getElementById('d-l2-display');
+        if ((t.investigation_notes || t.evidence) && !canUpdate(t)) {
+          let html = '';
+          if (t.investigation_notes) html += `<div class="mb-2"><p class="text-gray-500 text-xs mb-0.5">Investigation Notes</p><p class="text-gray-300 text-xs whitespace-pre-wrap">${t.investigation_notes}</p></div>`;
+          if (t.evidence)            html += `<div><p class="text-gray-500 text-xs mb-0.5">Evidence</p><p class="text-gray-300 text-xs whitespace-pre-wrap">${t.evidence}</p></div>`;
+          document.getElementById('d-l2-display-content').innerHTML = html;
+          l2Display.classList.remove('hidden');
+        } else {
+          l2Display.classList.add('hidden');
+        }
+
+        // Escalation banner
+        const banner = document.getElementById('d-escalated-banner');
+        if (t.escalated_at) {
+          document.getElementById('d-escalated-text').textContent =
+            `Escalated to Incident Response on ${formatDate(t.escalated_at)}`;
+          banner.classList.remove('hidden');
+        } else {
+          banner.classList.add('hidden');
+        }
+
+        // Source alert link
+        const alertLink = document.getElementById('d-alert-link');
+        if (t.alert_id) {
+          alertLink.innerHTML = `
+            <a href="/alerts.html" class="flex items-center gap-2 text-xs text-emerald-400 hover:text-emerald-300">
+              <i class="fa-solid fa-bell text-xs"></i>
+              Source Alert ID: ${t.alert_id} — click to open Alerts →
+            </a>`;
+          alertLink.classList.remove('hidden');
+        } else {
+          alertLink.classList.add('hidden');
+        }
+
+        // Update section visibility
+        const updateSection = document.getElementById('d-update-section');
+        const canL2Fields = isAdmin || isL2;
+        if (canUpdate(t)) {
+          updateSection.classList.remove('hidden');
+          document.getElementById('d-status').value       = t.status;
+          document.getElementById('d-assigned-to').value  = t.assigned_to;
+          document.getElementById('d-update-notes').value = t.notes || '';
+          document.getElementById('d-delete-btn').classList.toggle('hidden', !isAdmin);
+
+          // L2 investigation fields
+          const l2Fields = document.getElementById('d-l2-fields');
+          if (canL2Fields) {
+            l2Fields.classList.remove('hidden');
+            document.getElementById('d-l2-status').value         = t.l2_status || '';
+            document.getElementById('d-investigation-notes').value = t.investigation_notes || '';
+            document.getElementById('d-evidence').value          = t.evidence || '';
+            document.getElementById('d-escalate-ir-btn').classList.toggle('hidden',
+              t.assigned_to === 'Incident Response');
+          } else {
+            l2Fields.classList.add('hidden');
+          }
+        } else {
+          updateSection.classList.add('hidden');
+        }
+
+        document.getElementById('detail-modal').classList.remove('hidden');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function escalateToIR() {
+      if (!currentTicket || !confirm(`Escalate ${currentTicket.ticket_id} to Incident Response?`)) return;
+      try {
+        const updated = await apiPost(`/api/tickets/${currentTicket.id}/escalate-ir`, {});
+        showToast('Escalated to Incident Response', 'success');
+        closeModal('detail-modal');
+        loadTickets(currentPage);
+      } catch(err) { showToast(err.message, 'error'); }
+    }
+
+    async function submitUpdate() {
+      if (!currentTicket) return;
+      const btn = document.getElementById('d-update-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+      const canL2Fields = isAdmin || isL2;
+      try {
+        const payload = {
+          status:      document.getElementById('d-status').value,
+          assigned_to: document.getElementById('d-assigned-to').value,
+          notes:       document.getElementById('d-update-notes').value || null,
+        };
+        if (canL2Fields) {
+          payload.l2_status           = document.getElementById('d-l2-status').value || null;
+          payload.investigation_notes = document.getElementById('d-investigation-notes').value || null;
+          payload.evidence            = document.getElementById('d-evidence').value || null;
+        }
+        await apiPatch(`/api/tickets/${currentTicket.id}`, payload);
+        showToast('Ticket updated', 'success');
+        closeModal('detail-modal');
+        loadTickets(currentPage);
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+      }
+    }
+
+    async function deleteTicket() {
+      if (!currentTicket || !confirm(`Delete ${currentTicket.ticket_id}? This cannot be undone.`)) return;
+      try {
+        await apiFetch(`/api/tickets/${currentTicket.id}`, { method: 'DELETE' });
+        showToast('Ticket deleted', 'success');
+        closeModal('detail-modal');
+        loadTickets(currentPage);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    document.querySelectorAll('.modal-overlay').forEach(m =>
+      m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
+
+    loadTickets();
+  </script>
+</body>
+</html>

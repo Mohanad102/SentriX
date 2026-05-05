@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.sql import func
 from backend.database import Base
 
@@ -20,6 +20,10 @@ class Incident(Base):
     ai_iocs = Column(Text, nullable=True)
     ai_recommendations = Column(Text, nullable=True)
     tags = Column(String, nullable=True)
+    investigation_notes = Column(Text, nullable=True)
+    l2_status = Column(String, nullable=True)          # under_investigation | contained | escalated_to_ir
+    contained_at = Column(DateTime(timezone=True), nullable=True)
+    ir_status = Column(String, nullable=True)          # new | investigating | contained | eradicated | recovered
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -13,51 +13,13 @@
   <div class="mesh-bg"></div>
 
   <!-- Sidebar -->
-  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;">
-    <div class="p-5 border-b border-gray-800">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
-        </div>
-        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
-      </div>
-    </div>
-    <nav class="p-3 flex-1 space-y-1">
-      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
-      <a href="/alerts.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
-      <a href="/incidents.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
-      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
-      <a href="/virustotal.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
-      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
-      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
-      <a href="/rules.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
-    </nav>
-    <div class="p-3 border-t border-gray-800">
-      <div class="flex items-center gap-3 px-2 py-2">
-        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-white truncate user-name">Admin</p>
-          <p class="text-xs text-gray-500 user-role">ADMIN</p>
-        </div>
-        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
-      </div>
-    </div>
-  </aside>
+  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;"></aside>
 
   <!-- Main -->
   <main class="flex-1 min-h-screen overflow-auto" style="position:relative;z-index:1;">
     <header class="px-6 py-4 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
       <div>
         <h1 class="text-white font-semibold text-lg">Alert Management</h1>
-        <p class="text-gray-500 text-xs" id="auto-refresh-label">Auto-refresh: ON (30s)</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button onclick="toggleAutoRefresh()" id="refresh-toggle-btn" class="btn btn-secondary btn-sm">
-          <i class="fa-solid fa-pause" id="refresh-icon"></i> Pause
-        </button>
-        <button onclick="openCreateModal()" class="btn btn-primary">
-          <i class="fa-solid fa-plus"></i> New Alert
-        </button>
       </div>
     </header>
 
@@ -82,13 +44,19 @@
           <option value="closed">Closed</option>
           <option value="false_positive">False Positive</option>
         </select>
+        <select id="filter-time" class="form-input form-select w-36" onchange="loadAlerts()">
+          <option value="">All Time</option>
+          <option value="24h">Last 24 Hours</option>
+          <option value="7d">Last 7 Days</option>
+          <option value="30d">Last 30 Days</option>
+        </select>
         <button onclick="loadAlerts()" class="btn btn-secondary btn-sm">
           <i class="fa-solid fa-rotate-right"></i>
         </button>
       </div>
 
-      <!-- Bulk Action Bar (hidden until selection) -->
-      <div id="bulk-bar" class="hidden bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+      <!-- Bulk Action Bar -->
+      <div id="bulk-bar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-gray-900 border border-emerald-500/40 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-2xl" style="backdrop-filter:blur(12px);min-width:420px;">
         <span class="text-emerald-400 text-sm font-medium"><span id="selected-count">0</span> selected</span>
         <div class="flex gap-2 ml-auto">
           <button onclick="bulkStatus('closed')" class="btn btn-sm bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600">
@@ -97,7 +65,7 @@
           <button onclick="bulkStatus('false_positive')" class="btn btn-sm bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600">
             <i class="fa-solid fa-thumbs-down"></i> False Positive
           </button>
-          <button onclick="bulkDelete()" class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20">
+          <button id="bulk-delete-btn" onclick="bulkDelete()" class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20">
             <i class="fa-solid fa-trash"></i> Delete All
           </button>
           <button onclick="clearSelection()" class="btn btn-secondary btn-sm">
@@ -115,17 +83,18 @@
           <table class="data-table">
             <thead class="bg-gray-800/50">
               <tr>
-                <th class="w-8">
-                  <input type="checkbox" id="select-all" onchange="toggleSelectAll()" class="rounded border-gray-600 bg-gray-700 text-emerald-500" />
-                </th>
-                <th>Alert ID</th>
+                <th class="w-8"><input type="checkbox" id="select-all" onchange="toggleSelectAll()" class="rounded border-gray-600 bg-gray-700 text-emerald-500" /></th>
                 <th>Title</th>
                 <th>Severity</th>
+                <th>Threat</th>
                 <th>Source IP</th>
                 <th>Hostname</th>
                 <th>Category</th>
                 <th>Status</th>
-                <th>Time</th>
+                <th>Ticket</th>
+                <th class="cursor-pointer select-none" onclick="toggleTimeSort()" title="Sort by time">
+                  Time <i id="sort-icon" class="fa-solid fa-arrow-down text-emerald-400 text-xs ml-1"></i>
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -145,23 +114,169 @@
     </div>
   </main>
 
-  <!-- Detail Modal -->
-  <div id="detail-modal" class="modal-overlay hidden">
-    <div class="modal-box w-full max-w-2xl">
-      <div class="flex items-center justify-between mb-5">
-        <h3 class="text-white font-semibold text-lg" id="modal-title">Alert Details</h3>
-        <button onclick="closeModal('detail-modal')" class="text-gray-500 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Triage Modal                                           -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="triage-modal" class="modal-overlay hidden">
+    <div class="modal-box w-full max-w-2xl" style="max-height:90vh;overflow-y:auto;">
+
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h3 class="text-white font-semibold text-lg" id="triage-title">Alert Triage</h3>
+          <p class="text-gray-500 text-xs font-mono mt-0.5" id="triage-alert-id"></p>
+        </div>
+        <button onclick="closeModal('triage-modal')" class="text-gray-500 hover:text-white transition mt-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
       </div>
-      <div id="modal-body"></div>
+
+      <!-- Meta grid -->
+      <div class="grid grid-cols-3 gap-2 mb-5" id="triage-meta"></div>
+
+      <!-- Description -->
+      <div class="bg-gray-800/50 rounded-xl p-3 mb-5">
+        <p class="text-gray-500 text-xs mb-1">Description</p>
+        <p class="text-gray-200 text-sm whitespace-pre-wrap" id="triage-description"></p>
+      </div>
+
+      <!-- Classification -->
+      <div class="mb-5">
+        <p class="text-gray-400 text-sm font-medium mb-2">
+          <i class="fa-solid fa-tag mr-1 text-gray-500"></i> Classification
+        </p>
+        <div class="flex gap-2">
+          <button class="classify-btn flex-1 py-2 px-3 rounded-xl border text-sm font-medium transition-all"
+            data-classify="true_positive" onclick="setClassification('true_positive')"
+            style="border-color:rgba(75,85,99,0.6);color:#9ca3af;">
+            <i class="fa-solid fa-circle-exclamation mr-1"></i> True Positive
+          </button>
+          <button class="classify-btn flex-1 py-2 px-3 rounded-xl border text-sm font-medium transition-all"
+            data-classify="false_positive" onclick="setClassification('false_positive')"
+            style="border-color:rgba(75,85,99,0.6);color:#9ca3af;">
+            <i class="fa-solid fa-circle-xmark mr-1"></i> False Positive
+          </button>
+          <button class="classify-btn flex-1 py-2 px-3 rounded-xl border text-sm font-medium transition-all"
+            data-classify="suspicious" onclick="setClassification('suspicious')"
+            style="border-color:rgba(75,85,99,0.6);color:#9ca3af;">
+            <i class="fa-solid fa-circle-question mr-1"></i> Suspicious
+          </button>
+        </div>
+      </div>
+
+      <!-- Threat Intelligence / VirusTotal -->
+      <div class="mb-5">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-gray-400 text-sm font-medium">
+            <i class="fa-solid fa-virus-slash mr-1 text-gray-500"></i> Threat Intelligence
+          </p>
+          <button id="vt-check-btn" onclick="checkVT()"
+            class="btn btn-sm bg-violet-500/10 border border-violet-500/30 text-violet-400 hover:bg-violet-500/20">
+            <i class="fa-solid fa-magnifying-glass"></i> Check VirusTotal
+          </button>
+        </div>
+        <div id="vt-result" class="hidden"></div>
+      </div>
+
+      <!-- Analyst Notes -->
+      <div class="mb-5">
+        <label class="text-gray-400 text-sm font-medium mb-2 block">
+          <i class="fa-solid fa-pen-to-square mr-1 text-gray-500"></i> Analyst Notes
+        </label>
+        <textarea id="triage-notes" class="form-input resize-none" rows="3"
+          placeholder="Add your analysis observations..."></textarea>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-2 flex-wrap">
+        <div id="ticket-action" class="flex-1"></div>
+        <button onclick="markAlertFP()" class="btn btn-sm bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600">
+          <i class="fa-solid fa-thumbs-down"></i> False Positive
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Create Modal -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Ticket Creation Modal                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="ticket-modal" class="modal-overlay hidden">
+    <div class="modal-box w-full max-w-lg">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="text-white font-semibold flex items-center gap-2">
+            <i class="fa-solid fa-ticket text-emerald-400"></i> Create Ticket
+          </h3>
+          <p class="text-gray-500 text-xs mt-0.5">Auto-escalation based on severity · assignee editable</p>
+        </div>
+        <button onclick="closeModal('ticket-modal')" class="text-gray-500 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="ticket-form" class="space-y-4">
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Title *</label>
+          <input type="text" id="t-title" class="form-input" required />
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Description</label>
+          <textarea id="t-description" class="form-input resize-none" rows="3"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-gray-400 text-sm mb-1">Severity</label>
+            <select id="t-severity" class="form-input form-select" onchange="updateAutoAssignee()">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-400 text-sm mb-1">Classification</label>
+            <div id="t-classification-badge" class="form-input text-sm flex items-center gap-2"
+              style="background:rgba(255,255,255,0.02);cursor:default;">
+              <span id="t-classification-text" class="text-gray-500">Not set</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">
+            Assigned To
+            <span class="text-gray-600 text-xs ml-1">(auto-filled · editable)</span>
+          </label>
+          <select id="t-assigned-to" class="form-input form-select">
+            <option value="L1 Analyst">L1 Analyst</option>
+            <option value="L2 Analyst">L2 Analyst</option>
+            <option value="Incident Response">Incident Response</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Notes</label>
+          <textarea id="t-notes" class="form-input resize-none" rows="2"
+            placeholder="Analyst notes carried from triage..."></textarea>
+        </div>
+        <div class="flex gap-3 pt-1">
+          <button type="submit" id="ticket-submit-btn" class="btn btn-primary flex-1">
+            <i class="fa-solid fa-ticket"></i> Submit Ticket
+          </button>
+          <button type="button" onclick="closeModal('ticket-modal')" class="btn btn-secondary">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create Alert Modal -->
   <div id="create-modal" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="flex items-center justify-between mb-5">
         <h3 class="text-white font-semibold">Create Alert</h3>
-        <button onclick="closeModal('create-modal')" class="text-gray-500 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button onclick="closeModal('create-modal')" class="text-gray-500 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
       </div>
       <form id="create-form" class="space-y-4">
         <div>
@@ -210,12 +325,42 @@
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
 
+    // ── Role ──────────────────────────────────────────────────
+    const _user = getUser();
+    const userRole = _user?.role || '';
+    const isAdmin  = userRole === 'admin';
+    const isL1     = userRole === 'soc_analyst_l1';
+
+    // L1 cannot create alerts or use bulk delete
+    if (isL1) {
+      document.getElementById('btn-new-alert').classList.add('hidden');
+      document.getElementById('bulk-delete-btn').classList.add('hidden');
+    }
+    // Only admin can escalate to incident
+    if (isL1) {
+      document.getElementById('triage-escalate-btn')?.classList.add('hidden');
+    }
+
     // ── State ─────────────────────────────────────────────────
-    let currentPage = 1;
-    let selectedIds  = new Set();
-    let autoRefresh  = true;
-    let refreshTimer = null;
+    let currentPage        = 1;
+    let selectedIds        = new Set();
+    let autoRefresh        = true;
+    let refreshTimer       = null;
     let debounceTimer;
+    let currentAlert       = null;
+    let currentClassification = null;
+    let sortOrder          = 'desc';
+
+    function toggleTimeSort() {
+      sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
+      document.getElementById('sort-icon').className =
+        sortOrder === 'desc'
+          ? 'fa-solid fa-arrow-down text-emerald-400 text-xs ml-1'
+          : 'fa-solid fa-arrow-up text-emerald-400 text-xs ml-1';
+      loadAlerts();
+    }
+
+    const ESCALATION_MAP = { low:'L1 Analyst', medium:'L2 Analyst', high:'Incident Response', critical:'Incident Response' };
 
     const SEV_ROW = {
       critical: 'border-l-4 border-red-500 bg-red-500/5',
@@ -232,23 +377,19 @@
     // ── Auto-Refresh ──────────────────────────────────────────
     function scheduleRefresh() {
       clearTimeout(refreshTimer);
-      if (autoRefresh) refreshTimer = setTimeout(() => { loadAlerts(currentPage); }, 30000);
+      if (autoRefresh) refreshTimer = setTimeout(() => loadAlerts(currentPage), 30000);
     }
 
     function toggleAutoRefresh() {
       autoRefresh = !autoRefresh;
-      const icon = document.getElementById('refresh-icon');
-      const btn  = document.getElementById('refresh-toggle-btn');
       const label = document.getElementById('auto-refresh-label');
       if (autoRefresh) {
-        icon.className = 'fa-solid fa-pause';
-        btn.innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+        document.getElementById('refresh-toggle-btn').innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
         label.textContent = 'Auto-refresh: ON (30s)';
         scheduleRefresh();
       } else {
         clearTimeout(refreshTimer);
-        icon.className = 'fa-solid fa-play';
-        btn.innerHTML = '<i class="fa-solid fa-play"></i> Resume';
+        document.getElementById('refresh-toggle-btn').innerHTML = '<i class="fa-solid fa-play"></i> Resume';
         label.textContent = 'Auto-refresh: OFF';
       }
     }
@@ -276,15 +417,13 @@
     }
 
     function updateBulkBar() {
-      const bar = document.getElementById('bulk-bar');
       document.getElementById('selected-count').textContent = selectedIds.size;
-      bar.classList.toggle('hidden', selectedIds.size === 0);
+      document.getElementById('bulk-bar').classList.toggle('hidden', selectedIds.size === 0);
     }
 
     // ── Bulk Actions ──────────────────────────────────────────
     async function bulkStatus(status) {
-      if (!selectedIds.size) return;
-      if (!confirm(`Set ${selectedIds.size} alert(s) to "${status.replace('_',' ')}"?`)) return;
+      if (!selectedIds.size || !confirm(`Set ${selectedIds.size} alert(s) to "${status.replace('_',' ')}"?`)) return;
       await Promise.all([...selectedIds].map(id => apiPatch(`/api/alerts/${id}`, { status })));
       showToast(`${selectedIds.size} alerts updated`, 'success');
       clearSelection();
@@ -292,12 +431,72 @@
     }
 
     async function bulkDelete() {
-      if (!selectedIds.size) return;
-      if (!confirm(`Delete ${selectedIds.size} alert(s)? This cannot be undone.`)) return;
+      if (!selectedIds.size || !confirm(`Delete ${selectedIds.size} alert(s)? This cannot be undone.`)) return;
       await Promise.all([...selectedIds].map(id => apiFetch(`/api/alerts/${id}`, { method: 'DELETE' })));
       showToast(`${selectedIds.size} alerts deleted`, 'success');
       clearSelection();
       loadAlerts(currentPage);
+    }
+
+    // ── VT Threat Indicator ───────────────────────────────────
+    function vtIndicator(a) {
+      if (!a.source_ip) return '<span class="text-gray-600 text-xs">—</span>';
+      if (a.vt_enriched) {
+        if (a.is_malicious === true)
+          return `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+            style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);">
+            <i class="fa-solid fa-skull-crossbones"></i> Malicious</span>`;
+        if (a.is_malicious === false)
+          return `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+            style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">
+            <i class="fa-solid fa-shield-check"></i> Clean</span>`;
+        return `<span class="inline-flex items-center gap-1 text-xs text-gray-500">
+          <i class="fa-solid fa-minus"></i> N/A</span>`;
+      }
+      return `<span id="vt-spin-${a.id}" class="inline-flex items-center gap-1 text-xs text-gray-500">
+        <i class="fa-solid fa-spinner fa-spin"></i> Scanning</span>`;
+    }
+
+    let _vtPollTimer    = null;
+    let _vtEnrichStarted = false;
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) _vtEnrichStarted = false; });
+
+    async function autoVTScan(alerts) {
+      clearTimeout(_vtPollTimer);
+      if (!_vtEnrichStarted) {
+        _vtEnrichStarted = true;
+        try { await apiPost('/api/alerts/enrich-batch', {}); } catch {}
+      }
+      _scheduleVTPoll();
+    }
+
+    function _scheduleVTPoll() {
+      clearTimeout(_vtPollTimer);
+      if (!document.querySelector('[id^="vt-cell-"] .fa-spinner')) return;
+      _vtPollTimer = setTimeout(_pollVTCells, 3000);
+    }
+
+    async function _pollVTCells() {
+      try {
+        const params = { page: currentPage, page_size: 20, sort_order: sortOrder };
+        const search     = document.getElementById('search-input').value;
+        const severity   = document.getElementById('filter-severity').value;
+        const status     = document.getElementById('filter-status').value;
+        const time_range = document.getElementById('filter-time').value;
+        if (search)     params.search     = search;
+        if (severity)   params.severity   = severity;
+        if (status)     params.status     = status;
+        if (time_range) params.time_range = time_range;
+
+        const data = await apiGet('/api/alerts', params);
+        for (const a of data.items) {
+          const cell = document.getElementById(`vt-cell-${a.id}`);
+          if (cell && cell.querySelector('.fa-spinner')) {
+            cell.innerHTML = vtIndicator(a);
+          }
+        }
+      } catch {}
+      _scheduleVTPoll();
     }
 
     // ── Load & Render ─────────────────────────────────────────
@@ -308,9 +507,11 @@
 
       const params = {
         page, page_size: 20,
-        search:   document.getElementById('search-input').value,
-        severity: document.getElementById('filter-severity').value,
-        status:   document.getElementById('filter-status').value,
+        search:      document.getElementById('search-input').value,
+        severity:    document.getElementById('filter-severity').value,
+        status:      document.getElementById('filter-status').value,
+        time_range:  document.getElementById('filter-time').value,
+        sort_order:  sortOrder,
       };
       Object.keys(params).forEach(k => !params[k] && delete params[k]);
 
@@ -335,102 +536,291 @@
       if (!alerts.length) { tbody.innerHTML = ''; return; }
       tbody.innerHTML = alerts.map(a => `
         <tr class="${SEV_ROW[a.severity] || ''}">
-          <td>
-            <input type="checkbox" class="row-check rounded border-gray-600 bg-gray-700 text-emerald-500"
-              data-id="${a.id}" ${selectedIds.has(a.id)?'checked':''}
-              onchange="toggleRow(${a.id}, this.checked)" />
-          </td>
-          <td><span class="font-mono text-xs text-gray-400">${a.alert_id}</span></td>
+          <td><input type="checkbox" class="row-check rounded border-gray-600 bg-gray-700 text-emerald-500"
+            data-id="${a.id}" ${selectedIds.has(a.id)?'checked':''}
+            onchange="toggleRow(${a.id}, this.checked)" /></td>
           <td class="max-w-xs">
             <p class="truncate text-gray-100 text-sm" title="${a.title}">${a.title}</p>
           </td>
           <td>${severityBadge(a.severity)}</td>
+          <td id="vt-cell-${a.id}">${vtIndicator(a)}</td>
           <td><span class="font-mono text-xs text-gray-400">${a.source_ip||'—'}</span></td>
           <td><span class="text-xs text-gray-400">${a.hostname||'—'}</span></td>
-          <td><span class="text-xs text-gray-400 capitalize">${a.category?.replace('_',' ')||'—'}</span></td>
+          <td><span class="text-xs text-gray-400 capitalize">${(a.category||'—').replace('_',' ')}</span></td>
           <td>${statusBadge(a.status)}</td>
+          <td>
+            ${a.ticket_ref
+              ? `<a href="/tickets.html" class="text-xs font-mono text-emerald-400 hover:text-emerald-300">${a.ticket_ref}</a>`
+              : '<span class="text-gray-600 text-xs">—</span>'}
+          </td>
           <td><span class="text-xs text-gray-500">${timeAgo(a.created_at)}</span></td>
           <td>
-            <div class="flex items-center gap-1">
-              <button onclick="showDetail(${a.id})" class="btn btn-secondary btn-sm" title="Details">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-              <button onclick="escalate(${a.id})" class="btn btn-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20" title="Escalate">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-              </button>
-              <button onclick="changeStatus(${a.id},'${a.status}')" class="btn btn-secondary btn-sm" title="Change Status">
-                <i class="fa-solid fa-pen"></i>
-              </button>
-            </div>
+            <button onclick="openTriage(${a.id})" class="btn btn-primary btn-sm" title="Triage">
+              <i class="fa-solid fa-stethoscope"></i>
+            </button>
           </td>
         </tr>`).join('');
+
+      // Kick off background VT enrichment for unenriched alerts, then auto-scan cells
+      autoVTScan(alerts);
     }
 
-    // ── Detail / Escalate / Status ────────────────────────────
-    async function showDetail(id) {
-      const a = await apiGet(`/api/alerts/${id}`);
-      document.getElementById('modal-title').textContent = a.title;
-      document.getElementById('modal-body').innerHTML = `
-        <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-3 text-sm">
-            ${[['Alert ID', `<span class="font-mono">${a.alert_id}</span>`],
-               ['Severity', severityBadge(a.severity)],
-               ['Source IP', `<span class="font-mono">${a.source_ip||'—'}</span>`],
-               ['Hostname', a.hostname||'—'],
-               ['Rule ID / Level', `${a.rule_id||'—'} / ${a.rule_level??'—'}`],
-               ['Category', `<span class="capitalize">${a.category?.replace('_',' ')||'—'}</span>`],
-               ['Status', statusBadge(a.status)],
-               ['Created', `<span class="text-xs">${formatDate(a.created_at)}</span>`],
-            ].map(([label, val]) => `
-              <div class="bg-gray-800 rounded-lg p-3">
-                <p class="text-gray-500 text-xs mb-1">${label}</p>
-                <div class="text-gray-100">${val}</div>
-              </div>`).join('')}
+    // ── Triage Modal ──────────────────────────────────────────
+    async function openTriage(id) {
+      currentAlert = null;
+      currentClassification = null;
+      document.getElementById('triage-notes').value = '';
+      document.getElementById('vt-result').classList.add('hidden');
+      resetClassification();
+
+      try {
+        const a = await apiGet(`/api/alerts/${id}`);
+        currentAlert = a;
+
+        document.getElementById('triage-title').textContent = a.title;
+        document.getElementById('triage-alert-id').textContent = a.alert_id;
+
+        document.getElementById('triage-meta').innerHTML = [
+          ['Severity',  severityBadge(a.severity)],
+          ['Status',    statusBadge(a.status)],
+          ['Source IP', `<span class="font-mono text-xs">${a.source_ip||'—'}</span>`],
+          ['Hostname',  a.hostname||'—'],
+          ['Category',  `<span class="capitalize">${(a.category||'—').replace('_',' ')}</span>`],
+          ['Time',      timeAgo(a.created_at)],
+        ].map(([label, val]) => `
+          <div class="bg-gray-800/60 rounded-lg p-2">
+            <p class="text-gray-500 text-xs mb-0.5">${label}</p>
+            <div class="text-sm">${val}</div>
+          </div>`).join('');
+
+        document.getElementById('triage-description').textContent = a.description || 'No description provided.';
+
+        // Restore previous classification
+        if (a.triage_result) setClassification(a.triage_result);
+
+        // Restore previous notes
+        if (a.notes) document.getElementById('triage-notes').value = a.notes;
+
+        // Disable VT button if no IP, otherwise auto-run
+        const vtBtn = document.getElementById('vt-check-btn');
+        if (!a.source_ip) {
+          vtBtn.disabled = true;
+          vtBtn.title    = 'No source IP available for this alert';
+          vtBtn.style.opacity = '0.4';
+        } else {
+          vtBtn.disabled = false;
+          vtBtn.title    = '';
+          vtBtn.style.opacity = '';
+        }
+
+        // Ticket action area
+        const ticketArea = document.getElementById('ticket-action');
+        if (a.ticket_ref) {
+          ticketArea.innerHTML = `
+            <div class="flex items-center gap-2 px-3 py-2 rounded-xl"
+              style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);">
+              <i class="fa-solid fa-ticket text-emerald-400 text-sm"></i>
+              <span class="text-emerald-400 text-sm font-medium">${a.ticket_ref}</span>
+              <a href="/tickets.html" class="ml-auto text-xs text-emerald-300 hover:text-emerald-200 whitespace-nowrap">
+                View Tickets →
+              </a>
+            </div>`;
+        } else {
+          ticketArea.innerHTML = `
+            <button onclick="openTicketModal()" class="btn btn-primary w-full">
+              <i class="fa-solid fa-ticket"></i> Create Ticket
+            </button>`;
+        }
+
+        // L1 cannot escalate to incident
+
+        document.getElementById('triage-modal').classList.remove('hidden');
+
+        // Auto-run VirusTotal if source IP is available
+        if (a.source_ip) checkVT();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ── Classification ────────────────────────────────────────
+    const CLASSIFY_STYLES = {
+      true_positive:  { border:'#ef4444', bg:'rgba(239,68,68,0.12)',  color:'#f87171' },
+      false_positive: { border:'#22c55e', bg:'rgba(34,197,94,0.12)',  color:'#4ade80' },
+      suspicious:     { border:'#f59e0b', bg:'rgba(245,158,11,0.12)', color:'#fbbf24' },
+    };
+    const NEUTRAL = { border:'rgba(75,85,99,0.6)', bg:'transparent', color:'#9ca3af' };
+
+    function setClassification(val) {
+      currentClassification = val;
+      document.querySelectorAll('.classify-btn').forEach(btn => {
+        const s = btn.dataset.classify === val ? CLASSIFY_STYLES[val] : NEUTRAL;
+        btn.style.borderColor  = s.border;
+        btn.style.background   = s.bg;
+        btn.style.color        = s.color;
+      });
+    }
+
+    function resetClassification() {
+      currentClassification = null;
+      document.querySelectorAll('.classify-btn').forEach(btn => {
+        btn.style.borderColor = NEUTRAL.border;
+        btn.style.background  = NEUTRAL.bg;
+        btn.style.color       = NEUTRAL.color;
+      });
+    }
+
+    // ── VirusTotal inline check ───────────────────────────────
+    async function checkVT() {
+      if (!currentAlert?.source_ip) return;
+      const btn = document.getElementById('vt-check-btn');
+      const resultEl = document.getElementById('vt-result');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Scanning...';
+      resultEl.classList.add('hidden');
+
+      try {
+        const r = await apiPost('/api/virustotal/scan', {
+          value: currentAlert.source_ip, ioc_type: 'ip'
+        });
+        renderVTResult(r, currentAlert.source_ip);
+      } catch (err) {
+        let msg = err.message;
+        if (msg.includes('429') || msg.toLowerCase().includes('rate')) msg = 'Rate limit reached. Please wait before scanning again.';
+        else if (msg.includes('401')) msg = 'VirusTotal API key not configured or invalid.';
+        resultEl.innerHTML = `
+          <div class="flex items-center gap-2 p-3 rounded-xl"
+            style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
+            <i class="fa-solid fa-triangle-exclamation text-red-400"></i>
+            <span class="text-red-400 text-sm">${msg}</span>
+          </div>`;
+        resultEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Check VirusTotal';
+      }
+    }
+
+    function renderVTResult(r, ip) {
+      const el  = document.getElementById('vt-result');
+      const mal = r.is_malicious;
+      const icon  = mal === true ? 'fa-skull-crossbones' : mal === false ? 'fa-shield-check' : 'fa-circle-question';
+      const color = mal === true ? '#f87171' : mal === false ? '#4ade80' : '#9ca3af';
+      const borderColor = mal === true ? 'rgba(239,68,68,0.3)' : mal === false ? 'rgba(34,197,94,0.3)' : 'rgba(107,114,128,0.3)';
+      const bgColor     = mal === true ? 'rgba(239,68,68,0.06)' : mal === false ? 'rgba(34,197,94,0.06)' : 'rgba(107,114,128,0.06)';
+      const stats = r.report?.stats || {};
+      const note  = r.report?.note || '';
+
+      el.innerHTML = `
+        <div class="rounded-xl p-3" style="background:${bgColor};border:1px solid ${borderColor};">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid ${icon}" style="color:${color};"></i>
+              <span class="font-mono text-sm text-gray-200">${ip}</span>
+            </div>
+            <span class="badge ${mal?'badge-critical':'badge-low'} text-xs">${r.score}</span>
           </div>
-          ${a.description ? `<div class="bg-gray-800 rounded-lg p-3">
-            <p class="text-gray-500 text-xs mb-1">Description</p>
-            <p class="text-gray-200 text-sm whitespace-pre-wrap">${a.description}</p>
+          ${Object.keys(stats).length ? `
+          <div class="flex flex-wrap gap-3 mt-1">
+            ${Object.entries(stats).map(([k,v]) => `
+              <span class="text-xs">
+                <span class="text-gray-500 capitalize">${k}:</span>
+                <span class="text-gray-300 ml-1">${v}</span>
+              </span>`).join('')}
           </div>` : ''}
-          <div class="flex gap-3">
-            <button onclick="escalate(${a.id})" class="btn btn-primary flex-1">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i> Escalate to Incident
-            </button>
-            <button onclick="changeStatus(${a.id},'${a.status}')" class="btn btn-secondary">
-              <i class="fa-solid fa-pen"></i> Update Status
-            </button>
-          </div>
+          ${note ? `<p class="text-gray-500 text-xs mt-2 italic">${note}</p>` : ''}
         </div>`;
-      document.getElementById('detail-modal').classList.remove('hidden');
+      el.classList.remove('hidden');
     }
 
-    async function escalate(id) {
-      if (!confirm('Escalate this alert to a new incident?')) return;
+    // ── Ticket Modal pre-fill ─────────────────────────────────
+    function openTicketModal() {
+      if (!currentAlert) return;
+      const sev = currentAlert.severity;
+
+      document.getElementById('t-title').value = currentAlert.title;
+      document.getElementById('t-description').value = currentAlert.description || '';
+      document.getElementById('t-severity').value = sev;
+      document.getElementById('t-assigned-to').value = ESCALATION_MAP[sev] || 'L2 Analyst';
+      document.getElementById('t-notes').value = document.getElementById('triage-notes').value;
+
+      // Show classification badge
+      const classifLabel = { true_positive:'True Positive', false_positive:'False Positive', suspicious:'Suspicious' };
+      const classifColor  = { true_positive:'#f87171', false_positive:'#4ade80', suspicious:'#fbbf24' };
+      const txt = document.getElementById('t-classification-text');
+      if (currentClassification) {
+        txt.textContent = classifLabel[currentClassification];
+        txt.style.color = classifColor[currentClassification];
+      } else {
+        txt.textContent = 'Not classified';
+        txt.style.color = '#6b7280';
+      }
+
+      document.getElementById('ticket-modal').classList.remove('hidden');
+    }
+
+    function updateAutoAssignee() {
+      const sev = document.getElementById('t-severity').value;
+      document.getElementById('t-assigned-to').value = ESCALATION_MAP[sev] || 'L2 Analyst';
+    }
+
+    document.getElementById('ticket-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = document.getElementById('ticket-submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating...';
+
       try {
-        const r = await apiFetch(`/api/alerts/${id}/escalate`, { method: 'POST' });
+        const result = await apiPost('/api/tickets', {
+          alert_id:      currentAlert?.id || null,
+          title:         document.getElementById('t-title').value,
+          description:   document.getElementById('t-description').value || null,
+          severity:      document.getElementById('t-severity').value,
+          assigned_to:   document.getElementById('t-assigned-to').value,
+          triage_result: currentClassification,
+          notes:         document.getElementById('t-notes').value || null,
+        });
+        showToast(`${result.ticket_id} created → ${result.assigned_to}`, 'success');
+        closeModal('ticket-modal');
+        closeModal('triage-modal');
+        loadAlerts(currentPage);
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-ticket"></i> Submit Ticket';
+      }
+    });
+
+    // ── Triage quick actions ──────────────────────────────────
+    async function markAlertFP() {
+      if (!currentAlert || !confirm('Mark this alert as False Positive?')) return;
+      try {
+        await apiPatch(`/api/alerts/${currentAlert.id}`, {
+          status: 'false_positive', triage_result: 'false_positive'
+        });
+        showToast('Marked as False Positive', 'success');
+        closeModal('triage-modal');
+        loadAlerts(currentPage);
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    async function escalateFromTriage() {
+      if (!currentAlert || !confirm('Escalate this alert to a new incident?')) return;
+      try {
+        const r = await apiFetch(`/api/alerts/${currentAlert.id}/escalate`, { method: 'POST' });
         showToast(`Incident ${r.case_number} created`, 'success');
-        closeModal('detail-modal');
+        closeModal('triage-modal');
         loadAlerts(currentPage);
-      } catch(err) { showToast(err.message, 'error'); }
+      } catch (err) { showToast(err.message, 'error'); }
     }
 
-    async function changeStatus(id, current) {
-      const statuses = ['open','in_progress','closed','false_positive'];
-      const next = statuses[(statuses.indexOf(current)+1) % statuses.length];
-      if (!confirm(`Change status to "${next.replace('_',' ')}"?`)) return;
-      try {
-        await apiPatch(`/api/alerts/${id}`, { status: next });
-        showToast('Status updated', 'success');
-        closeModal('detail-modal');
-        loadAlerts(currentPage);
-      } catch(err) { showToast(err.message, 'error'); }
-    }
-
+    // ── Create Alert Form ─────────────────────────────────────
     function openCreateModal() {
       document.getElementById('create-form').reset();
       document.getElementById('create-modal').classList.remove('hidden');
     }
-
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     document.getElementById('create-form').addEventListener('submit', async e => {
       e.preventDefault();
@@ -446,8 +836,11 @@
         showToast('Alert created', 'success');
         closeModal('create-modal');
         loadAlerts();
-      } catch(err) { showToast(err.message, 'error'); }
+      } catch (err) { showToast(err.message, 'error'); }
     });
+
+    // ── Utilities ─────────────────────────────────────────────
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     document.querySelectorAll('.modal-overlay').forEach(m =>
       m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));

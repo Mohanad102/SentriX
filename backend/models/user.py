@@ -11,7 +11,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     full_name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(String, default="analyst")  # admin, analyst
+    role = Column(String, default="soc_analyst_l2")  # admin, soc_analyst_l2, soc_analyst_l1, incident_responder
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)

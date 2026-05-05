@@ -23,5 +23,9 @@ class Alert(Base):
     incident_id = Column(Integer, nullable=True)
     vt_enriched = Column(Boolean, default=False, nullable=True)
     vt_malicious = Column(Boolean, nullable=True)
+    # Triage fields (set by L1 analyst)
+    triage_result = Column(String, nullable=True)   # true_positive | false_positive | suspicious
+    notes = Column(Text, nullable=True)
+    ticket_ref = Column(String, nullable=True)       # TKT-XXXXXXXX — set when a ticket is created
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
