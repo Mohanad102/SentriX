@@ -79,7 +79,7 @@ def extract_all_iocs_from_alert(alert) -> list[tuple[str, str]]:
 
 async def enrich_with_virustotal(value: str, ioc_type: str) -> dict:
     if not settings.VIRUSTOTAL_API_KEY or not settings.VIRUSTOTAL_ENABLED:
-        return _mock_vt_response(value, ioc_type)
+        return {"score": None, "is_malicious": None, "report": {"message": "VirusTotal not configured — set VIRUSTOTAL_API_KEY in .env"}}
 
     headers = {"x-apikey": settings.VIRUSTOTAL_API_KEY}
     endpoint = _get_endpoint(value, ioc_type)
@@ -92,7 +92,7 @@ async def enrich_with_virustotal(value: str, ioc_type: str) -> dict:
             elif resp.status_code == 404:
                 return {"score": "0/0", "is_malicious": False, "report": {"message": "Not found in VirusTotal"}}
             else:
-                return _mock_vt_response(value, ioc_type)
+                return {"score": "N/A", "is_malicious": None, "report": {"error": f"VT API error {resp.status_code}"}}
     except Exception as e:
         return {"score": "N/A", "is_malicious": None, "report": {"error": str(e)}}
 
@@ -209,35 +209,3 @@ def _parse_vt_response(data: dict, ioc_type: str) -> dict:
         return {"score": "N/A", "is_malicious": None, "report": data}
 
 
-def _mock_vt_response(value: str, ioc_type: str) -> dict:
-    import hashlib
-    seed = int(hashlib.md5(value.encode()).hexdigest(), 16) % 100
-
-    if seed > 70:
-        malicious = seed % 30 + 10
-        total = 72
-        is_malicious = True
-    elif seed > 40:
-        malicious = seed % 5
-        total = 72
-        is_malicious = False
-    else:
-        malicious = 0
-        total = 72
-        is_malicious = False
-
-    return {
-        "score": f"{malicious}/{total}",
-        "is_malicious": is_malicious,
-        "report": {
-            "note": "Mock data - configure VIRUSTOTAL_API_KEY in .env for real results",
-            "stats": {
-                "malicious": malicious,
-                "suspicious": 0,
-                "undetected": total - malicious,
-                "harmless": 0
-            },
-            "value": value,
-            "type": ioc_type
-        }
-    }

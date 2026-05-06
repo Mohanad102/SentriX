@@ -515,8 +515,7 @@ async def ti_lookup(
         import httpx
         api_key = getattr(settings, "ABUSEIPDB_API_KEY", "")
         if not api_key:
-            # Return mock for demo
-            result = _mock_abuse_response(value)
+            result = {"error": "AbuseIPDB not configured — set ABUSEIPDB_API_KEY in .env"}
         else:
             try:
                 async with httpx.AsyncClient(timeout=10) as client:
@@ -577,16 +576,3 @@ async def ti_lookup(
     }
 
 
-def _mock_abuse_response(ip: str) -> dict:
-    import hashlib
-    seed = int(hashlib.md5(ip.encode()).hexdigest(), 16) % 100
-    score = seed if seed > 30 else 0
-    return {
-        "abuse_score": score,
-        "is_malicious": score >= 50,
-        "country": "US",
-        "isp": "Demo ISP",
-        "total_reports": score // 5,
-        "last_reported": None,
-        "note": "Mock data — configure ABUSEIPDB_API_KEY in .env for real results",
-    }
