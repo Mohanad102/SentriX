@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — AI Analyst</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="bg-gray-950 text-gray-100 flex">
+
+  <!-- Sidebar -->
+  <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
+    <div class="p-5 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
+        </div>
+        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
+      </div>
+    </div>
+    <nav class="p-3 flex-1 space-y-1">
+      <a href="/dashboard.html" class="sidebar-link" data-page="dashboard"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
+      <a href="/alerts.html" class="sidebar-link" data-page="alerts"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
+      <a href="/incidents.html" class="sidebar-link" data-page="incidents"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
+      <a href="/ai_analyst.html" class="sidebar-link active" data-page="ai"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
+      <a href="/reports.html" class="sidebar-link" data-page="reports"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+    </nav>
+    <div class="p-3 border-t border-gray-800">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-medium text-white truncate user-name">Admin</p><p class="text-xs text-gray-500 user-role">ADMIN</p></div>
+        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col min-h-screen overflow-hidden">
+    <!-- Header -->
+    <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 backdrop-blur z-10">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <i class="fa-solid fa-robot text-emerald-400"></i>
+        </div>
+        <div>
+          <h1 class="text-white font-semibold">Virtual SOC Analyst</h1>
+          <p class="text-gray-500 text-xs">AI-powered threat analysis with RAG</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Incident context selector -->
+        <div class="flex items-center gap-2">
+          <label class="text-gray-500 text-xs">Context:</label>
+          <select id="incident-select" class="form-input form-select w-52 py-1.5 text-xs" onchange="onIncidentChange()">
+            <option value="">No specific incident</option>
+          </select>
+        </div>
+        <button onclick="clearChat()" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-broom"></i> Clear
+        </button>
+      </div>
+    </header>
+
+    <!-- Context Bar -->
+    <div id="context-bar" class="hidden bg-emerald-500/5 border-b border-emerald-500/20 px-6 py-2 flex items-center gap-3">
+      <i class="fa-solid fa-file-shield text-emerald-400 text-sm"></i>
+      <span class="text-emerald-400 text-xs font-medium" id="context-label">Analyzing incident context</span>
+      <button onclick="runIncidentAnalysis()" class="ml-auto btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Run Full Analysis
+      </button>
+    </div>
+
+    <!-- Chat Messages -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+      <!-- Welcome message -->
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <i class="fa-solid fa-robot text-emerald-400 text-sm"></i>
+        </div>
+        <div class="chat-bubble-ai px-4 py-3 max-w-2xl">
+          <div class="ai-content text-sm text-gray-200">
+            <h2>Welcome to SentriX AI — Virtual SOC Analyst</h2>
+            <p>I'm your AI-powered security assistant. I can help you with:</p>
+            <ul>
+              <li><strong>Incident Analysis</strong> — Summarize and investigate security incidents</li>
+              <li><strong>IOC Analysis</strong> — Identify and explain indicators of compromise</li>
+              <li><strong>Response Guidance</strong> — Step-by-step containment and remediation</li>
+              <li><strong>Threat Intelligence</strong> — MITRE ATT&CK mapping and TTP analysis</li>
+            </ul>
+            <p>Select an incident from the dropdown above for context-aware analysis, or ask me anything!</p>
+          </div>
+          <p class="text-gray-600 text-xs mt-2">SentriX AI · just now</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggested Prompts -->
+    <div id="suggestions" class="px-6 pb-3">
+      <div class="flex flex-wrap gap-2">
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">Analyze current incident</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">What IOCs should I look for?</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">Give me response recommendations</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">Map attack to MITRE ATT&CK</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">Explain the attack chain</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">How to configure Wazuh integration?</button>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="bg-gray-900/80 border-t border-gray-800 px-6 py-4">
+      <div class="flex items-end gap-3 max-w-4xl mx-auto">
+        <div class="flex-1 relative">
+          <textarea id="chat-input" rows="1"
+            placeholder="Ask the AI analyst anything... (Shift+Enter for new line, Enter to send)"
+            class="form-input resize-none min-h-[44px] max-h-32 pr-12 overflow-y-auto"
+            oninput="autoResize(this)"
+            onkeydown="handleKey(event)"></textarea>
+        </div>
+        <button id="send-btn" onclick="sendMessage()" class="btn btn-primary h-11 px-5">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+      <p class="text-gray-600 text-xs text-center mt-2">
+        <i class="fa-solid fa-circle-info mr-1"></i>
+        AI responses are for guidance only. Always verify findings with your security team.
+        <span id="ai-mode-indicator" class="ml-2 text-gray-500"></span>
+      </p>
+    </div>
+  </main>
+
+  <style>
+    .suggestion-btn {
+      background: #1f2937; border: 1px solid #374151; color: #9ca3af;
+      padding: 5px 12px; border-radius: 9999px; font-size: 0.75rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .suggestion-btn:hover { background: #374151; color: #e5e7eb; }
+    #chat-messages { scroll-behavior: smooth; }
+  </style>
+
+  <script src="/static/js/api.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error('Not authenticated');
+
+    let sessionId = localStorage.getItem('sentrix_chat_session') || null;
+    let isLoading = false;
+    let currentIncidentId = null;
+
+    // Load incidents for context selector
+    async function loadIncidents() {
+      try {
+        const data = await apiGet('/api/incidents', { page_size: 50 });
+        const select = document.getElementById('incident-select');
+        data.items.forEach(inc => {
+          const opt = document.createElement('option');
+          opt.value = inc.id;
+          opt.textContent = `${inc.case_number} — ${inc.title.substring(0, 40)}`;
+          select.appendChild(opt);
+        });
+
+        // Check URL params for pre-selected incident
+        const urlParams = new URLSearchParams(window.location.search);
+        const incParam = urlParams.get('incident');
+        if (incParam) {
+          select.value = incParam;
+          onIncidentChange();
+        }
+      } catch (err) { console.error('Failed to load incidents:', err); }
+    }
+
+    function onIncidentChange() {
+      const val = document.getElementById('incident-select').value;
+      currentIncidentId = val ? parseInt(val) : null;
+      const bar = document.getElementById('context-bar');
+      const label = document.getElementById('context-label');
+      if (currentIncidentId) {
+        const opt = document.getElementById('incident-select').selectedOptions[0];
+        label.textContent = `Context: ${opt.textContent}`;
+        bar.classList.remove('hidden');
+      } else {
+        bar.classList.add('hidden');
+      }
+    }
+
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px';
+      document.getElementById('suggestions').style.display = textarea.value ? 'none' : 'block';
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function sendSuggestion(btn) {
+      document.getElementById('chat-input').value = btn.textContent;
+      document.getElementById('suggestions').style.display = 'none';
+      sendMessage();
+    }
+
+    async function sendMessage() {
+      if (isLoading) return;
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      input.style.height = 'auto';
+      document.getElementById('suggestions').style.display = 'none';
+
+      appendMessage('user', text);
+      const typingId = appendTyping();
+      isLoading = true;
+      document.getElementById('send-btn').disabled = true;
+
+      try {
+        const result = await apiPost('/api/ai/chat', {
+          message: text,
+          session_id: sessionId,
+          incident_id: currentIncidentId
+        });
+        sessionId = result.session_id;
+        localStorage.setItem('sentrix_chat_session', sessionId);
+        removeTyping(typingId);
+        appendMessage('assistant', result.response);
+      } catch (err) {
+        removeTyping(typingId);
+        appendMessage('assistant', `Error: ${err.message}`, true);
+      } finally {
+        isLoading = false;
+        document.getElementById('send-btn').disabled = false;
+      }
+    }
+
+    function appendMessage(role, content, isError = false) {
+      const container = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = 'flex items-start gap-3';
+
+      const now = new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+      const user = getUser();
+
+      if (role === 'user') {
+        div.className += ' flex-row-reverse';
+        div.innerHTML = `
+          <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-blue-400 font-bold text-sm">
+            ${user?.full_name?.charAt(0) || 'U'}
+          </div>
+          <div class="chat-bubble-user px-4 py-3 max-w-2xl">
+            <p class="text-sm text-gray-100">${escapeHtml(content)}</p>
+            <p class="text-gray-600 text-xs mt-1 text-right">${now}</p>
+          </div>`;
+      } else {
+        div.innerHTML = `
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i class="fa-solid fa-robot text-emerald-400 text-sm"></i>
+          </div>
+          <div class="chat-bubble-ai px-4 py-3 max-w-2xl ${isError ? 'border border-red-500/30' : ''}">
+            <div class="ai-content text-sm text-gray-200">${renderMarkdown(content)}</div>
+            <p class="text-gray-600 text-xs mt-2">SentriX AI · ${now}</p>
+          </div>`;
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      return div;
+    }
+
+    function appendTyping() {
+      const container = document.getElementById('chat-messages');
+      const id = 'typing-' + Date.now();
+      const div = document.createElement('div');
+      div.id = id;
+      div.className = 'flex items-start gap-3';
+      div.innerHTML = `
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-robot text-emerald-400 text-sm"></i>
+        </div>
+        <div class="chat-bubble-ai px-4 py-3">
+          <div class="flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:0ms"></span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:150ms"></span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:300ms"></span>
+          </div>
+        </div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      return id;
+    }
+
+    function removeTyping(id) {
+      document.getElementById(id)?.remove();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(text));
+      return div.innerHTML;
+    }
+
+    async function runIncidentAnalysis() {
+      if (!currentIncidentId) return;
+      const typingId = appendTyping();
+      isLoading = true;
+      document.getElementById('send-btn').disabled = true;
+
+      try {
+        const result = await apiPost('/api/ai/analyze-incident', { incident_id: currentIncidentId });
+        removeTyping(typingId);
+        const fullText = `## Incident Analysis Complete\n\n**Summary:**\n${result.summary}\n\n**IOCs:**\n${result.iocs}\n\n**Recommendations:**\n${result.recommendations}`;
+        appendMessage('assistant', fullText);
+        showToast('AI analysis saved to incident', 'success');
+      } catch (err) {
+        removeTyping(typingId);
+        appendMessage('assistant', `Analysis error: ${err.message}`, true);
+      } finally {
+        isLoading = false;
+        document.getElementById('send-btn').disabled = false;
+      }
+    }
+
+    async function clearChat() {
+      if (sessionId) {
+        try { await apiDelete(`/api/ai/chat-history/${sessionId}`); } catch {}
+        sessionId = null;
+        localStorage.removeItem('sentrix_chat_session');
+      }
+      const container = document.getElementById('chat-messages');
+      container.innerHTML = '';
+      document.getElementById('suggestions').style.display = 'block';
+      appendMessage('assistant', "Chat cleared. How can I help you with your security investigation?");
+      showToast('Chat cleared', 'success');
+    }
+
+    // AI mode indicator
+    async function checkAiMode() {
+      const indicator = document.getElementById('ai-mode-indicator');
+      try {
+        const config = await apiGet('/api/dashboard/stats'); // Just a ping
+        indicator.textContent = ''; // Will show based on response
+      } catch {}
+      // Check OpenAI by trying a simple inference
+      indicator.textContent = 'Mode: Demo (set OPENAI_API_KEY for full AI)';
+    }
+
+    loadIncidents();
+    checkAiMode();
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 """
 Wazuh SIEM Integration Service.
-Fetches alerts from Wazuh API. Requires WAZUH_ENABLED=true in .env.
+Fetches alerts from Wazuh API when enabled, otherwise uses mock data.
 """
 import httpx
 from typing import List, Dict
