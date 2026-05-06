@@ -493,9 +493,13 @@
       if (!currentTicket || !confirm(`Escalate ${currentTicket.ticket_id} to Incident Response?`)) return;
       try {
         const updated = await apiPost(`/api/tickets/${currentTicket.id}/escalate-ir`, {});
-        showToast('Escalated to Incident Response', 'success');
+        showToast('Escalated to Incident Response — redirecting...', 'success');
         closeModal('detail-modal');
-        loadTickets(currentPage);
+        if (updated.incident_id) {
+          window.location.href = `/incidents.html?incident=${updated.incident_id}`;
+        } else {
+          window.location.href = '/incidents.html';
+        }
       } catch(err) { showToast(err.message, 'error'); }
     }
 

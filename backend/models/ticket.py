@@ -20,6 +20,7 @@ class Ticket(Base):
     l2_status = Column(String, nullable=True)                    # under_investigation | contained | escalated_to_ir
     evidence = Column(Text, nullable=True)
     escalated_at = Column(DateTime(timezone=True), nullable=True)
+    incident_id = Column(Integer, nullable=True)               # set when escalated to IR
     created_by_id = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models.alert import Alert
+from backend.models.incident import Incident
 from backend.models.ticket import Ticket
 from backend.models.user import User
 from backend.utils.auth import get_current_user, require_admin
@@ -61,6 +62,7 @@ def ticket_to_dict(t: Ticket) -> dict:
         "l2_status":            t.l2_status,
         "evidence":             t.evidence,
         "escalated_at":         t.escalated_at.isoformat() if t.escalated_at else None,
+        "incident_id":          t.incident_id,
         "created_by_id":        t.created_by_id,
         "created_at":           t.created_at.isoformat() if t.created_at else None,
         "updated_at":           t.updated_at.isoformat() if t.updated_at else None,
@@ -232,6 +234,23 @@ def escalate_to_ir(
     ticket.l2_status = "escalated_to_ir"
     ticket.escalated_at = datetime.utcnow()
     ticket.updated_at = datetime.utcnow()
+
+    # Create a linked incident so it appears in the IR dashboard
+    incident = Incident(
+        case_number=f"INC-{uuid.uuid4().hex[:6].upper()}",
+        title=ticket.title,
+        description=ticket.description or "",
+        severity=ticket.severity,
+        status="open",
+        priority=ticket.severity,
+        assigned_to=current_user.username,
+        tags=f"escalated-from:{ticket.ticket_id}",
+        created_by=current_user.id,
+    )
+    db.add(incident)
+    db.flush()
+
+    ticket.incident_id = incident.id
     db.commit()
     db.refresh(ticket)
     return ticket_to_dict(ticket)

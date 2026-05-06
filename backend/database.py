@@ -46,6 +46,7 @@ def _run_migrations():
         "ALTER TABLE tickets ADD COLUMN escalated_at DATETIME",
         # IR fields
         "ALTER TABLE incidents ADD COLUMN ir_status VARCHAR",
+        "ALTER TABLE tickets ADD COLUMN incident_id INTEGER",
     ]
     with engine.connect() as conn:
         for sql in migrations:
