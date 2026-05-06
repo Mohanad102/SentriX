@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — Alert Rules</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="bg-gray-950 text-gray-100 flex">
+
+  <!-- Sidebar -->
+  <aside class="sidebar bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen sticky top-0">
+    <div class="p-5 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
+        </div>
+        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
+      </div>
+    </div>
+    <nav class="p-3 flex-1 space-y-1">
+      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
+      <a href="/alerts.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
+      <a href="/incidents.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
+      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
+      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
+      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
+      <a href="/rules.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
+    </nav>
+    <div class="p-3 border-t border-gray-800">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-white truncate user-name">Admin</p>
+          <p class="text-xs text-gray-500 user-role">ADMIN</p>
+        </div>
+        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition" title="Logout">
+          <i class="fa-solid fa-right-from-bracket text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-h-screen overflow-auto">
+    <header class="bg-gray-900/50 border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 backdrop-blur z-10">
+      <div>
+        <h1 class="text-white font-semibold text-lg">Alert Rules Engine</h1>
+        <p class="text-gray-500 text-xs">Automate escalation and severity adjustments</p>
+      </div>
+      <button onclick="openModal()" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> New Rule
+      </button>
+    </header>
+
+    <div class="p-6 page-fade">
+
+      <!-- Info Banner -->
+      <div class="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 mb-6 flex items-start gap-3">
+        <i class="fa-solid fa-circle-info text-blue-400 mt-0.5 flex-shrink-0"></i>
+        <p class="text-sm text-gray-400">
+          Rules are evaluated on every new alert. When a field matches the condition
+          <span class="text-white font-medium">N times within the time window</span>,
+          the action fires automatically.
+          Available actions:
+          <span class="text-emerald-400 font-medium">Escalate to Incident</span> or
+          <span class="text-yellow-400 font-medium">Change Severity</span>.
+        </p>
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+            <i class="fa-solid fa-sliders text-emerald-400 text-sm"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+            <p class="text-xs text-gray-500">Total Rules</p>
+          </div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
+            <i class="fa-solid fa-play text-green-400 text-sm"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-white" id="stat-active">—</p>
+            <p class="text-xs text-gray-500">Active</p>
+          </div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+            <i class="fa-solid fa-pause text-yellow-400 text-sm"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-white" id="stat-paused">—</p>
+            <p class="text-xs text-gray-500">Paused</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="rules-loading" class="flex items-center justify-center py-20">
+        <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+      </div>
+
+      <!-- Empty state -->
+      <div id="rules-empty" class="hidden text-center py-20">
+        <div class="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-sliders text-gray-600 text-2xl"></i>
+        </div>
+        <p class="text-gray-400 font-medium mb-1">No rules yet</p>
+        <p class="text-gray-600 text-sm mb-4">Create a rule to start automating alert responses</p>
+        <button onclick="openModal()" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> Create First Rule
+        </button>
+      </div>
+
+      <!-- Rules Grid -->
+      <div id="rules-grid" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+    </div>
+  </main>
+
+  <!-- Rule Modal (Create & Edit) -->
+  <div id="rule-modal" class="modal-overlay hidden">
+    <div class="modal-box max-w-lg">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-white font-semibold flex items-center gap-2" id="modal-title">
+          <i class="fa-solid fa-sliders text-emerald-400 text-sm"></i> New Rule
+        </h3>
+        <button onclick="closeModal()" class="text-gray-500 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="rule-form" class="space-y-5">
+        <input type="hidden" id="rule-id" />
+
+        <!-- Name & Description -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-gray-400 text-sm mb-1">Rule Name *</label>
+            <input type="text" id="r-name" class="form-input" required
+              placeholder="e.g. Brute Force Auto-Escalate" />
+          </div>
+          <div>
+            <label class="block text-gray-400 text-sm mb-1">Description</label>
+            <input type="text" id="r-desc" class="form-input" placeholder="Optional description" />
+          </div>
+        </div>
+
+        <!-- Condition -->
+        <div class="bg-gray-800/40 border border-gray-800 rounded-xl p-4 space-y-3">
+          <p class="text-xs text-emerald-400 font-semibold uppercase tracking-wide flex items-center gap-1">
+            <i class="fa-solid fa-filter"></i> Condition
+          </p>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-gray-500 text-xs mb-1">Field</label>
+              <select id="r-field" class="form-input form-select text-sm">
+                <option value="severity">Severity</option>
+                <option value="category">Category</option>
+                <option value="source_ip">Source IP</option>
+                <option value="rule_level">Rule Level (numeric)</option>
+                <option value="hostname">Hostname</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-500 text-xs mb-1">Operator</label>
+              <select id="r-operator" class="form-input form-select text-sm">
+                <option value="eq">= equals</option>
+                <option value="contains">∋ contains</option>
+                <option value="gt">&gt; greater than</option>
+                <option value="gte">≥ greater or equal</option>
+                <option value="lt">&lt; less than</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-500 text-xs mb-1">Value</label>
+              <input type="text" id="r-value" class="form-input text-sm" required
+                placeholder="e.g. critical" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-gray-500 text-xs mb-1">Trigger after N occurrences</label>
+              <input type="number" id="r-count" class="form-input text-sm" value="1" min="1" max="1000" />
+            </div>
+            <div>
+              <label class="block text-gray-500 text-xs mb-1">Within (minutes)</label>
+              <input type="number" id="r-window" class="form-input text-sm" value="5" min="1" max="1440" />
+            </div>
+          </div>
+          <!-- Preview -->
+          <div class="text-xs text-gray-500 bg-gray-900 rounded-lg px-3 py-2 italic" id="condition-preview">
+            Preview: if <span class="text-white" id="prev-field">severity</span>
+            <span class="text-emerald-400" id="prev-op">equals</span>
+            <span class="text-yellow-400 font-mono" id="prev-val">critical</span>
+            happens <span class="text-white" id="prev-count">1</span>x
+            within <span class="text-white" id="prev-window">5</span> min
+          </div>
+        </div>
+
+        <!-- Action -->
+        <div class="bg-gray-800/40 border border-gray-800 rounded-xl p-4 space-y-3">
+          <p class="text-xs text-yellow-400 font-semibold uppercase tracking-wide flex items-center gap-1">
+            <i class="fa-solid fa-bolt"></i> Action
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-gray-500 text-xs mb-1">Action Type</label>
+              <select id="r-action" class="form-input form-select text-sm" onchange="onActionChange()">
+                <option value="escalate">Escalate to Incident</option>
+                <option value="set_severity">Change Severity To</option>
+              </select>
+            </div>
+            <div id="action-val-wrap">
+              <label class="block text-gray-500 text-xs mb-1">New Severity</label>
+              <select id="r-action-value" class="form-input form-select text-sm">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active toggle -->
+        <label class="flex items-center gap-3 cursor-pointer select-none">
+          <div class="relative">
+            <input type="checkbox" id="r-active" class="sr-only" checked />
+            <div id="toggle-bg" class="w-10 h-5 rounded-full bg-emerald-500 transition"></div>
+            <div id="toggle-dot" class="absolute left-5 top-0.5 w-4 h-4 rounded-full bg-white transition"></div>
+          </div>
+          <span class="text-sm text-gray-400">Rule is <span id="toggle-label" class="text-white font-medium">Active</span></span>
+        </label>
+
+        <div class="flex gap-3 pt-1">
+          <button type="submit" class="btn btn-primary flex-1">
+            <i class="fa-solid fa-check"></i> Save Rule
+          </button>
+          <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error('Not authenticated');
+
+    const rulesCache = {};
+
+    // ── Toggle UI ─────────────────────────────────────────────
+    const activeChk = document.getElementById('r-active');
+    activeChk.addEventListener('change', () => {
+      document.getElementById('toggle-bg').className  = `w-10 h-5 rounded-full transition ${activeChk.checked ? 'bg-emerald-500' : 'bg-gray-600'}`;
+      document.getElementById('toggle-dot').className = `absolute top-0.5 w-4 h-4 rounded-full bg-white transition ${activeChk.checked ? 'left-5' : 'left-0.5'}`;
+      document.getElementById('toggle-label').textContent = activeChk.checked ? 'Active' : 'Paused';
+    });
+
+    function onActionChange() {
+      const isSev = document.getElementById('r-action').value === 'set_severity';
+      const wrap = document.getElementById('action-val-wrap');
+      wrap.style.opacity = isSev ? '1' : '0.3';
+      document.getElementById('r-action-value').disabled = !isSev;
+    }
+    onActionChange();
+
+    // Live condition preview
+    const OP_LABELS = { eq: 'equals', contains: 'contains', gt: 'greater than', gte: 'greater or equal', lt: 'less than' };
+    ['r-field','r-operator','r-value','r-count','r-window'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+    });
+    function updatePreview() {
+      document.getElementById('prev-field').textContent  = document.getElementById('r-field').value;
+      document.getElementById('prev-op').textContent     = OP_LABELS[document.getElementById('r-operator').value] || '?';
+      document.getElementById('prev-val').textContent    = document.getElementById('r-value').value || '...';
+      document.getElementById('prev-count').textContent  = document.getElementById('r-count').value;
+      document.getElementById('prev-window').textContent = document.getElementById('r-window').value;
+    }
+
+    // ── Load Rules ────────────────────────────────────────────
+    async function loadRules() {
+      document.getElementById('rules-loading').classList.remove('hidden');
+      document.getElementById('rules-grid').classList.add('hidden');
+      document.getElementById('rules-empty').classList.add('hidden');
+
+      try {
+        const data = await apiGet('/api/rules');
+        data.items.forEach(r => rulesCache[r.id] = r);
+
+        document.getElementById('stat-total').textContent  = data.total;
+        document.getElementById('stat-active').textContent = data.items.filter(r => r.is_active).length;
+        document.getElementById('stat-paused').textContent = data.items.filter(r => !r.is_active).length;
+
+        document.getElementById('rules-loading').classList.add('hidden');
+
+        if (!data.items.length) {
+          document.getElementById('rules-empty').classList.remove('hidden');
+          return;
+        }
+
+        const grid = document.getElementById('rules-grid');
+        grid.classList.remove('hidden');
+        grid.innerHTML = data.items.map(r => `
+          <div class="bg-gray-900 border ${r.is_active ? 'border-gray-800' : 'border-gray-800/40 opacity-60'} rounded-xl p-5 flex flex-col gap-4">
+
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex-1 min-w-0">
+                <p class="text-white font-medium text-sm truncate">${r.name}</p>
+                ${r.description ? `<p class="text-xs text-gray-500 mt-0.5 truncate">${r.description}</p>` : ''}
+              </div>
+              <span class="badge flex-shrink-0 ${r.is_active ? 'badge-low' : 'badge-medium'}">
+                <i class="fa-solid ${r.is_active ? 'fa-play' : 'fa-pause'} text-xs"></i>
+                ${r.is_active ? 'Active' : 'Paused'}
+              </span>
+            </div>
+
+            <!-- Condition -->
+            <div class="bg-gray-800/50 rounded-lg p-3 space-y-1.5 text-xs">
+              <div class="flex items-center gap-2 text-gray-400">
+                <i class="fa-solid fa-filter text-emerald-400 w-3 flex-shrink-0"></i>
+                <span>If <span class="text-white font-medium">${r.field}</span>
+                  <span class="text-emerald-400">${OP_LABELS[r.operator] || r.operator}</span>
+                  <span class="font-mono text-yellow-400">"${r.value}"</span>
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-gray-400">
+                <i class="fa-solid fa-clock text-blue-400 w-3 flex-shrink-0"></i>
+                <span>Occurs <span class="text-white font-medium">${r.count}×</span>
+                  within <span class="text-white font-medium">${r.window_mins} min</span>
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-gray-400">
+                <i class="fa-solid fa-bolt text-yellow-400 w-3 flex-shrink-0"></i>
+                <span>Then: <span class="text-white font-medium">
+                  ${r.action === 'escalate'
+                    ? 'Escalate to Incident'
+                    : `Set severity → <span class="badge badge-${r.action_value}">${(r.action_value||'').toUpperCase()}</span>`}
+                </span></span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-2 mt-auto">
+              <button onclick="openEditModal(${r.id})" class="btn btn-secondary btn-sm flex-1">
+                <i class="fa-solid fa-pen"></i> Edit
+              </button>
+              <button onclick="toggleRule(${r.id})"
+                class="btn btn-sm flex-1 ${r.is_active
+                  ? 'bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20'
+                  : 'bg-green-500/10 border border-green-500/30 text-green-400 hover:bg-green-500/20'}">
+                <i class="fa-solid ${r.is_active ? 'fa-pause' : 'fa-play'}"></i>
+                ${r.is_active ? 'Pause' : 'Resume'}
+              </button>
+              <button onclick="deleteRule(${r.id})"
+                class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>`).join('');
+      } catch (err) {
+        document.getElementById('rules-loading').innerHTML =
+          `<p class="text-red-400 text-center py-10"><i class="fa-solid fa-circle-exclamation mr-2"></i>${err.message}</p>`;
+      }
+    }
+
+    // ── Open Modal ────────────────────────────────────────────
+    function openModal() {
+      document.getElementById('modal-title').innerHTML =
+        '<i class="fa-solid fa-sliders text-emerald-400 text-sm"></i> New Rule';
+      document.getElementById('rule-id').value = '';
+      document.getElementById('rule-form').reset();
+      activeChk.checked = true;
+      activeChk.dispatchEvent(new Event('change'));
+      onActionChange();
+      updatePreview();
+      document.getElementById('rule-modal').classList.remove('hidden');
+    }
+
+    function openEditModal(id) {
+      const r = rulesCache[id];
+      if (!r) return;
+      document.getElementById('modal-title').innerHTML =
+        '<i class="fa-solid fa-pen text-emerald-400 text-sm"></i> Edit Rule';
+      document.getElementById('rule-id').value      = r.id;
+      document.getElementById('r-name').value       = r.name;
+      document.getElementById('r-desc').value       = r.description || '';
+      document.getElementById('r-field').value      = r.field;
+      document.getElementById('r-operator').value   = r.operator;
+      document.getElementById('r-value').value      = r.value;
+      document.getElementById('r-count').value      = r.count;
+      document.getElementById('r-window').value     = r.window_mins;
+      document.getElementById('r-action').value     = r.action;
+      document.getElementById('r-action-value').value = r.action_value || 'critical';
+      activeChk.checked = r.is_active;
+      activeChk.dispatchEvent(new Event('change'));
+      onActionChange();
+      updatePreview();
+      document.getElementById('rule-modal').classList.remove('hidden');
+    }
+
+    // ── Save ──────────────────────────────────────────────────
+    document.getElementById('rule-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('rule-id').value;
+      const action = document.getElementById('r-action').value;
+      const payload = {
+        name:         document.getElementById('r-name').value.trim(),
+        description:  document.getElementById('r-desc').value.trim() || null,
+        field:        document.getElementById('r-field').value,
+        operator:     document.getElementById('r-operator').value,
+        value:        document.getElementById('r-value').value.trim(),
+        count:        parseInt(document.getElementById('r-count').value),
+        window_mins:  parseInt(document.getElementById('r-window').value),
+        action,
+        action_value: action === 'set_severity' ? document.getElementById('r-action-value').value : null,
+        is_active:    activeChk.checked,
+      };
+
+      try {
+        if (id) await apiPatch(`/api/rules/${id}`, payload);
+        else    await apiPost('/api/rules', payload);
+        showToast(id ? 'Rule updated' : 'Rule created', 'success');
+        closeModal();
+        loadRules();
+      } catch (err) { showToast(err.message, 'error'); }
+    });
+
+    async function toggleRule(id) {
+      const r = rulesCache[id];
+      if (!r) return;
+      try {
+        await apiPatch(`/api/rules/${id}`, { is_active: !r.is_active });
+        showToast(r.is_active ? 'Rule paused' : 'Rule resumed', 'success');
+        loadRules();
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    async function deleteRule(id) {
+      const r = rulesCache[id];
+      if (!r) return;
+      if (!confirm(`Delete rule "${r.name}"?`)) return;
+      try {
+        await apiFetch(`/api/rules/${id}`, { method: 'DELETE' });
+        showToast('Rule deleted', 'success');
+        loadRules();
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    function closeModal() { document.getElementById('rule-modal').classList.add('hidden'); }
+    document.getElementById('rule-modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('rule-modal')) closeModal();
+    });
+
+    loadRules();
+  </script>
+</body>
+</html>
