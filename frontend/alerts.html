@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -131,6 +131,9 @@
         </button>
       </div>
 
+      <!-- Closed-by banner (shown when alert is closed) -->
+      <div id="closed-banner" class="hidden mb-4"></div>
+
       <!-- Meta grid -->
       <div class="grid grid-cols-3 gap-2 mb-5" id="triage-meta"></div>
 
@@ -140,10 +143,21 @@
         <p class="text-gray-200 text-sm whitespace-pre-wrap" id="triage-description"></p>
       </div>
 
-      <!-- Classification -->
+      <!-- ── L1 Step indicator ─────────────────────────────── -->
+      <div id="l1-steps" class="hidden mb-5">
+        <div class="flex items-center gap-2 px-3 py-2 rounded-xl"
+          style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.12);">
+          <i class="fa-solid fa-user-shield text-blue-400 text-xs"></i>
+          <span class="text-blue-300 text-xs font-medium">L1 Analyst Workflow</span>
+          <span class="ml-auto text-xs" style="color:#475569;">Triage → Validate → Classify → Act / Escalate</span>
+        </div>
+      </div>
+
+      <!-- Classification (Step 1 — Validation) -->
       <div class="mb-5">
         <p class="text-gray-400 text-sm font-medium mb-2">
-          <i class="fa-solid fa-tag mr-1 text-gray-500"></i> Classification
+          <i class="fa-solid fa-tag mr-1 text-gray-500"></i>
+          <span id="classify-label">Classification</span>
         </p>
         <div class="flex gap-2">
           <button class="classify-btn flex-1 py-2 px-3 rounded-xl border text-sm font-medium transition-all"
@@ -161,6 +175,40 @@
             style="border-color:rgba(75,85,99,0.6);color:#9ca3af;">
             <i class="fa-solid fa-circle-question mr-1"></i> Suspicious
           </button>
+        </div>
+      </div>
+
+      <!-- ── L1 Evidence Collection (Step 2) ──────────────── -->
+      <div id="l1-evidence-section" class="hidden mb-5">
+        <p class="text-gray-400 text-sm font-medium mb-3">
+          <i class="fa-solid fa-list-check mr-1 text-gray-500"></i> Evidence Collection
+        </p>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-gray-500 text-xs mb-1 block">Source IP</label>
+            <input id="ev-ip" class="form-input text-sm" placeholder="—" />
+          </div>
+          <div>
+            <label class="text-gray-500 text-xs mb-1 block">Hostname</label>
+            <input id="ev-hostname" class="form-input text-sm" placeholder="—" />
+          </div>
+          <div>
+            <label class="text-gray-500 text-xs mb-1 block">Username</label>
+            <input id="ev-username" class="form-input text-sm" placeholder="Affected user" />
+          </div>
+          <div>
+            <label class="text-gray-500 text-xs mb-1 block">Process</label>
+            <input id="ev-process" class="form-input text-sm" placeholder="Suspicious process" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-gray-500 text-xs mb-1 block">File Hash (MD5 / SHA256)</label>
+            <input id="ev-hash" class="form-input text-sm font-mono" placeholder="Hash value" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-gray-500 text-xs mb-1 block">Relevant Logs</label>
+            <textarea id="ev-logs" class="form-input resize-none text-xs" rows="2"
+              placeholder="Paste relevant log entries..."></textarea>
+          </div>
         </div>
       </div>
 
@@ -194,6 +242,36 @@
           <i class="fa-solid fa-thumbs-down"></i> False Positive
         </button>
       </div>
+
+      <!-- ── L1 Quick Remediation (Step 3) ─────────────────── -->
+      <div id="l1-remediation-section" class="hidden mt-4 pt-4" style="border-top:1px solid rgba(255,255,255,0.06);">
+        <p class="text-gray-400 text-sm font-medium mb-3">
+          <i class="fa-solid fa-bolt mr-1 text-gray-500"></i> Quick Remediation
+          <span class="text-xs text-gray-600 ml-1 font-normal">— if issue is simple, resolve here</span>
+        </p>
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          <button onclick="quickAction('block_ip')"
+            class="btn btn-sm text-xs"
+            style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#f87171;">
+            <i class="fa-solid fa-ban"></i> Block IP
+          </button>
+          <button onclick="quickAction('isolate')"
+            class="btn btn-sm text-xs"
+            style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);color:#fb923c;">
+            <i class="fa-solid fa-network-wired"></i> Isolate Device
+          </button>
+          <button onclick="quickAction('reset_pwd')"
+            class="btn btn-sm text-xs"
+            style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.25);color:#facc15;">
+            <i class="fa-solid fa-key"></i> Reset Password
+          </button>
+        </div>
+        <button onclick="closeAlertL1()"
+          class="btn btn-sm w-full text-sm"
+          style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);color:#34d399;">
+          <i class="fa-solid fa-circle-check"></i> Issue Resolved — Close Alert
+        </button>
+      </div>
     </div>
   </div>
 
@@ -204,10 +282,10 @@
     <div class="modal-box w-full max-w-lg">
       <div class="flex items-center justify-between mb-5">
         <div>
-          <h3 class="text-white font-semibold flex items-center gap-2">
+          <h3 class="text-white font-semibold flex items-center gap-2" id="ticket-modal-title">
             <i class="fa-solid fa-ticket text-emerald-400"></i> Create Ticket
           </h3>
-          <p class="text-gray-500 text-xs mt-0.5">Auto-escalation based on severity · assignee editable</p>
+          <p class="text-gray-500 text-xs mt-0.5" id="ticket-modal-sub">Auto-escalation based on severity · assignee editable</p>
         </div>
         <button onclick="closeModal('ticket-modal')" class="text-gray-500 hover:text-white transition">
           <i class="fa-solid fa-xmark text-lg"></i>
@@ -320,7 +398,7 @@
     </div>
   </div>
 
-  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/sidebar.js?v=2"></script>
   <script src="/static/js/api.js"></script>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
@@ -331,13 +409,9 @@
     const isAdmin  = userRole === 'admin';
     const isL1     = userRole === 'soc_analyst_l1';
 
-    // L1 cannot create alerts or use bulk delete
+    // L1 restrictions: no bulk actions except false-positive, no create, no escalation
     if (isL1) {
-      document.getElementById('btn-new-alert').classList.add('hidden');
-      document.getElementById('bulk-delete-btn').classList.add('hidden');
-    }
-    // Only admin can escalate to incident
-    if (isL1) {
+      document.getElementById('bulk-delete-btn')?.classList.add('hidden');
       document.getElementById('triage-escalate-btn')?.classList.add('hidden');
     }
 
@@ -547,7 +621,12 @@
           <td><span class="font-mono text-xs text-gray-400">${a.source_ip||'—'}</span></td>
           <td><span class="text-xs text-gray-400">${a.hostname||'—'}</span></td>
           <td><span class="text-xs text-gray-400 capitalize">${(a.category||'—').replace('_',' ')}</span></td>
-          <td>${statusBadge(a.status)}</td>
+          <td>
+            ${statusBadge(a.status)}
+            ${a.status === 'closed' && a.closed_by
+              ? `<p class="text-xs mt-0.5" style="color:#4b5563;">by ${a.closed_by}</p>`
+              : ''}
+          </td>
           <td>
             ${a.ticket_ref
               ? `<a href="/tickets.html" class="text-xs font-mono text-emerald-400 hover:text-emerald-300">${a.ticket_ref}</a>`
@@ -577,8 +656,25 @@
         const a = await apiGet(`/api/alerts/${id}`);
         currentAlert = a;
 
-        document.getElementById('triage-title').textContent = a.title;
+        document.getElementById('triage-title').textContent   = a.title;
         document.getElementById('triage-alert-id').textContent = a.alert_id;
+
+        // Closed-by banner
+        const closedBanner = document.getElementById('closed-banner');
+        if (a.status === 'closed' && a.closed_by) {
+          closedBanner.innerHTML = `
+            <div class="flex items-center gap-2 px-3 py-2 rounded-xl"
+              style="background:rgba(107,114,128,0.08);border:1px solid rgba(107,114,128,0.2);">
+              <i class="fa-solid fa-lock text-gray-500 text-xs"></i>
+              <span class="text-gray-400 text-xs">
+                Closed by <span class="text-gray-200 font-semibold">${a.closed_by}</span>
+                ${a.closed_at ? ' · ' + timeAgo(a.closed_at) : ''}
+              </span>
+            </div>`;
+          closedBanner.classList.remove('hidden');
+        } else {
+          closedBanner.classList.add('hidden');
+        }
 
         document.getElementById('triage-meta').innerHTML = [
           ['Severity',  severityBadge(a.severity)],
@@ -613,7 +709,30 @@
           vtBtn.style.opacity = '';
         }
 
-        // Ticket action area
+        // Show/hide L1-specific sections
+        const evidenceSection    = document.getElementById('l1-evidence-section');
+        const remediationSection = document.getElementById('l1-remediation-section');
+        const l1Steps            = document.getElementById('l1-steps');
+        if (isL1) {
+          evidenceSection.classList.remove('hidden');
+          remediationSection.classList.remove('hidden');
+          l1Steps.classList.remove('hidden');
+          document.getElementById('classify-label').textContent = 'Step 1 — Validation (True Positive / False Positive?)';
+          // Pre-fill evidence from alert
+          document.getElementById('ev-ip').value       = a.source_ip  || '';
+          document.getElementById('ev-hostname').value = a.hostname    || '';
+          document.getElementById('ev-username').value = '';
+          document.getElementById('ev-process').value  = '';
+          document.getElementById('ev-hash').value     = '';
+          document.getElementById('ev-logs').value     = '';
+        } else {
+          evidenceSection.classList.add('hidden');
+          remediationSection.classList.add('hidden');
+          l1Steps.classList.add('hidden');
+          document.getElementById('classify-label').textContent = 'Classification';
+        }
+
+        // Ticket / Escalate action area
         const ticketArea = document.getElementById('ticket-action');
         if (a.ticket_ref) {
           ticketArea.innerHTML = `
@@ -625,14 +744,17 @@
                 View Tickets →
               </a>
             </div>`;
+        } else if (isL1) {
+          ticketArea.innerHTML = `
+            <button onclick="escalateToL2()" class="btn btn-primary w-full">
+              <i class="fa-solid fa-arrow-up-right-dots"></i> Escalate to L2 — Create Ticket
+            </button>`;
         } else {
           ticketArea.innerHTML = `
             <button onclick="openTicketModal()" class="btn btn-primary w-full">
               <i class="fa-solid fa-ticket"></i> Create Ticket
             </button>`;
         }
-
-        // L1 cannot escalate to incident
 
         document.getElementById('triage-modal').classList.remove('hidden');
 
@@ -735,19 +857,9 @@
     }
 
     // ── Ticket Modal pre-fill ─────────────────────────────────
-    function openTicketModal() {
-      if (!currentAlert) return;
-      const sev = currentAlert.severity;
-
-      document.getElementById('t-title').value = currentAlert.title;
-      document.getElementById('t-description').value = currentAlert.description || '';
-      document.getElementById('t-severity').value = sev;
-      document.getElementById('t-assigned-to').value = ESCALATION_MAP[sev] || 'L2 Analyst';
-      document.getElementById('t-notes').value = document.getElementById('triage-notes').value;
-
-      // Show classification badge
+    function _buildClassifBadge() {
       const classifLabel = { true_positive:'True Positive', false_positive:'False Positive', suspicious:'Suspicious' };
-      const classifColor  = { true_positive:'#f87171', false_positive:'#4ade80', suspicious:'#fbbf24' };
+      const classifColor = { true_positive:'#f87171', false_positive:'#4ade80', suspicious:'#fbbf24' };
       const txt = document.getElementById('t-classification-text');
       if (currentClassification) {
         txt.textContent = classifLabel[currentClassification];
@@ -756,8 +868,121 @@
         txt.textContent = 'Not classified';
         txt.style.color = '#6b7280';
       }
+    }
 
+    function openTicketModal() {
+      if (!currentAlert) return;
+      document.getElementById('ticket-modal-title').innerHTML =
+        '<i class="fa-solid fa-ticket text-emerald-400"></i> Create Ticket';
+      document.getElementById('ticket-modal-sub').textContent =
+        'Auto-escalation based on severity · assignee editable';
+      const sev = currentAlert.severity;
+      document.getElementById('t-title').value       = currentAlert.title;
+      document.getElementById('t-description').value = currentAlert.description || '';
+      document.getElementById('t-severity').value    = sev;
+      document.getElementById('t-assigned-to').value = ESCALATION_MAP[sev] || 'L2 Analyst';
+      document.getElementById('t-assigned-to').disabled = false;
+      document.getElementById('t-notes').value = document.getElementById('triage-notes').value;
+      _buildClassifBadge();
       document.getElementById('ticket-modal').classList.remove('hidden');
+    }
+
+    // ── L1 Escalate to L2 ────────────────────────────────────
+    function escalateToL2() {
+      if (!currentAlert) return;
+      // Update modal title for L1 escalation
+      document.getElementById('ticket-modal-title').innerHTML =
+        '<i class="fa-solid fa-arrow-up-right-dots text-blue-400"></i> Escalate to L2 Analyst';
+      document.getElementById('ticket-modal-sub').textContent =
+        'Ticket will be sent to L2 Analyst with all gathered evidence';
+
+      // Gather evidence fields
+      const parts = [];
+      const notes    = document.getElementById('triage-notes').value;
+      const ip       = document.getElementById('ev-ip')?.value;
+      const hostname = document.getElementById('ev-hostname')?.value;
+      const username = document.getElementById('ev-username')?.value;
+      const process  = document.getElementById('ev-process')?.value;
+      const hash     = document.getElementById('ev-hash')?.value;
+      const logs     = document.getElementById('ev-logs')?.value;
+
+      if (currentClassification) parts.push(`Classification: ${currentClassification.replace('_',' ')}`);
+      if (notes)    parts.push(`Analyst Notes: ${notes}`);
+      if (ip)       parts.push(`Source IP: ${ip}`);
+      if (hostname) parts.push(`Hostname: ${hostname}`);
+      if (username) parts.push(`Username: ${username}`);
+      if (process)  parts.push(`Process: ${process}`);
+      if (hash)     parts.push(`File Hash: ${hash}`);
+      if (logs)     parts.push(`Logs:\n${logs}`);
+
+      document.getElementById('t-title').value       = currentAlert.title;
+      document.getElementById('t-description').value = currentAlert.description || '';
+      document.getElementById('t-severity').value    = currentAlert.severity;
+      document.getElementById('t-assigned-to').value = 'L2 Analyst';
+      document.getElementById('t-assigned-to').disabled = true;
+      document.getElementById('t-notes').value = parts.join('\n');
+      _buildClassifBadge();
+      document.getElementById('ticket-modal').classList.remove('hidden');
+    }
+
+    // ── L1 Quick Remediation Actions ─────────────────────────
+    async function quickAction(action) {
+      if (!currentAlert) return;
+      const labels = { block_ip:'Block IP', isolate:'Isolate Device', reset_pwd:'Reset Password' };
+      const label  = labels[action];
+      if (!confirm(`${label}\n\nThis action will be logged in the alert. Please also apply it in your SIEM/firewall/EDR.\n\nContinue?`)) return;
+
+      const notes  = document.getElementById('triage-notes').value;
+      const analyst = _user?.username || 'analyst';
+      const logNote = `[Action: ${label}] by ${analyst}\n${notes ? 'Notes: ' + notes : ''}`.trim();
+
+      try {
+        await apiPatch(`/api/alerts/${currentAlert.id}`, {
+          status:        'in_progress',
+          triage_result: currentClassification || undefined,
+          notes:         logNote,
+        });
+        showToast(`${label} action logged`, 'success');
+        loadAlerts(currentPage);
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    async function closeAlertL1() {
+      if (!currentAlert || !confirm('Mark this alert as resolved and close it?')) return;
+
+      // Collect ALL evidence and notes into a structured summary
+      const analyst = _user?.username || 'analyst';
+      const ts      = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+      const parts   = [`[CLOSED by ${analyst} at ${ts}]`];
+
+      if (currentClassification) parts.push(`Classification: ${currentClassification.replace('_', ' ')}`);
+
+      const ip       = document.getElementById('ev-ip')?.value?.trim();
+      const hostname = document.getElementById('ev-hostname')?.value?.trim();
+      const username = document.getElementById('ev-username')?.value?.trim();
+      const process  = document.getElementById('ev-process')?.value?.trim();
+      const hash     = document.getElementById('ev-hash')?.value?.trim();
+      const logs     = document.getElementById('ev-logs')?.value?.trim();
+      const notes    = document.getElementById('triage-notes').value?.trim();
+
+      if (ip)       parts.push(`Source IP: ${ip}`);
+      if (hostname) parts.push(`Hostname: ${hostname}`);
+      if (username) parts.push(`Username: ${username}`);
+      if (process)  parts.push(`Process: ${process}`);
+      if (hash)     parts.push(`File Hash: ${hash}`);
+      if (notes)    parts.push(`Analyst Notes: ${notes}`);
+      if (logs)     parts.push(`Logs:\n${logs}`);
+
+      try {
+        await apiPatch(`/api/alerts/${currentAlert.id}`, {
+          status:        'closed',
+          triage_result: currentClassification || undefined,
+          notes:         parts.join('\n'),
+        });
+        showToast('Alert closed — all evidence saved', 'success');
+        closeModal('triage-modal');
+        loadAlerts(currentPage);
+      } catch (err) { showToast(err.message, 'error'); }
     }
 
     function updateAutoAssignee() {
@@ -790,6 +1015,7 @@
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-ticket"></i> Submit Ticket';
+        document.getElementById('t-assigned-to').disabled = false;
       }
     });
 

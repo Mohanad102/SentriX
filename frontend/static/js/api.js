@@ -130,7 +130,8 @@ function requireAuth() {
   const user = getUser();
   if (user) {
     document.querySelectorAll('.user-name').forEach(el => el.textContent = user.full_name);
-    document.querySelectorAll('.user-role').forEach(el => el.textContent = user.role.toUpperCase());
+    const _roleLabel = { admin:'Administrator', soc_analyst_l1:'SOC Analyst L1', soc_analyst_l2:'SOC Analyst L2', incident_responder:'Incident Responder' };
+    document.querySelectorAll('.user-role').forEach(el => el.textContent = _roleLabel[user.role] || user.role);
     document.querySelectorAll('.user-avatar').forEach(el => {
       el.textContent = user.full_name?.charAt(0).toUpperCase() || 'U';
     });

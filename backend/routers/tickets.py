@@ -46,7 +46,7 @@ class TicketUpdate(BaseModel):
     evidence:             Optional[str] = None
 
 
-def ticket_to_dict(t: Ticket) -> dict:
+def ticket_to_dict(t: Ticket, created_by: str = None) -> dict:
     return {
         "id":                   t.id,
         "ticket_id":            t.ticket_id,
@@ -64,9 +64,18 @@ def ticket_to_dict(t: Ticket) -> dict:
         "escalated_at":         t.escalated_at.isoformat() if t.escalated_at else None,
         "incident_id":          t.incident_id,
         "created_by_id":        t.created_by_id,
+        "created_by":           created_by,
         "created_at":           t.created_at.isoformat() if t.created_at else None,
         "updated_at":           t.updated_at.isoformat() if t.updated_at else None,
     }
+
+
+def _resolve_creators(tickets: list, db: Session) -> dict:
+    ids = {t.created_by_id for t in tickets if t.created_by_id}
+    if not ids:
+        return {}
+    users = db.query(User).filter(User.id.in_(ids)).all()
+    return {u.id: u.username for u in users}
 
 
 @router.get("")
@@ -80,19 +89,23 @@ def list_tickets(
     current_user: User = Depends(get_current_user),
 ):
     query = db.query(Ticket)
+    # L1 analysts only see their own queue
+    if current_user.role == "soc_analyst_l1":
+        query = query.filter(Ticket.assigned_to == "L1 Analyst")
+    elif assigned_to:
+        query = query.filter(Ticket.assigned_to == assigned_to)
     if status:
         query = query.filter(Ticket.status == status)
-    if assigned_to:
-        query = query.filter(Ticket.assigned_to == assigned_to)
     if severity:
         query = query.filter(Ticket.severity == severity)
     total   = query.count()
     tickets = query.order_by(Ticket.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    creators = _resolve_creators(tickets, db)
     return {
         "total":     total,
         "page":      page,
         "pages":     (total + page_size - 1) // page_size,
-        "items":     [ticket_to_dict(t) for t in tickets],
+        "items":     [ticket_to_dict(t, creators.get(t.created_by_id)) for t in tickets],
     }
 
 
@@ -139,7 +152,7 @@ def create_ticket(
 
     db.commit()
     db.refresh(ticket)
-    return ticket_to_dict(ticket)
+    return ticket_to_dict(ticket, current_user.username)
 
 
 @router.get("/{ticket_id}")
@@ -151,7 +164,11 @@ def get_ticket(
     ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
-    return ticket_to_dict(ticket)
+    creator = None
+    if ticket.created_by_id:
+        u = db.query(User).filter(User.id == ticket.created_by_id).first()
+        creator = u.username if u else None
+    return ticket_to_dict(ticket, creator)
 
 
 @router.patch("/{ticket_id}")
@@ -165,15 +182,23 @@ def update_ticket(
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
+    # L1 analysts can only add notes to tickets in their queue
+    if current_user.role == "soc_analyst_l1":
+        if ticket.assigned_to != "L1 Analyst":
+            raise HTTPException(status_code=403, detail="L1 analysts can only update tickets in the L1 queue")
+        if data.notes is not None:
+            ticket.notes = data.notes
+        ticket.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(ticket)
+        return ticket_to_dict(ticket)
+
     # L2 analysts may only update tickets routed to their queue
     if current_user.role == "soc_analyst_l2" and ticket.assigned_to != "L2 Analyst":
         raise HTTPException(
             status_code=403,
             detail="L2 analysts can only update tickets assigned to the L2 Analyst queue",
         )
-    # L1 analysts cannot update ticket status at all
-    if current_user.role == "soc_analyst_l1":
-        raise HTTPException(status_code=403, detail="L1 analysts cannot update ticket status")
 
     if data.status and data.status in VALID_STATUSES:
         ticket.status = data.status
@@ -190,7 +215,11 @@ def update_ticket(
     ticket.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(ticket)
-    return ticket_to_dict(ticket)
+    creator = None
+    if ticket.created_by_id:
+        u = db.query(User).filter(User.id == ticket.created_by_id).first()
+        creator = u.username if u else None
+    return ticket_to_dict(ticket, creator)
 
 
 @router.delete("/{ticket_id}")
@@ -253,4 +282,8 @@ def escalate_to_ir(
     ticket.incident_id = incident.id
     db.commit()
     db.refresh(ticket)
-    return ticket_to_dict(ticket)
+    creator = None
+    if ticket.created_by_id:
+        u = db.query(User).filter(User.id == ticket.created_by_id).first()
+        creator = u.username if u else None
+    return ticket_to_dict(ticket, creator)

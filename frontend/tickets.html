@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -105,10 +105,13 @@
       </div>
 
       <!-- Role notice for L1 -->
-      <div id="l1-notice" class="hidden mb-4 flex items-center gap-2 px-4 py-3 rounded-xl"
+      <div id="l1-notice" class="hidden mb-4 flex items-center gap-3 px-4 py-3 rounded-xl"
         style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);">
-        <i class="fa-solid fa-circle-info text-blue-400 text-sm"></i>
-        <span class="text-blue-300 text-sm">You can view all tickets. Ticket status updates are handled by L2 Analysts and Admins.</span>
+        <i class="fa-solid fa-user-shield text-blue-400"></i>
+        <div>
+          <p class="text-blue-300 text-sm font-medium">L1 Analyst Queue</p>
+          <p class="text-xs mt-0.5" style="color:#93c5fd88;">Showing your L1 tickets. You can add notes to your tickets. Escalation is handled by L2 Analysts.</p>
+        </div>
       </div>
 
       <!-- Table -->
@@ -126,6 +129,7 @@
                 <th>Status</th>
                 <th>Assigned To</th>
                 <th>Classification</th>
+                <th>Created By</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -193,7 +197,21 @@
       <!-- Source alert link -->
       <div id="d-alert-link" class="hidden mb-4"></div>
 
-      <!-- Update section (role-gated) -->
+      <!-- L1 Notes Update (L1 only) -->
+      <div id="d-l1-update" class="hidden space-y-3">
+        <div class="border-t border-gray-700/50 pt-4">
+          <p class="text-blue-400 text-xs font-semibold uppercase tracking-wide mb-3">
+            <i class="fa-solid fa-user-shield mr-1"></i> Add Analyst Notes
+          </p>
+          <textarea id="d-l1-notes" class="form-input resize-none" rows="3"
+            placeholder="Document your observations, findings, or context about this alert..."></textarea>
+          <button onclick="submitL1Notes()" id="d-l1-save-btn" class="btn btn-primary mt-2 w-full">
+            <i class="fa-solid fa-save"></i> Save Notes
+          </button>
+        </div>
+      </div>
+
+      <!-- Update section (role-gated L2/Admin) -->
       <div id="d-update-section" class="hidden space-y-3">
         <div class="border-t border-gray-700/50 pt-4">
           <p class="text-gray-400 text-sm font-medium mb-3">Update Ticket</p>
@@ -266,7 +284,7 @@
     </div>
   </div>
 
-  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/sidebar.js?v=2"></script>
   <script src="/static/js/api.js"></script>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
@@ -278,7 +296,15 @@
     const isL2     = userRole === 'soc_analyst_l2';
     const isL1     = userRole === 'soc_analyst_l1';
 
-    if (isL1) document.getElementById('l1-notice').classList.remove('hidden');
+    if (isL1) {
+      document.getElementById('l1-notice').classList.remove('hidden');
+      // L1 only sees their queue — pre-select filter
+      const assigneeFilter = document.getElementById('filter-assignee');
+      if (assigneeFilter) assigneeFilter.value = 'L1 Analyst';
+      // Hide L2 and IR queue cards
+      document.getElementById('q-l2')?.closest('.panel')?.classList.add('hidden');
+      document.getElementById('q-ir')?.closest('.panel')?.classList.add('hidden');
+    }
 
     let currentPage   = 1;
     let currentTicket = null;
@@ -304,11 +330,15 @@
       return `<span class="badge ${cls}">${label}</span>`;
     }
 
-    // L2 can update only tickets in their queue; admin can update any
+    // Full update: L2 (their queue) + admin
     function canUpdate(ticket) {
       if (isAdmin) return true;
       if (isL2 && ticket.assigned_to === 'L2 Analyst') return true;
       return false;
+    }
+    // L1 can add notes to their own queue tickets
+    function canAddNotes(ticket) {
+      return isL1 && ticket.assigned_to === 'L1 Analyst';
     }
 
     // ── Load & Render ─────────────────────────────────────────
@@ -364,13 +394,21 @@
           <td>${statusBadge(t.status)}</td>
           <td>${assigneeBadge(t.assigned_to)}</td>
           <td>${classifyBadge(t.triage_result)}</td>
+          <td>
+            ${t.created_by
+              ? `<span class="flex items-center gap-1.5 text-xs">
+                   <i class="fa-solid fa-user text-gray-600 text-xs"></i>
+                   <span class="text-gray-300">${t.created_by}</span>
+                 </span>`
+              : '<span class="text-gray-600 text-xs">—</span>'}
+          </td>
           <td><span class="text-xs text-gray-500">${timeAgo(t.created_at)}</span></td>
           <td>
             <div class="flex gap-1">
               <button onclick="openDetail(${t.id})" class="btn btn-secondary btn-sm" title="View">
                 <i class="fa-solid fa-eye"></i>
               </button>
-              ${canUpdate(t) ? `
+              ${canUpdate(t) || canAddNotes(t) ? `
               <button onclick="openDetail(${t.id})" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20" title="Update">
                 <i class="fa-solid fa-pen"></i>
               </button>` : ''}
@@ -404,6 +442,9 @@
           ['Status',         statusBadge(t.status)],
           ['Assigned To',    assigneeBadge(t.assigned_to)],
           ['Classification', classifyBadge(t.triage_result)],
+          ['Created By',     t.created_by
+            ? `<span class="flex items-center gap-1.5 text-xs"><i class="fa-solid fa-user text-emerald-500 text-xs"></i><span class="text-gray-200 font-medium">${t.created_by}</span></span>`
+            : '<span class="text-gray-600 text-xs">Unknown</span>'],
           ['L2 Status',      l2StatusBadge(t.l2_status)],
           ['Updated',        `<span class="text-xs text-gray-400">${t.updated_at ? timeAgo(t.updated_at) : '—'}</span>`],
         ].map(([label, val]) => `
@@ -457,7 +498,16 @@
           alertLink.classList.add('hidden');
         }
 
-        // Update section visibility
+        // L1 notes section
+        const l1UpdateSection = document.getElementById('d-l1-update');
+        if (canAddNotes(t)) {
+          document.getElementById('d-l1-notes').value = t.notes || '';
+          l1UpdateSection.classList.remove('hidden');
+        } else {
+          l1UpdateSection.classList.add('hidden');
+        }
+
+        // Full update section (L2/Admin)
         const updateSection = document.getElementById('d-update-section');
         const canL2Fields = isAdmin || isL2;
         if (canUpdate(t)) {
@@ -467,13 +517,12 @@
           document.getElementById('d-update-notes').value = t.notes || '';
           document.getElementById('d-delete-btn').classList.toggle('hidden', !isAdmin);
 
-          // L2 investigation fields
           const l2Fields = document.getElementById('d-l2-fields');
           if (canL2Fields) {
             l2Fields.classList.remove('hidden');
-            document.getElementById('d-l2-status').value         = t.l2_status || '';
+            document.getElementById('d-l2-status').value           = t.l2_status || '';
             document.getElementById('d-investigation-notes').value = t.investigation_notes || '';
-            document.getElementById('d-evidence').value          = t.evidence || '';
+            document.getElementById('d-evidence').value            = t.evidence || '';
             document.getElementById('d-escalate-ir-btn').classList.toggle('hidden',
               t.assigned_to === 'Incident Response');
           } else {
@@ -486,6 +535,26 @@
         document.getElementById('detail-modal').classList.remove('hidden');
       } catch (err) {
         showToast(err.message, 'error');
+      }
+    }
+
+    async function submitL1Notes() {
+      if (!currentTicket) return;
+      const btn = document.getElementById('d-l1-save-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+      try {
+        await apiPatch(`/api/tickets/${currentTicket.id}`, {
+          notes: document.getElementById('d-l1-notes').value || null,
+        });
+        showToast('Notes saved successfully', 'success');
+        closeModal('detail-modal');
+        loadTickets(currentPage);
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-save"></i> Save Notes';
       }
     }
 

@@ -17,10 +17,10 @@ from backend.models.incident import Incident
 from backend.models.ioc import IOC
 from backend.models.response_action import ResponseAction
 from backend.models.user import User
-from backend.utils.auth import get_current_user
+from backend.utils.auth import get_current_user, require_not_l1
 from backend.routers.audit import write_log
 
-router = APIRouter(prefix="/api/investigation", tags=["investigation"])
+router = APIRouter(prefix="/api/investigation", tags=["investigation"], dependencies=[Depends(require_not_l1)])
 
 # ── RCA Pattern Library ────────────────────────────────────────────────────────
 RCA_PATTERNS = [

@@ -34,7 +34,7 @@ class AlertUpdate(BaseModel):
     notes:         Optional[str] = None
 
 
-def alert_to_dict(a: Alert, is_malicious: bool = None):
+def alert_to_dict(a: Alert, is_malicious: bool = None, closed_by: str = None):
     return {
         "id":            a.id,
         "alert_id":      a.alert_id,
@@ -56,6 +56,8 @@ def alert_to_dict(a: Alert, is_malicious: bool = None):
         "triage_result": a.triage_result,
         "notes":         a.notes,
         "ticket_ref":    a.ticket_ref,
+        "closed_by":     closed_by,
+        "closed_at":     a.closed_at.isoformat() if a.closed_at else None,
         "created_at":    a.created_at.isoformat() if a.created_at else None,
         "updated_at":    a.updated_at.isoformat() if a.updated_at else None,
     }
@@ -99,12 +101,19 @@ def list_alerts(
     total = query.count()
     alerts = query.order_by(order_col).offset((page - 1) * page_size).limit(page_size).all()
 
+    # Batch-resolve closed_by usernames
+    closed_ids = {a.closed_by_id for a in alerts if a.closed_by_id}
+    closed_map: dict = {}
+    if closed_ids:
+        users = db.query(User).filter(User.id.in_(closed_ids)).all()
+        closed_map = {u.id: u.username for u in users}
+
     return {
         "total": total,
         "page": page,
         "page_size": page_size,
         "pages": (total + page_size - 1) // page_size,
-        "items": [alert_to_dict(a, a.vt_malicious) for a in alerts]
+        "items": [alert_to_dict(a, a.vt_malicious, closed_map.get(a.closed_by_id)) for a in alerts]
     }
 
 
@@ -117,7 +126,11 @@ def get_alert(
     alert = db.query(Alert).filter(Alert.id == alert_id).first()
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found")
-    return alert_to_dict(alert)
+    closed_by = None
+    if alert.closed_by_id:
+        u = db.query(User).filter(User.id == alert.closed_by_id).first()
+        closed_by = u.username if u else None
+    return alert_to_dict(alert, alert.vt_malicious, closed_by)
 
 
 async def _bg_enrich_alert(alert_id: int):
@@ -175,6 +188,9 @@ def update_alert(
         raise HTTPException(status_code=404, detail="Alert not found")
     if data.status is not None:
         alert.status = data.status
+        if data.status == "closed" and not alert.closed_by_id:
+            alert.closed_by_id = current_user.id
+            alert.closed_at    = datetime.utcnow()
     if data.severity is not None:
         alert.severity = data.severity
     if data.incident_id is not None:
@@ -186,7 +202,11 @@ def update_alert(
     alert.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(alert)
-    return alert_to_dict(alert)
+    closed_by = None
+    if alert.closed_by_id:
+        u = db.query(User).filter(User.id == alert.closed_by_id).first()
+        closed_by = u.username if u else None
+    return alert_to_dict(alert, alert.vt_malicious, closed_by)
 
 
 @router.delete("/{alert_id}")
