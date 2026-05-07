@@ -109,8 +109,18 @@
         style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);">
         <i class="fa-solid fa-user-shield text-blue-400"></i>
         <div>
-          <p class="text-blue-300 text-sm font-medium">L1 Analyst Queue</p>
-          <p class="text-xs mt-0.5" style="color:#93c5fd88;">Showing your L1 tickets. You can add notes to your tickets. Escalation is handled by L2 Analysts.</p>
+          <p class="text-blue-300 text-sm font-medium">L1 Analyst View</p>
+          <p class="text-xs mt-0.5" style="color:#93c5fd88;">Showing your L1 queue + tickets you escalated to L2. Closed tickets show who resolved them.</p>
+        </div>
+      </div>
+
+      <!-- Role notice for L2 -->
+      <div id="l2-notice" class="hidden mb-4 flex items-center gap-3 px-4 py-3 rounded-xl"
+        style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);">
+        <i class="fa-solid fa-magnifying-glass-chart text-purple-400"></i>
+        <div>
+          <p class="text-purple-300 text-sm font-medium">L2 Investigator Queue</p>
+          <p class="text-xs mt-0.5" style="color:#c4b5fd88;">Showing your L2 investigation tickets. You can update status, add investigation notes, evidence, and escalate to Incident Response.</p>
         </div>
       </div>
 
@@ -192,6 +202,16 @@
         style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
         <i class="fa-solid fa-arrow-up-right-dots text-red-400 text-sm"></i>
         <span class="text-red-300 text-sm" id="d-escalated-text">Escalated to Incident Response</span>
+      </div>
+
+      <!-- Resolved by banner -->
+      <div id="d-resolved-banner" class="hidden mb-4 flex items-center gap-3 px-4 py-3 rounded-xl"
+        style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <div>
+          <p class="text-emerald-300 text-sm font-medium">Ticket Closed</p>
+          <p class="text-xs mt-0.5" id="d-resolved-text" style="color:#6ee7b788;"></p>
+        </div>
       </div>
 
       <!-- Source alert link -->
@@ -298,12 +318,15 @@
 
     if (isL1) {
       document.getElementById('l1-notice').classList.remove('hidden');
-      // L1 only sees their queue — pre-select filter
-      const assigneeFilter = document.getElementById('filter-assignee');
-      if (assigneeFilter) assigneeFilter.value = 'L1 Analyst';
-      // Hide L2 and IR queue cards
-      document.getElementById('q-l2')?.closest('.panel')?.classList.add('hidden');
+      // No assignee pre-filter — L1 sees their queue + their escalated tickets
       document.getElementById('q-ir')?.closest('.panel')?.classList.add('hidden');
+    }
+
+    if (isL2) {
+      document.getElementById('l2-notice').classList.remove('hidden');
+      const assigneeFilter = document.getElementById('filter-assignee');
+      if (assigneeFilter) assigneeFilter.value = 'L2 Analyst';
+      document.getElementById('q-it')?.closest('.panel')?.classList.add('hidden');
     }
 
     let currentPage   = 1;
@@ -389,6 +412,12 @@
           <td><span class="font-mono text-xs text-emerald-400">${t.ticket_id}</span></td>
           <td class="max-w-xs">
             <p class="truncate text-gray-100 text-sm" title="${t.title}">${t.title}</p>
+            ${t.status === 'closed' && t.resolved_by
+              ? `<p class="text-xs mt-0.5 flex items-center gap-1" style="color:#34d399;">
+                   <i class="fa-solid fa-circle-check text-xs"></i>
+                   Resolved by <strong>${t.resolved_by}</strong>
+                 </p>`
+              : ''}
           </td>
           <td>${severityBadge(t.severity)}</td>
           <td>${statusBadge(t.status)}</td>
@@ -446,6 +475,9 @@
             ? `<span class="flex items-center gap-1.5 text-xs"><i class="fa-solid fa-user text-emerald-500 text-xs"></i><span class="text-gray-200 font-medium">${t.created_by}</span></span>`
             : '<span class="text-gray-600 text-xs">Unknown</span>'],
           ['L2 Status',      l2StatusBadge(t.l2_status)],
+          ['Resolved By',    t.resolved_by
+            ? `<span class="flex items-center gap-1.5 text-xs"><i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i><span class="text-emerald-300 font-medium">${t.resolved_by}</span></span>`
+            : '<span class="text-gray-600 text-xs">—</span>'],
           ['Updated',        `<span class="text-xs text-gray-400">${t.updated_at ? timeAgo(t.updated_at) : '—'}</span>`],
         ].map(([label, val]) => `
           <div class="bg-gray-800/60 rounded-lg p-3">
@@ -483,6 +515,17 @@
           banner.classList.remove('hidden');
         } else {
           banner.classList.add('hidden');
+        }
+
+        // Resolved by banner
+        const resolvedBanner = document.getElementById('d-resolved-banner');
+        if (t.status === 'closed' && t.resolved_by) {
+          const resolvedAt = t.resolved_at ? ` on ${formatDate(t.resolved_at)}` : '';
+          document.getElementById('d-resolved-text').textContent =
+            `Resolved by ${t.resolved_by}${resolvedAt}`;
+          resolvedBanner.classList.remove('hidden');
+        } else {
+          resolvedBanner.classList.add('hidden');
         }
 
         // Source alert link

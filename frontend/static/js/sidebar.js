@@ -6,7 +6,7 @@
   const isL2    = role === 'soc_analyst_l2';
   const isAdmin = role === 'admin';
   const isIR    = role === 'incident_responder';
-  const canIR   = isIR || isAdmin;
+  const canIR   = isIR || isAdmin || isL2;
 
   // Role display labels
   const roleLabels = {
@@ -38,7 +38,7 @@
       adminOnly: true,
       links: [
         { href: '/users.html', icon: 'fa-users-gear', label: 'Users',        roles: ['admin'] },
-        { href: '/rules.html', icon: 'fa-sliders',    label: 'Alert Rules',  roles: ['admin'] },
+        { href: '/rules.html', icon: 'fa-sliders',    label: 'Alert Rules',  roles: ['admin', 'soc_analyst_l2'] },
       ]
     },
   ];
@@ -62,7 +62,7 @@
       </div>
     </div>`;
 
-  // L1 role banner shown at top of sidebar nav
+  // Role banners shown at top of sidebar nav
   const l1BannerHtml = isL1 ? `
     <div class="mx-3 mt-3 mb-1 px-3 py-2 rounded-xl flex items-center gap-2"
       style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);">
@@ -70,8 +70,15 @@
       <span class="text-blue-300 text-xs font-medium">L1 Analyst View</span>
     </div>` : '';
 
+  const l2BannerHtml = isL2 ? `
+    <div class="mx-3 mt-3 mb-1 px-3 py-2 rounded-xl flex items-center gap-2"
+      style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);">
+      <i class="fa-solid fa-magnifying-glass-chart text-purple-400 text-xs"></i>
+      <span class="text-purple-300 text-xs font-medium">L2 Investigator View</span>
+    </div>` : '';
+
   const navHtml = groups
-    .filter(g => !(g.adminOnly && !isAdmin))
+    .filter(g => !(g.adminOnly && !isAdmin && !isL2))
     .map(g => {
       const visibleLinks = g.links.filter(l => l.roles.includes(role));
       if (!visibleLinks.length) return '';
@@ -110,7 +117,7 @@
       </div>
     </div>`;
 
-  aside.innerHTML = logoHtml + l1BannerHtml + `<nav class="p-3 flex-1 space-y-0.5">${navHtml}</nav>` + userHtml;
+  aside.innerHTML = logoHtml + l1BannerHtml + l2BannerHtml + `<nav class="p-3 flex-1 space-y-0.5">${navHtml}</nav>` + userHtml;
 
   // Poll alert badge for all roles
   async function pollAlertBadge() {

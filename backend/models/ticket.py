@@ -21,6 +21,8 @@ class Ticket(Base):
     evidence = Column(Text, nullable=True)
     escalated_at = Column(DateTime(timezone=True), nullable=True)
     incident_id = Column(Integer, nullable=True)               # set when escalated to IR
+    resolved_by = Column(String, nullable=True)                # username who closed the ticket
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
     created_by_id = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
