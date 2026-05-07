@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SentriX — Alert Rules</title>
-  <script>(function(){var u=JSON.parse(localStorage.getItem('sentrix_user')||'{}');var r=u.role||'';if(r!=='admin')window.location.replace('/dashboard.html');})()</script>
+  <script>(function(){var u=JSON.parse(localStorage.getItem('sentrix_user')||'{}');var r=u.role||'';if(r!=='admin'&&r!=='soc_analyst_l2')window.location.replace('/dashboard.html');})()</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
@@ -13,39 +13,8 @@
 
   <div class="mesh-bg"></div>
 
-  <!-- Sidebar -->
-  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;">
-    <div class="p-5 border-b border-gray-800">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
-        </div>
-        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
-      </div>
-    </div>
-    <nav class="p-3 flex-1 space-y-1">
-      <a href="/dashboard.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span> Dashboard</a>
-      <a href="/alerts.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-bell"></i></span> Alerts</a>
-      <a href="/incidents.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-file-shield"></i></span> Incidents</a>
-      <a href="/ai_analyst.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-robot"></i></span> AI Analyst</a>
-      <a href="/virustotal.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-virus-slash"></i></span> VirusTotal</a>
-      <a href="/reports.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reports</a>
-      <a href="/users.html" class="sidebar-link"><span class="icon"><i class="fa-solid fa-users-gear"></i></span> Users</a>
-      <a href="/rules.html" class="sidebar-link active"><span class="icon"><i class="fa-solid fa-sliders"></i></span> Alert Rules</a>
-    </nav>
-    <div class="p-3 border-t border-gray-800">
-      <div class="flex items-center gap-3 px-2 py-2">
-        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-white truncate user-name">Admin</p>
-          <p class="text-xs text-gray-500 user-role">ADMIN</p>
-        </div>
-        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition" title="Logout">
-          <i class="fa-solid fa-right-from-bracket text-sm"></i>
-        </button>
-      </div>
-    </div>
-  </aside>
+  <!-- Sidebar (populated by sidebar.js) -->
+  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;"></aside>
 
   <!-- Main -->
   <main class="flex-1 min-h-screen overflow-auto" style="position:relative;z-index:1;">
@@ -54,7 +23,7 @@
         <h1 class="text-white font-semibold text-lg">Alert Rules Engine</h1>
         <p class="text-xs mt-0.5" style="color:#475569;">Automate escalation and severity adjustments</p>
       </div>
-      <button onclick="openModal()" class="btn btn-primary">
+      <button id="new-rule-btn" onclick="openModal()" class="btn btn-primary">
         <i class="fa-solid fa-plus"></i> New Rule
       </button>
     </header>
@@ -117,7 +86,7 @@
         </div>
         <p class="text-gray-400 font-medium mb-1">No rules yet</p>
         <p class="text-gray-600 text-sm mb-4">Create a rule to start automating alert responses</p>
-        <button onclick="openModal()" class="btn btn-primary">
+        <button id="create-first-rule-btn" onclick="openModal()" class="btn btn-primary">
           <i class="fa-solid fa-plus"></i> Create First Rule
         </button>
       </div>
@@ -257,7 +226,14 @@
   <script src="/static/js/api.js"></script>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
-    if (!['admin'].includes(getUser()?.role || '')) { window.location.href = '/dashboard.html'; throw new Error('Access denied'); }
+    const _rulesUser = getUser();
+    const _rulesRole = _rulesUser?.role || '';
+    if (_rulesRole !== 'admin' && _rulesRole !== 'soc_analyst_l2') { window.location.href = '/dashboard.html'; throw new Error('Access denied'); }
+    const isRulesAdmin = _rulesRole === 'admin';
+    if (!isRulesAdmin) {
+      document.getElementById('new-rule-btn')?.classList.add('hidden');
+      document.getElementById('create-first-rule-btn')?.classList.add('hidden');
+    }
 
     const rulesCache = {};
 
@@ -353,7 +329,8 @@
               </div>
             </div>
 
-            <!-- Actions -->
+            <!-- Actions (admin only) -->
+            ${isRulesAdmin ? `
             <div class="flex gap-2 mt-auto">
               <button onclick="openEditModal(${r.id})" class="btn btn-secondary btn-sm flex-1">
                 <i class="fa-solid fa-pen"></i> Edit
@@ -369,7 +346,11 @@
                 class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20">
                 <i class="fa-solid fa-trash"></i>
               </button>
-            </div>
+            </div>` : `
+            <div class="flex items-center gap-2 mt-auto px-3 py-2 rounded-lg text-xs"
+              style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);color:#a78bfa;">
+              <i class="fa-solid fa-eye"></i> Read-only — contact admin to modify
+            </div>`}
           </div>`).join('');
       } catch (err) {
         document.getElementById('rules-loading').innerHTML =

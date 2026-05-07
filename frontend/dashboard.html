@@ -65,6 +65,113 @@
         <p class="text-sm" style="color:#475569;">Loading dashboard...</p>
       </div>
 
+      <!-- ── L2 Dashboard ──────────────────────────────────────── -->
+      <div id="l2-grid" class="hidden">
+        <!-- L2 stat cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="stat-card stat-card-blue stagger-1">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">My L2 Queue</span>
+              <div class="stat-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);">
+                <i class="fa-solid fa-ticket" style="color:#60a5fa;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="l2-stat-queue">—</p>
+            <p class="text-xs mt-2" style="color:#475569;" id="l2-stat-queue-sub">— open · — in progress</p>
+          </div>
+          <div class="stat-card stat-card-orange stagger-2">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">Active Incidents</span>
+              <div class="stat-icon" style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);">
+                <i class="fa-solid fa-shield-virus" style="color:#fb923c;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="l2-stat-incidents">—</p>
+            <p class="text-xs mt-2" style="color:#475569;" id="l2-stat-incidents-sub">— in progress</p>
+          </div>
+          <div class="stat-card stat-card-red stagger-3">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">Critical Alerts</span>
+              <div class="stat-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#f87171;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="l2-stat-critical">—</p>
+            <p class="text-xs mt-2" style="color:#475569;" id="l2-stat-high">— high severity open</p>
+          </div>
+          <div class="stat-card stat-card-yellow stagger-4">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">Alerts (24h)</span>
+              <div class="stat-icon" style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.2);">
+                <i class="fa-solid fa-clock-rotate-left" style="color:#facc15;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="l2-stat-24h">—</p>
+            <p class="text-xs mt-2" style="color:#475569;">New alerts last 24h</p>
+          </div>
+        </div>
+
+        <!-- L2 content row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Recent L2 tickets -->
+          <div class="lg:col-span-2 panel p-5 stagger-1">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-medium text-white flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-ticket" style="color:#34d399;"></i>
+                My Investigation Queue
+              </h3>
+              <a href="/tickets.html" class="text-xs transition" style="color:#34d399;"
+                onmouseover="this.style.color='#6ee7b7'" onmouseout="this.style.color='#34d399'">View all →</a>
+            </div>
+            <div id="l2-ticket-list" class="space-y-2">
+              <p style="color:#475569;" class="text-sm text-center py-6">Loading...</p>
+            </div>
+          </div>
+
+          <!-- L2 Quick Actions -->
+          <div class="space-y-4 stagger-2">
+            <div class="panel p-5">
+              <h3 class="font-medium text-white mb-4 flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-bolt" style="color:#34d399;"></i>
+                Quick Actions
+              </h3>
+              <div class="space-y-2">
+                <a href="/tickets.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);color:#60a5fa;"
+                  onmouseover="this.style.background='rgba(59,130,246,0.12)'"
+                  onmouseout="this.style.background='rgba(59,130,246,0.06)'">
+                  <i class="fa-solid fa-ticket w-4 text-center"></i> My L2 Queue
+                </a>
+                <a href="/incidents.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.15);color:#fb923c;"
+                  onmouseover="this.style.background='rgba(249,115,22,0.12)'"
+                  onmouseout="this.style.background='rgba(249,115,22,0.06)'">
+                  <i class="fa-solid fa-shield-virus w-4 text-center"></i> IR Dashboard
+                </a>
+                <a href="/alerts.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);color:#f87171;"
+                  onmouseover="this.style.background='rgba(239,68,68,0.12)'"
+                  onmouseout="this.style.background='rgba(239,68,68,0.06)'">
+                  <i class="fa-solid fa-magnifying-glass w-4 text-center"></i> Investigate Alerts
+                </a>
+                <a href="/ai_analyst.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);color:#c084fc;"
+                  onmouseover="this.style.background='rgba(168,85,247,0.12)'"
+                  onmouseout="this.style.background='rgba(168,85,247,0.06)'">
+                  <i class="fa-solid fa-robot w-4 text-center"></i> AI Analyst
+                </a>
+                <a href="/virustotal.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);color:#34d399;"
+                  onmouseover="this.style.background='rgba(16,185,129,0.12)'"
+                  onmouseout="this.style.background='rgba(16,185,129,0.06)'">
+                  <i class="fa-solid fa-virus-slash w-4 text-center"></i> Malware Analysis
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Dashboard ────────────────────────────────────────── -->
       <div id="stats-grid" class="hidden">
         <!-- Stats -->
@@ -227,6 +334,7 @@
     const _dashUser = getUser();
     const _dashRole = _dashUser?.role || '';
     const isL1 = _dashRole === 'soc_analyst_l1';
+    const isL2 = _dashRole === 'soc_analyst_l2';
 
     // ── Theme ─────────────────────────────────────────────────
     const THEME_KEY = 'sentrix_theme';
@@ -288,8 +396,13 @@
     async function loadDashboard() {
       document.getElementById('loading').classList.remove('hidden');
       document.getElementById('stats-grid').classList.add('hidden');
+      document.getElementById('l2-grid').classList.add('hidden');
       try {
-        await loadStdDashboard();
+        if (isL2) {
+          await loadL2Dashboard();
+        } else {
+          await loadStdDashboard();
+        }
       } catch(err) {
         document.getElementById('loading').innerHTML = `
           <div class="text-center">
@@ -299,6 +412,47 @@
             <button onclick="loadDashboard()" class="btn btn-secondary btn-sm mt-4"><i class="fa-solid fa-rotate-right"></i> Retry</button>
           </div>`;
       }
+    }
+
+    async function loadL2Dashboard() {
+      const data = await apiGet('/api/dashboard/l2-stats');
+
+      animateStat('l2-stat-queue',     data.my_queue.total);
+      animateStat('l2-stat-incidents', data.incidents.active);
+      animateStat('l2-stat-critical',  data.alerts.critical);
+      animateStat('l2-stat-24h',       data.alerts.last_24h);
+
+      document.getElementById('l2-stat-queue-sub').textContent =
+        `${data.my_queue.open} open · ${data.my_queue.in_progress} in progress`;
+      document.getElementById('l2-stat-incidents-sub').textContent =
+        `${data.incidents.in_progress} in progress`;
+      document.getElementById('l2-stat-high').textContent =
+        `${data.alerts.high} high severity open`;
+
+      const severityDot = { critical:'#f87171', high:'#fb923c', medium:'#facc15', low:'#4ade80' };
+      const statusBadgeMap = { open:'badge-info', in_progress:'badge-medium', closed:'badge-low' };
+      const list = document.getElementById('l2-ticket-list');
+      if (!data.recent_tickets.length) {
+        list.innerHTML = '<p style="color:#475569;" class="text-sm text-center py-6">No tickets in L2 queue</p>';
+      } else {
+        list.innerHTML = data.recent_tickets.map(t => `
+          <div class="flex items-center gap-3 p-2.5 rounded-xl transition cursor-pointer"
+            style="border:1px solid rgba(255,255,255,0.04);"
+            onmouseover="this.style.background='rgba(255,255,255,0.03)'"
+            onmouseout="this.style.background='transparent'"
+            onclick="window.location='/tickets.html'">
+            <div class="w-2 h-2 rounded-full flex-shrink-0 mt-0.5"
+              style="background:${severityDot[t.severity]||'#9ca3af'};box-shadow:0 0 5px ${severityDot[t.severity]||'#9ca3af'}55;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm truncate text-gray-200">${t.title}</p>
+              <p class="text-xs mt-0.5" style="color:#475569;">${t.ticket_id} · ${t.created_at ? new Date(t.created_at).toLocaleDateString() : ''}</p>
+            </div>
+            <span class="badge ${statusBadgeMap[t.status]||'badge-low'}">${t.status.replace('_',' ')}</span>
+          </div>`).join('');
+      }
+
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('l2-grid').classList.remove('hidden');
     }
 
     async function loadStdDashboard() {
@@ -530,7 +684,7 @@
 
     // ── Init ──────────────────────────────────────────────────
     loadDashboard();
-    if (!isL1) {
+    if (!isL1 && !isL2) {
       updateLiveFeed();
       loadServicesStatus();
       setInterval(updateLiveFeed, 10000);

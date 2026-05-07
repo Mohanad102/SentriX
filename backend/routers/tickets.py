@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import or_
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -63,6 +64,8 @@ def ticket_to_dict(t: Ticket, created_by: str = None) -> dict:
         "evidence":             t.evidence,
         "escalated_at":         t.escalated_at.isoformat() if t.escalated_at else None,
         "incident_id":          t.incident_id,
+        "resolved_by":          t.resolved_by,
+        "resolved_at":          t.resolved_at.isoformat() if t.resolved_at else None,
         "created_by_id":        t.created_by_id,
         "created_by":           created_by,
         "created_at":           t.created_at.isoformat() if t.created_at else None,
@@ -89,9 +92,14 @@ def list_tickets(
     current_user: User = Depends(get_current_user),
 ):
     query = db.query(Ticket)
-    # L1 analysts only see their own queue
+    # L1 analysts see their queue + any ticket they personally created (to track escalations)
     if current_user.role == "soc_analyst_l1":
-        query = query.filter(Ticket.assigned_to == "L1 Analyst")
+        query = query.filter(
+            or_(
+                Ticket.assigned_to == "L1 Analyst",
+                Ticket.created_by_id == current_user.id,
+            )
+        )
     elif assigned_to:
         query = query.filter(Ticket.assigned_to == assigned_to)
     if status:
@@ -202,6 +210,9 @@ def update_ticket(
 
     if data.status and data.status in VALID_STATUSES:
         ticket.status = data.status
+        if data.status == "closed" and not ticket.resolved_by:
+            ticket.resolved_by = current_user.username
+            ticket.resolved_at = datetime.utcnow()
     if data.assigned_to and data.assigned_to in VALID_ASSIGNEES:
         ticket.assigned_to = data.assigned_to
     if data.notes is not None:

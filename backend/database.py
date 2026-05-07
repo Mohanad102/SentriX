@@ -47,6 +47,9 @@ def _run_migrations():
         # IR fields
         "ALTER TABLE incidents ADD COLUMN ir_status VARCHAR",
         "ALTER TABLE tickets ADD COLUMN incident_id INTEGER",
+        # L2 resolver tracking
+        "ALTER TABLE tickets ADD COLUMN resolved_by VARCHAR",
+        "ALTER TABLE tickets ADD COLUMN resolved_at DATETIME",
     ]
     with engine.connect() as conn:
         for sql in migrations:
