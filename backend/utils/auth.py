@@ -59,3 +59,12 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
             detail="Admin access required"
         )
     return current_user
+
+
+def require_not_l1(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role == "soc_analyst_l1":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="SOC L1 analysts do not have access to this resource"
+        )
+    return current_user

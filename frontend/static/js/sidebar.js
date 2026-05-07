@@ -5,38 +5,46 @@
   const isL1    = role === 'soc_analyst_l1';
   const isL2    = role === 'soc_analyst_l2';
   const isAdmin = role === 'admin';
-  const canIR   = (role === 'incident_responder' || isAdmin);
+  const isIR    = role === 'incident_responder';
+  const canIR   = isIR || isAdmin;
+
+  // Role display labels
+  const roleLabels = {
+    admin:              'Administrator',
+    soc_analyst_l1:     'SOC Analyst L1',
+    soc_analyst_l2:     'SOC Analyst L2',
+    incident_responder: 'Incident Responder',
+  };
 
   const groups = [
     {
       label: 'Navigation',
       links: [
-        { href: '/dashboard.html',    icon: 'fa-gauge-high',   label: 'Dashboard' },
-        { href: '/alerts.html',       icon: 'fa-bell',         label: 'Alerts', badge: true },
-        { href: '/incidents.html', icon: 'fa-shield-virus', label: 'IR Dashboard' },
-        { href: '/tickets.html',      icon: 'fa-ticket',       label: 'Tickets' },
+        { href: '/dashboard.html', icon: 'fa-gauge-high',   label: 'Dashboard',    roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
+        { href: '/alerts.html',    icon: 'fa-bell',          label: 'Alerts',       badge: 'alert-badge', roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
+        { href: '/tickets.html',   icon: 'fa-ticket',        label: 'Tickets',      roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
+        { href: '/incidents.html', icon: 'fa-shield-virus',  label: 'IR Dashboard', roles: ['admin', 'soc_analyst_l2', 'incident_responder'], badge: 'ir-notif-badge' },
       ]
     },
     {
       label: 'Tools',
       links: [
-        { href: '/ai_analyst.html', icon: 'fa-robot',       label: 'AI Analyst' },
-        { href: '/virustotal.html', icon: 'fa-virus-slash',  label: 'VirusTotal' },
+        { href: '/ai_analyst.html', icon: 'fa-robot',      label: 'AI Analyst',  roles: ['admin', 'soc_analyst_l2'] },
+        { href: '/virustotal.html', icon: 'fa-virus-slash', label: 'VirusTotal', roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
       ]
     },
     {
       label: 'Admin',
       adminOnly: true,
       links: [
-        { href: '/users.html', icon: 'fa-users-gear', label: 'Users' },
-        { href: '/rules.html', icon: 'fa-sliders',    label: 'Alert Rules' },
+        { href: '/users.html', icon: 'fa-users-gear', label: 'Users',        roles: ['admin'] },
+        { href: '/rules.html', icon: 'fa-sliders',    label: 'Alert Rules',  roles: ['admin'] },
       ]
     },
   ];
 
   const current = window.location.pathname;
 
-  // Replace or create the aside
   let aside = document.querySelector('aside.sidebar');
   if (!aside) return;
 
@@ -54,35 +62,46 @@
       </div>
     </div>`;
 
+  // L1 role banner shown at top of sidebar nav
+  const l1BannerHtml = isL1 ? `
+    <div class="mx-3 mt-3 mb-1 px-3 py-2 rounded-xl flex items-center gap-2"
+      style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);">
+      <i class="fa-solid fa-user-shield text-blue-400 text-xs"></i>
+      <span class="text-blue-300 text-xs font-medium">L1 Analyst View</span>
+    </div>` : '';
+
   const navHtml = groups
     .filter(g => !(g.adminOnly && !isAdmin))
-    .map(g => `
-    <div class="sidebar-section">${g.label}</div>
-    ${g.links.filter(l => !(l.irOnly && !canIR)).map(l => {
-      const active = current.endsWith(l.href) || current.endsWith(l.href.replace('.html','')) ? ' active' : '';
-      const badge  = l.badge
-        ? ` <span id="alert-badge" class="ml-auto text-xs px-1.5 py-0.5 rounded-full hidden"
-              style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)"></span>`
-        : '';
-      const irBadge = l.irOnly
-        ? ` <span id="ir-notif-badge" class="ml-auto text-xs px-1.5 py-0.5 rounded-full hidden"
-              style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)"></span>`
-        : '';
-      return `<a href="${l.href}" class="sidebar-link${active}">
-        <span class="icon"><i class="fa-solid ${l.icon}"></i></span> ${l.label}${badge}${irBadge}
-      </a>`;
-    }).join('')}`
-  ).join('');
+    .map(g => {
+      const visibleLinks = g.links.filter(l => l.roles.includes(role));
+      if (!visibleLinks.length) return '';
+      return `
+        <div class="sidebar-section">${g.label}</div>
+        ${visibleLinks.map(l => {
+          const active = current.endsWith(l.href) || current.endsWith(l.href.replace('.html', '')) ? ' active' : '';
+          const badge  = l.badge
+            ? ` <span id="${l.badge}" class="ml-auto text-xs px-1.5 py-0.5 rounded-full hidden"
+                  style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)"></span>`
+            : '';
+          return `<a href="${l.href}" class="sidebar-link${active}">
+            <span class="icon"><i class="fa-solid ${l.icon}"></i></span> ${l.label}${badge}
+          </a>`;
+        }).join('')}`;
+    }).join('');
 
   const userHtml = `
     <div class="p-3" style="border-top:1px solid rgba(255,255,255,0.05);">
       <div class="flex items-center gap-3 px-2 py-2 rounded-xl"
         style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);">
         <div class="w-8 h-8 rounded-full flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar"
-          style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25);">A</div>
+          style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25);">
+          ${(user.full_name || 'U').charAt(0).toUpperCase()}
+        </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-white truncate user-name">Admin</p>
-          <p class="user-role" style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Admin</p>
+          <p class="text-sm font-medium text-white truncate user-name">${user.full_name || user.username || 'User'}</p>
+          <p class="user-role" style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">
+            ${roleLabels[role] || role}
+          </p>
         </div>
         <button onclick="logout()" style="color:#475569;background:none;border:none;cursor:pointer;font-size:0.875rem;transition:color 0.2s;"
           onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#475569'" title="Logout">
@@ -91,9 +110,28 @@
       </div>
     </div>`;
 
-  aside.innerHTML = logoHtml + `<nav class="p-3 flex-1 space-y-0.5">${navHtml}</nav>` + userHtml;
+  aside.innerHTML = logoHtml + l1BannerHtml + `<nav class="p-3 flex-1 space-y-0.5">${navHtml}</nav>` + userHtml;
 
-  // Poll unread notifications and show on IR badge
+  // Poll alert badge for all roles
+  async function pollAlertBadge() {
+    try {
+      const token = localStorage.getItem('sentrix_token');
+      if (!token) return;
+      const params = isL1 ? '?status=open&assigned_to=L1+Analyst&page_size=1' : '?status=open&page_size=1';
+      const r = await fetch('/api/alerts' + params, { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) return;
+      const d = await r.json();
+      const badge = document.getElementById('alert-badge');
+      if (badge && d.total > 0) {
+        badge.textContent = d.total > 99 ? '99+' : d.total;
+        badge.classList.remove('hidden');
+      }
+    } catch {}
+  }
+  pollAlertBadge();
+  setInterval(pollAlertBadge, 60000);
+
+  // Poll IR notifications (non-L1 only)
   if (canIR) {
     async function pollIRNotifs() {
       try {

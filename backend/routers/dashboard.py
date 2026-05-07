@@ -5,6 +5,7 @@ from backend.database import get_db
 from backend.models.alert import Alert
 from backend.models.incident import Incident
 from backend.models.ioc import IOC
+from backend.models.ticket import Ticket
 from backend.utils.auth import get_current_user
 from backend.models.user import User
 from backend.config import settings
@@ -140,6 +141,59 @@ def get_top_categories(
         .all()
     )
     return [{"category": cat, "count": cnt} for cat, cnt in results]
+
+
+@router.get("/l1-stats")
+def get_l1_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    l1_total       = db.query(Ticket).filter(Ticket.assigned_to == "L1 Analyst").count()
+    l1_open        = db.query(Ticket).filter(Ticket.assigned_to == "L1 Analyst", Ticket.status == "open").count()
+    l1_in_progress = db.query(Ticket).filter(Ticket.assigned_to == "L1 Analyst", Ticket.status == "in_progress").count()
+    l1_closed      = db.query(Ticket).filter(Ticket.assigned_to == "L1 Analyst", Ticket.status == "closed").count()
+
+    open_alerts     = db.query(Alert).filter(Alert.status == "open").count()
+    pending_triage  = db.query(Alert).filter(Alert.status == "open", Alert.triage_result == None).count()  # noqa: E711
+    critical_alerts = db.query(Alert).filter(Alert.severity == "critical", Alert.status == "open").count()
+
+    last_24h = datetime.utcnow() - timedelta(hours=24)
+    alerts_24h = db.query(Alert).filter(Alert.created_at >= last_24h).count()
+
+    recent_tickets = (
+        db.query(Ticket)
+        .filter(Ticket.assigned_to == "L1 Analyst")
+        .order_by(Ticket.created_at.desc())
+        .limit(5)
+        .all()
+    )
+
+    return {
+        "my_queue": {
+            "total":       l1_total,
+            "open":        l1_open,
+            "in_progress": l1_in_progress,
+            "closed":      l1_closed,
+        },
+        "alerts": {
+            "open":           open_alerts,
+            "pending_triage": pending_triage,
+            "critical":       critical_alerts,
+            "last_24h":       alerts_24h,
+        },
+        "recent_tickets": [
+            {
+                "id":           t.id,
+                "ticket_id":    t.ticket_id,
+                "title":        t.title,
+                "severity":     t.severity,
+                "status":       t.status,
+                "triage_result": t.triage_result,
+                "created_at":   t.created_at.isoformat() if t.created_at else None,
+            }
+            for t in recent_tickets
+        ],
+    }
 
 
 @router.get("/services-status")

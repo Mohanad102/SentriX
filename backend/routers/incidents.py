@@ -5,12 +5,12 @@ from pydantic import BaseModel
 from typing import Optional, List
 from backend.database import get_db
 from backend.models.incident import Incident, IncidentTask
-from backend.utils.auth import get_current_user
+from backend.utils.auth import get_current_user, require_not_l1
 from backend.models.user import User
 import uuid
 from datetime import datetime
 
-router = APIRouter(prefix="/api/incidents", tags=["incidents"])
+router = APIRouter(prefix="/api/incidents", tags=["incidents"], dependencies=[Depends(require_not_l1)])
 
 
 class IncidentCreate(BaseModel):

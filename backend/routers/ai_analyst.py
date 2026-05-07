@@ -7,11 +7,11 @@ from backend.database import get_db
 from backend.models.ioc import ChatMessage, IOC
 from backend.models.incident import Incident
 from backend.models.alert import Alert
-from backend.utils.auth import get_current_user
+from backend.utils.auth import get_current_user, require_not_l1
 from backend.models.user import User
 import uuid
 
-router = APIRouter(prefix="/api/ai", tags=["ai"])
+router = APIRouter(prefix="/api/ai", tags=["ai"], dependencies=[Depends(require_not_l1)])
 
 
 class ChatRequest(BaseModel):

@@ -20,9 +20,9 @@ from backend.models.playbook import Playbook, PlaybookStep, PlaybookRun
 from backend.models.response_action import ResponseAction, ACTION_LABELS, VALID_ACTIONS
 from backend.models.user import User
 from backend.routers.audit import write_log
-from backend.utils.auth import get_current_user
+from backend.utils.auth import get_current_user, require_not_l1
 
-router = APIRouter(prefix="/api/ir", tags=["incident-response"])
+router = APIRouter(prefix="/api/ir", tags=["incident-response"], dependencies=[Depends(require_not_l1)])
 
 # ── IR Lifecycle ───────────────────────────────────────────────────────────────
 IR_LIFECYCLE = ["new", "investigating", "contained", "eradicated", "recovered"]

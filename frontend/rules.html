@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -253,10 +253,11 @@
     </div>
   </div>
 
-  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/sidebar.js?v=2"></script>
   <script src="/static/js/api.js"></script>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
+    if (!['admin'].includes(getUser()?.role || '')) { window.location.href = '/dashboard.html'; throw new Error('Access denied'); }
 
     const rulesCache = {};
 

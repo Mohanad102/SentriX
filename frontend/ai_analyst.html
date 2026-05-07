@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -142,6 +142,7 @@
   <script src="/static/js/api.js"></script>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
+    if ((getUser()?.role || '') === 'soc_analyst_l1') { window.location.href = '/dashboard.html'; throw new Error('Access denied'); }
 
     let sessionId = localStorage.getItem('sentrix_chat_session') || null;
     let isLoading = false;
@@ -350,6 +351,6 @@
     loadIncidents();
     checkAiMode();
   </script>
-  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/sidebar.js?v=2"></script>
 </body>
 </html>
