@@ -6,7 +6,7 @@
   const isL2    = role === 'soc_analyst_l2';
   const isAdmin = role === 'admin';
   const isIR    = role === 'incident_responder';
-  const canIR   = isIR || isAdmin || isL2;
+  const canIR   = isIR || isAdmin;
 
   // Role display labels
   const roleLabels = {
@@ -23,7 +23,7 @@
         { href: '/dashboard.html', icon: 'fa-gauge-high',   label: 'Dashboard',    roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
         { href: '/alerts.html',    icon: 'fa-bell',          label: 'Alerts',       badge: 'alert-badge', roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
         { href: '/tickets.html',   icon: 'fa-ticket',        label: 'Tickets',      roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
-        { href: '/incidents.html', icon: 'fa-shield-virus',  label: 'IR Dashboard', roles: ['admin', 'soc_analyst_l2', 'incident_responder'], badge: 'ir-notif-badge' },
+        { href: '/incidents.html', icon: 'fa-shield-virus',  label: 'IR Dashboard', roles: ['admin', 'incident_responder'], badge: 'ir-notif-badge' },
       ]
     },
     {
@@ -38,7 +38,7 @@
       adminOnly: true,
       links: [
         { href: '/users.html', icon: 'fa-users-gear', label: 'Users',        roles: ['admin'] },
-        { href: '/rules.html', icon: 'fa-sliders',    label: 'Alert Rules',  roles: ['admin', 'soc_analyst_l2'] },
+        { href: '/rules.html', icon: 'fa-sliders',    label: 'Alert Rules',  roles: ['admin'] },
       ]
     },
   ];
