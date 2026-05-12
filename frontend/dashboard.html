@@ -65,6 +65,122 @@
         <p class="text-sm" style="color:#475569;">Loading dashboard...</p>
       </div>
 
+      <!-- ── IR Dashboard ──────────────────────────────────────── -->
+      <div id="ir-grid" class="hidden">
+        <!-- IR stat cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="stat-card stat-card-red stagger-1">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">Active Incidents</span>
+              <div class="stat-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);">
+                <i class="fa-solid fa-shield-virus" style="color:#f87171;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="ir-stat-active">—</p>
+            <p class="text-xs mt-2" style="color:#475569;" id="ir-stat-active-sub">— critical · — high</p>
+          </div>
+          <div class="stat-card stat-card-orange stagger-2">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">Actions Today</span>
+              <div class="stat-icon" style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);">
+                <i class="fa-solid fa-bolt" style="color:#fb923c;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="ir-stat-actions">—</p>
+            <p class="text-xs mt-2" style="color:#475569;">Response actions executed</p>
+          </div>
+          <div class="stat-card stat-card-blue stagger-3">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">Playbooks Run</span>
+              <div class="stat-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);">
+                <i class="fa-solid fa-book-open" style="color:#60a5fa;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="ir-stat-playbooks">—</p>
+            <p class="text-xs mt-2" style="color:#475569;">Today</p>
+          </div>
+          <div class="stat-card stat-card-yellow stagger-4">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm" style="color:#64748b;">Notifications</span>
+              <div class="stat-icon" style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.2);">
+                <i class="fa-solid fa-bell" style="color:#facc15;"></i>
+              </div>
+            </div>
+            <p class="stat-number" id="ir-stat-notifs">—</p>
+            <p class="text-xs mt-2" style="color:#475569;" id="ir-stat-notifs-sub">— unread critical</p>
+          </div>
+        </div>
+
+        <!-- IR Phase Bar -->
+        <div class="panel p-5 mb-4 stagger-1">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-medium text-white flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-diagram-project" style="color:#34d399;"></i>
+              IR Lifecycle Overview
+            </h3>
+            <a href="/incidents.html" class="text-xs transition" style="color:#34d399;"
+              onmouseover="this.style.color='#6ee7b7'" onmouseout="this.style.color='#34d399'">Manage Incidents →</a>
+          </div>
+          <div class="flex items-center gap-2" id="ir-phase-bar">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <!-- Active Incidents + Quick Actions -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Active Incidents list -->
+          <div class="lg:col-span-2 panel p-5 stagger-2">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-medium text-white flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-fire" style="color:#f87171;"></i>
+                Active Incidents
+              </h3>
+              <a href="/incidents.html" class="text-xs transition" style="color:#34d399;"
+                onmouseover="this.style.color='#6ee7b7'" onmouseout="this.style.color='#34d399'">View all →</a>
+            </div>
+            <div id="ir-incident-list" class="space-y-2">
+              <p style="color:#475569;" class="text-sm text-center py-6">Loading...</p>
+            </div>
+          </div>
+
+          <!-- IR Quick Actions -->
+          <div class="space-y-4 stagger-3">
+            <div class="panel p-5">
+              <h3 class="font-medium text-white mb-4 flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-bolt" style="color:#34d399;"></i>
+                Quick Actions
+              </h3>
+              <div class="space-y-2">
+                <a href="/incidents.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);color:#f87171;"
+                  onmouseover="this.style.background='rgba(239,68,68,0.12)'"
+                  onmouseout="this.style.background='rgba(239,68,68,0.06)'">
+                  <i class="fa-solid fa-shield-virus w-4 text-center"></i> IR Dashboard
+                </a>
+                <a href="/incidents.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);color:#60a5fa;"
+                  onmouseover="this.style.background='rgba(59,130,246,0.12)'"
+                  onmouseout="this.style.background='rgba(59,130,246,0.06)'">
+                  <i class="fa-solid fa-book-open w-4 text-center"></i> Run Playbook
+                </a>
+                <a href="/alerts.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.15);color:#fb923c;"
+                  onmouseover="this.style.background='rgba(249,115,22,0.12)'"
+                  onmouseout="this.style.background='rgba(249,115,22,0.06)'">
+                  <i class="fa-solid fa-bell w-4 text-center"></i> Review Alerts
+                </a>
+                <a href="/virustotal.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm"
+                  style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);color:#34d399;"
+                  onmouseover="this.style.background='rgba(16,185,129,0.12)'"
+                  onmouseout="this.style.background='rgba(16,185,129,0.06)'">
+                  <i class="fa-solid fa-virus-slash w-4 text-center"></i> Malware Analysis
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── L2 Dashboard ──────────────────────────────────────── -->
       <div id="l2-grid" class="hidden">
         <!-- L2 stat cards -->
@@ -329,6 +445,7 @@
     const _dashRole = _dashUser?.role || '';
     const isL1 = _dashRole === 'soc_analyst_l1';
     const isL2 = _dashRole === 'soc_analyst_l2';
+    const isIR = _dashRole === 'incident_responder';
 
     // ── Theme ─────────────────────────────────────────────────
     const THEME_KEY = 'sentrix_theme';
@@ -391,8 +508,11 @@
       document.getElementById('loading').classList.remove('hidden');
       document.getElementById('stats-grid').classList.add('hidden');
       document.getElementById('l2-grid').classList.add('hidden');
+      document.getElementById('ir-grid').classList.add('hidden');
       try {
-        if (isL2) {
+        if (isIR) {
+          await loadIRDashboard();
+        } else if (isL2) {
           await loadL2Dashboard();
         } else {
           await loadStdDashboard();
@@ -406,6 +526,71 @@
             <button onclick="loadDashboard()" class="btn btn-secondary btn-sm mt-4"><i class="fa-solid fa-rotate-right"></i> Retry</button>
           </div>`;
       }
+    }
+
+    async function loadIRDashboard() {
+      const data = await apiGet('/api/dashboard/ir-stats');
+
+      animateStat('ir-stat-active',    data.incidents.active);
+      animateStat('ir-stat-actions',   data.actions_today);
+      animateStat('ir-stat-playbooks', data.playbooks_today);
+      animateStat('ir-stat-notifs',    data.notifications.unread);
+
+      document.getElementById('ir-stat-active-sub').textContent =
+        `${data.incidents.critical} critical · ${data.incidents.high} high`;
+      document.getElementById('ir-stat-notifs-sub').textContent =
+        `${data.notifications.critical} unread critical`;
+
+      // Phase bar
+      const phaseColors = {
+        new:           { bg: 'rgba(107,114,128,0.15)', border: 'rgba(107,114,128,0.3)',  text: '#9ca3af', label: 'New' },
+        investigating: { bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)',   text: '#fbbf24', label: 'Investigating' },
+        contained:     { bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.3)',   text: '#60a5fa', label: 'Contained' },
+        eradicated:    { bg: 'rgba(168,85,247,0.12)',  border: 'rgba(168,85,247,0.3)',   text: '#c084fc', label: 'Eradicated' },
+        recovered:     { bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.3)',   text: '#34d399', label: 'Recovered' },
+      };
+      const phaseBar = document.getElementById('ir-phase-bar');
+      phaseBar.innerHTML = Object.entries(data.incidents.by_phase).map(([phase, count]) => {
+        const c = phaseColors[phase] || phaseColors.new;
+        return `
+          <div class="flex-1 flex flex-col items-center p-3 rounded-xl text-center"
+            style="background:${c.bg};border:1px solid ${c.border};">
+            <p class="text-2xl font-bold" style="color:${c.text};">${count}</p>
+            <p class="text-xs mt-1" style="color:${c.text};opacity:0.8;">${c.label}</p>
+          </div>`;
+      }).join('');
+
+      // Active incidents list
+      const sevDot = { critical: '#f87171', high: '#fb923c', medium: '#facc15', low: '#4ade80' };
+      const irColors = {
+        new: '#9ca3af', investigating: '#fbbf24', contained: '#60a5fa',
+        eradicated: '#c084fc', recovered: '#34d399'
+      };
+      const list = document.getElementById('ir-incident-list');
+      if (!data.recent_incidents.length) {
+        list.innerHTML = '<p style="color:#475569;" class="text-sm text-center py-6">No active incidents</p>';
+      } else {
+        list.innerHTML = data.recent_incidents.map(inc => `
+          <div class="flex items-center gap-3 p-2.5 rounded-xl transition cursor-pointer"
+            style="border:1px solid rgba(255,255,255,0.04);"
+            onmouseover="this.style.background='rgba(255,255,255,0.03)'"
+            onmouseout="this.style.background='transparent'"
+            onclick="window.location='/incidents.html'">
+            <div class="w-2 h-2 rounded-full flex-shrink-0 mt-0.5"
+              style="background:${sevDot[inc.severity]||'#9ca3af'};box-shadow:0 0 5px ${sevDot[inc.severity]||'#9ca3af'}55;"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm truncate text-gray-200">${inc.title}</p>
+              <p class="text-xs mt-0.5" style="color:#475569;">${inc.case_number} · ${inc.assigned_to || 'Unassigned'}</p>
+            </div>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded"
+              style="color:${irColors[inc.ir_status]||'#9ca3af'};background:${irColors[inc.ir_status]||'#9ca3af'}22;">
+              ${inc.ir_status || 'new'}
+            </span>
+          </div>`).join('');
+      }
+
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('ir-grid').classList.remove('hidden');
     }
 
     async function loadL2Dashboard() {
