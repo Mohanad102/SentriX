@@ -77,6 +77,13 @@
       <span class="text-purple-300 text-xs font-medium">L2 Investigator View</span>
     </div>` : '';
 
+  const irBannerHtml = isIR ? `
+    <div class="mx-3 mt-3 mb-1 px-3 py-2 rounded-xl flex items-center gap-2"
+      style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22);">
+      <i class="fa-solid fa-shield-virus text-red-400 text-xs"></i>
+      <span class="text-red-300 text-xs font-medium">IR Responder View</span>
+    </div>` : '';
+
   const navHtml = groups
     .filter(g => !(g.adminOnly && !isAdmin && !isL2))
     .map(g => {
@@ -117,7 +124,7 @@
       </div>
     </div>`;
 
-  aside.innerHTML = logoHtml + l1BannerHtml + l2BannerHtml + `<nav class="p-3 flex-1 space-y-0.5">${navHtml}</nav>` + userHtml;
+  aside.innerHTML = logoHtml + l1BannerHtml + l2BannerHtml + irBannerHtml + `<nav class="p-3 flex-1 space-y-0.5">${navHtml}</nav>` + userHtml;
 
   // Poll alert badge for all roles
   async function pollAlertBadge() {

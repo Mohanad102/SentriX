@@ -29,6 +29,23 @@
 
     <div class="p-6 page-fade">
 
+      <!-- Tab switcher -->
+      <div class="flex gap-1 mb-5 bg-gray-800/60 rounded-xl p-1 w-fit">
+        <button id="tab-btn-queue" onclick="switchTab('queue')"
+          class="px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-700 text-white">
+          <i class="fa-solid fa-inbox mr-1.5"></i>My Queue
+        </button>
+        <button id="tab-btn-sent" onclick="switchTab('sent')"
+          class="px-4 py-2 rounded-lg text-sm font-medium transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-paper-plane mr-1.5"></i>Sent by Me
+          <span id="sent-count-badge" class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full hidden"
+            style="background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.3);"></span>
+        </button>
+      </div>
+
+      <!-- ═══ MY QUEUE TAB ═══ -->
+      <div id="tab-queue">
+
       <!-- Stats row -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="stats-row">
         <div class="panel p-4">
@@ -124,6 +141,16 @@
         </div>
       </div>
 
+      <!-- Role notice for IR -->
+      <div id="ir-notice" class="hidden mb-4 flex items-center gap-3 px-4 py-3 rounded-xl"
+        style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
+        <i class="fa-solid fa-shield-virus text-red-400"></i>
+        <div>
+          <p class="text-red-300 text-sm font-medium">IR Responder Queue</p>
+          <p class="text-xs mt-0.5" style="color:#fca5a588;">Showing Incident Response tickets assigned to your team. You can update status and manage IR actions.</p>
+        </div>
+      </div>
+
       <!-- Table -->
       <div class="panel overflow-hidden">
         <div id="table-loading" class="flex items-center justify-center py-16">
@@ -157,6 +184,61 @@
         <p class="text-xs text-gray-500" id="pagination-info"></p>
         <div class="flex gap-1" id="pagination-btns"></div>
       </div>
+
+      </div><!-- end tab-queue -->
+
+      <!-- ═══ SENT BY ME TAB ═══ -->
+      <div id="tab-sent" class="hidden">
+
+        <div class="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl"
+          style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);">
+          <i class="fa-solid fa-route text-emerald-400"></i>
+          <div>
+            <p class="text-emerald-300 text-sm font-medium">Ticket Tracking</p>
+            <p class="text-xs mt-0.5" style="color:#6ee7b788;">All tickets you created — see which stage they're at and who's handling them.</p>
+          </div>
+          <button onclick="loadSentTickets()" class="btn btn-secondary btn-sm ml-auto">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+
+        <!-- Sent stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          <div class="panel p-3">
+            <p class="text-gray-500 text-xs mb-1">Total Sent</p>
+            <p class="text-xl font-bold text-white" id="sent-stat-total">—</p>
+          </div>
+          <div class="panel p-3">
+            <p class="text-gray-500 text-xs mb-1">In Progress</p>
+            <p class="text-xl font-bold text-yellow-400" id="sent-stat-active">—</p>
+          </div>
+          <div class="panel p-3">
+            <p class="text-gray-500 text-xs mb-1">Escalated</p>
+            <p class="text-xl font-bold text-red-400" id="sent-stat-escalated">—</p>
+          </div>
+          <div class="panel p-3">
+            <p class="text-gray-500 text-xs mb-1">Closed</p>
+            <p class="text-xl font-bold text-emerald-400" id="sent-stat-closed">—</p>
+          </div>
+        </div>
+
+        <!-- Tracking list -->
+        <div id="sent-loading" class="flex items-center justify-center py-16">
+          <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+        </div>
+        <div id="sent-list" class="hidden space-y-3"></div>
+        <div id="sent-empty" class="hidden text-center py-16 text-gray-500">
+          <i class="fa-solid fa-paper-plane text-3xl mb-3 block opacity-30"></i>
+          <p class="text-sm">You haven't created any tickets yet</p>
+        </div>
+
+        <div class="flex items-center justify-between mt-4">
+          <p class="text-xs text-gray-500" id="sent-pagination-info"></p>
+          <div class="flex gap-1" id="sent-pagination-btns"></div>
+        </div>
+
+      </div><!-- end tab-sent -->
+
     </div>
   </main>
 
@@ -315,22 +397,37 @@
     const isAdmin  = userRole === 'admin';
     const isL2     = userRole === 'soc_analyst_l2';
     const isL1     = userRole === 'soc_analyst_l1';
+    const isIR     = userRole === 'incident_responder';
 
     if (isL1) {
       document.getElementById('l1-notice').classList.remove('hidden');
-      // No assignee pre-filter — L1 sees their queue + their escalated tickets
       document.getElementById('q-ir')?.closest('.panel')?.classList.add('hidden');
     }
-
     if (isL2) {
       document.getElementById('l2-notice').classList.remove('hidden');
-      const assigneeFilter = document.getElementById('filter-assignee');
-      if (assigneeFilter) assigneeFilter.value = 'L2 Analyst';
       document.getElementById('q-it')?.closest('.panel')?.classList.add('hidden');
+      document.getElementById('q-ir')?.closest('.panel')?.classList.add('hidden');
+    }
+    if (isIR) {
+      document.getElementById('ir-notice').classList.remove('hidden');
+      document.getElementById('q-it')?.closest('.panel')?.classList.add('hidden');
+      document.getElementById('q-l2')?.closest('.panel')?.classList.add('hidden');
     }
 
-    let currentPage   = 1;
-    let currentTicket = null;
+    let currentPage     = 1;
+    let sentCurrentPage = 1;
+    let currentTicket   = null;
+    let activeTab       = 'queue';
+
+    // ── Tab switching ─────────────────────────────────────────
+    function switchTab(tab) {
+      activeTab = tab;
+      document.getElementById('tab-queue').classList.toggle('hidden', tab !== 'queue');
+      document.getElementById('tab-sent').classList.toggle('hidden',  tab !== 'sent');
+      document.getElementById('tab-btn-queue').className = `px-4 py-2 rounded-lg text-sm font-medium transition ${tab === 'queue' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
+      document.getElementById('tab-btn-sent').className  = `px-4 py-2 rounded-lg text-sm font-medium transition ${tab === 'sent'  ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
+      if (tab === 'sent') loadSentTickets();
+    }
 
     // ── Helpers ───────────────────────────────────────────────
     function assigneeBadge(a) {
@@ -353,10 +450,11 @@
       return `<span class="badge ${cls}">${label}</span>`;
     }
 
-    // Full update: L2 (their queue) + admin
+    // Full update by role
     function canUpdate(ticket) {
       if (isAdmin) return true;
       if (isL2 && ticket.assigned_to === 'L2 Analyst') return true;
+      if (isIR && ticket.assigned_to === 'Incident Response') return true;
       return false;
     }
     // L1 can add notes to their own queue tickets
@@ -404,6 +502,36 @@
       }
     }
 
+    // Mini pipeline for table rows
+    const MINI_STAGES = [
+      { queue: 'L1 Analyst',       label: 'L1', color: '#60a5fa' },
+      { queue: 'L2 Analyst',       label: 'L2', color: '#c084fc' },
+      { queue: 'Incident Response', label: 'IR', color: '#f87171' },
+      { queue: null,               label: '✓',  color: '#34d399' },  // closed
+    ];
+
+    function miniPipeline(t) {
+      const currentIdx = t.status === 'closed' ? 3
+        : t.assigned_to === 'Incident Response' ? 2
+        : t.assigned_to === 'L2 Analyst' ? 1
+        : 0;
+      return `<div class="flex items-center gap-0.5 mt-1.5">` +
+        MINI_STAGES.map((s, i) => {
+          const done   = i < currentIdx;
+          const active = i === currentIdx;
+          const dot = done
+            ? `background:${s.color};color:#fff;`
+            : active
+              ? `background:${s.color}22;border:1.5px solid ${s.color};color:${s.color};box-shadow:0 0 6px ${s.color}44;`
+              : 'background:#1f2937;border:1.5px solid #374151;color:#4b5563;';
+          const line = i < 3
+            ? `<div style="width:14px;height:2px;${done ? `background:${s.color};` : 'background:#1f2937;'}"></div>`
+            : '';
+          return `<div style="width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.5rem;font-weight:700;${dot}">${s.label}</div>${line}`;
+        }).join('') +
+      `</div>`;
+    }
+
     function renderTable(tickets) {
       const tbody = document.getElementById('tickets-tbody');
       if (!tickets.length) { tbody.innerHTML = ''; return; }
@@ -412,6 +540,7 @@
           <td><span class="font-mono text-xs text-emerald-400">${t.ticket_id}</span></td>
           <td class="max-w-xs">
             <p class="truncate text-gray-100 text-sm" title="${t.title}">${t.title}</p>
+            ${miniPipeline(t)}
             ${t.status === 'closed' && t.resolved_by
               ? `<p class="text-xs mt-0.5 flex items-center gap-1" style="color:#34d399;">
                    <i class="fa-solid fa-circle-check text-xs"></i>
@@ -425,9 +554,12 @@
           <td>${classifyBadge(t.triage_result)}</td>
           <td>
             ${t.created_by
-              ? `<span class="flex items-center gap-1.5 text-xs">
-                   <i class="fa-solid fa-user text-gray-600 text-xs"></i>
-                   <span class="text-gray-300">${t.created_by}</span>
+              ? `<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium"
+                   style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#34d399;">
+                   <span style="width:16px;height:16px;border-radius:50%;background:rgba(16,185,129,0.2);display:inline-flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:#34d399;">
+                     ${t.created_by.charAt(0).toUpperCase()}
+                   </span>
+                   ${t.created_by}
                  </span>`
               : '<span class="text-gray-600 text-xs">—</span>'}
           </td>
@@ -468,11 +600,26 @@
 
         document.getElementById('d-meta').innerHTML = [
           ['Severity',       severityBadge(t.severity)],
-          ['Status',         statusBadge(t.status)],
+          ['Status',         t.status === 'closed' && t.resolved_by
+            ? `<div class="flex flex-col gap-1">
+                 ${statusBadge(t.status)}
+                 <span class="inline-flex items-center gap-1.5 text-xs" style="color:#34d399;">
+                   <i class="fa-solid fa-circle-check" style="font-size:0.65rem;"></i>
+                   Closed by <strong>${t.resolved_by}</strong>
+                   ${t.resolved_at ? `<span class="text-gray-500">· ${timeAgo(t.resolved_at)}</span>` : ''}
+                 </span>
+               </div>`
+            : statusBadge(t.status)],
           ['Assigned To',    assigneeBadge(t.assigned_to)],
           ['Classification', classifyBadge(t.triage_result)],
           ['Created By',     t.created_by
-            ? `<span class="flex items-center gap-1.5 text-xs"><i class="fa-solid fa-user text-emerald-500 text-xs"></i><span class="text-gray-200 font-medium">${t.created_by}</span></span>`
+            ? `<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold"
+                 style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#34d399;">
+                 <span style="width:18px;height:18px;border-radius:50%;background:rgba(16,185,129,0.2);display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;">
+                   ${t.created_by.charAt(0).toUpperCase()}
+                 </span>
+                 ${t.created_by}
+               </span>`
             : '<span class="text-gray-600 text-xs">Unknown</span>'],
           ['L2 Status',      l2StatusBadge(t.l2_status)],
           ['Resolved By',    t.resolved_by
@@ -550,7 +697,7 @@
           l1UpdateSection.classList.add('hidden');
         }
 
-        // Full update section (L2/Admin)
+        // Full update section (L2/IR/Admin)
         const updateSection = document.getElementById('d-update-section');
         const canL2Fields = isAdmin || isL2;
         if (canUpdate(t)) {
@@ -570,6 +717,14 @@
               t.assigned_to === 'Incident Response');
           } else {
             l2Fields.classList.add('hidden');
+          }
+
+          // IR: hide re-assignment to queues below IR level
+          if (isIR && !isAdmin) {
+            const assignedSel = document.getElementById('d-assigned-to');
+            Array.from(assignedSel.options).forEach(o => {
+              o.disabled = (o.value !== 'Incident Response');
+            });
           }
         } else {
           updateSection.classList.add('hidden');
@@ -592,7 +747,7 @@
         });
         showToast('Notes saved successfully', 'success');
         closeModal('detail-modal');
-        loadTickets(currentPage);
+        refreshActive();
       } catch (err) {
         showToast(err.message, 'error');
       } finally {
@@ -635,12 +790,142 @@
         await apiPatch(`/api/tickets/${currentTicket.id}`, payload);
         showToast('Ticket updated', 'success');
         closeModal('detail-modal');
-        loadTickets(currentPage);
+        refreshActive();
       } catch (err) {
         showToast(err.message, 'error');
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+      }
+    }
+
+    // ── Sent by Me (Tracking) ─────────────────────────────────
+    const PIPELINE_STAGES = [
+      { key: 'l1',     label: 'L1 Analyst',        queue: 'L1 Analyst',         color: '#60a5fa', icon: 'fa-user-shield' },
+      { key: 'l2',     label: 'L2 Analyst',         queue: 'L2 Analyst',          color: '#c084fc', icon: 'fa-magnifying-glass-chart' },
+      { key: 'ir',     label: 'Incident Response',  queue: 'Incident Response',   color: '#f87171', icon: 'fa-shield-virus' },
+      { key: 'closed', label: 'Closed',             queue: null,                  color: '#34d399', icon: 'fa-circle-check' },
+    ];
+
+    function pipelineStageIndex(ticket) {
+      if (ticket.status === 'closed') return 3;
+      if (ticket.assigned_to === 'Incident Response') return 2;
+      if (ticket.assigned_to === 'L2 Analyst') return 1;
+      return 0; // L1 Analyst (default)
+    }
+
+    function renderPipeline(ticket) {
+      const current = pipelineStageIndex(ticket);
+      return PIPELINE_STAGES.map((s, i) => {
+        const done   = i < current;
+        const active = i === current;
+        const idle   = i > current;
+        const dotStyle = done
+          ? `background:${s.color};border-color:${s.color};color:#fff;`
+          : active
+            ? `background:${s.color}33;border-color:${s.color};color:${s.color};box-shadow:0 0 10px ${s.color}44;`
+            : 'background:#111827;border-color:#374151;color:#4b5563;';
+        const lineStyle = i < PIPELINE_STAGES.length - 1
+          ? `flex:1;height:2px;margin-top:14px;${done ? `background:${s.color};` : 'background:#1f2937;'}`
+          : '';
+        return `
+          <div class="flex items-start">
+            <div class="flex flex-col items-center">
+              <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid;font-size:0.6rem;transition:all .2s;${dotStyle}">
+                <i class="fa-solid ${done ? 'fa-check' : s.icon}"></i>
+              </div>
+              <span style="font-size:0.6rem;margin-top:4px;text-align:center;max-width:60px;${active ? `color:${s.color};font-weight:600;` : done ? `color:${s.color};opacity:0.7;` : 'color:#4b5563;'}">${s.label}</span>
+            </div>
+            ${i < PIPELINE_STAGES.length - 1 ? `<div style="${lineStyle}"></div>` : ''}
+          </div>`;
+      }).join('');
+    }
+
+    function handlerInfo(ticket) {
+      if (ticket.status === 'closed' && ticket.resolved_by)
+        return `<span class="text-emerald-400 text-xs"><i class="fa-solid fa-circle-check mr-1"></i>Resolved by <strong>${ticket.resolved_by}</strong></span>`;
+      if (ticket.assigned_to === 'Incident Response')
+        return `<span class="text-red-400 text-xs"><i class="fa-solid fa-shield-virus mr-1"></i>IR Team handling</span>`;
+      if (ticket.assigned_to === 'L2 Analyst')
+        return `<span style="color:#c084fc;" class="text-xs"><i class="fa-solid fa-magnifying-glass-chart mr-1"></i>L2 Analyst investigating</span>`;
+      return `<span class="text-blue-400 text-xs"><i class="fa-solid fa-user-shield mr-1"></i>L1 Analyst reviewing</span>`;
+    }
+
+    async function loadSentTickets(page = 1) {
+      sentCurrentPage = page;
+      document.getElementById('sent-loading').classList.remove('hidden');
+      document.getElementById('sent-list').classList.add('hidden');
+      document.getElementById('sent-empty').classList.add('hidden');
+      try {
+        const data = await apiGet('/api/tickets', { my_sent: true, page, page_size: 20 });
+
+        // Stats
+        const items = data.items;
+        document.getElementById('sent-stat-total').textContent     = data.total;
+        document.getElementById('sent-stat-active').textContent    = items.filter(t => t.status === 'in_progress').length;
+        document.getElementById('sent-stat-escalated').textContent = items.filter(t => t.status === 'escalated').length;
+        document.getElementById('sent-stat-closed').textContent    = items.filter(t => t.status === 'closed').length;
+
+        // Badge on tab
+        const badge = document.getElementById('sent-count-badge');
+        if (data.total > 0) {
+          badge.textContent = data.total;
+          badge.classList.remove('hidden');
+        }
+
+        document.getElementById('sent-loading').classList.add('hidden');
+        if (!items.length) {
+          document.getElementById('sent-empty').classList.remove('hidden');
+          return;
+        }
+
+        const list = document.getElementById('sent-list');
+        list.innerHTML = items.map(t => `
+          <div class="panel p-4 cursor-pointer hover:border-emerald-500/20 transition"
+            style="border:1px solid rgba(255,255,255,0.06);"
+            onclick="openDetail(${t.id})">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-mono text-xs text-emerald-400">${t.ticket_id}</span>
+                  ${severityBadge(t.severity)}
+                  ${statusBadge(t.status)}
+                </div>
+                <p class="text-gray-200 text-sm font-medium truncate">${t.title}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-gray-500 text-xs">${timeAgo(t.created_at)}</span>
+                  ${t.created_by ? `
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs"
+                      style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.18);color:#34d399;">
+                      <i class="fa-solid fa-user text-xs" style="font-size:0.55rem;"></i>
+                      ${t.created_by}
+                    </span>` : ''}
+                </div>
+              </div>
+              <div class="shrink-0 text-right">
+                ${handlerInfo(t)}
+              </div>
+            </div>
+            <!-- Pipeline -->
+            <div class="flex items-start mt-3 gap-0">
+              ${renderPipeline(t)}
+            </div>
+            ${t.escalated_at ? `
+              <div class="mt-3 flex items-center gap-1.5 text-xs" style="color:#f87171;">
+                <i class="fa-solid fa-arrow-up-right-dots text-xs"></i>
+                Escalated to Incident Response on ${formatDate(t.escalated_at)}
+              </div>` : ''}
+          </div>`).join('');
+
+        list.classList.remove('hidden');
+
+        document.getElementById('sent-pagination-info').textContent =
+          data.total > 20 ? `Showing ${(page-1)*20+1}–${Math.min(page*20, data.total)} of ${data.total}` : '';
+        buildPagination(document.getElementById('sent-pagination-btns'), page, data.pages, loadSentTickets);
+
+      } catch (err) {
+        document.getElementById('sent-loading').innerHTML =
+          `<p class="text-red-400 text-center py-8">${err.message}</p>`;
       }
     }
 
@@ -650,7 +935,7 @@
         await apiFetch(`/api/tickets/${currentTicket.id}`, { method: 'DELETE' });
         showToast('Ticket deleted', 'success');
         closeModal('detail-modal');
-        loadTickets(currentPage);
+        refreshActive();
       } catch (err) {
         showToast(err.message, 'error');
       }
@@ -660,6 +945,12 @@
 
     document.querySelectorAll('.modal-overlay').forEach(m =>
       m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
+
+    // Refresh both tabs after save/delete
+    function refreshActive() {
+      if (activeTab === 'sent') loadSentTickets(sentCurrentPage);
+      else loadTickets(currentPage);
+    }
 
     loadTickets();
   </script>

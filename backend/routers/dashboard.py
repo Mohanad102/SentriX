@@ -257,6 +257,63 @@ def get_l2_stats(
     }
 
 
+@router.get("/ir-stats")
+def get_ir_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from backend.models.response_action import ResponseAction
+    from backend.models.playbook import PlaybookRun
+    from backend.models.notification import Notification
+
+    today  = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    active = db.query(Incident).filter(Incident.status.in_(["open", "in_progress"])).all()
+
+    phase_counts = {p: 0 for p in ["new", "investigating", "contained", "eradicated", "recovered"]}
+    for inc in active:
+        if inc.ir_status in phase_counts:
+            phase_counts[inc.ir_status] += 1
+
+    actions_today   = db.query(ResponseAction).filter(ResponseAction.executed_at >= today).count()
+    playbooks_today = db.query(PlaybookRun).filter(PlaybookRun.executed_at >= today).count()
+    unread_notifs   = db.query(Notification).filter(Notification.is_read == False).count()   # noqa: E712
+    critical_notifs = db.query(Notification).filter(
+        Notification.is_read == False, Notification.notif_type == "critical"   # noqa: E712
+    ).count()
+
+    sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    sorted_active = sorted(active, key=lambda i: sev_order.get(i.severity, 9))[:8]
+
+    return {
+        "incidents": {
+            "active":   len(active),
+            "critical": sum(1 for i in active if i.severity == "critical"),
+            "high":     sum(1 for i in active if i.severity == "high"),
+            "by_phase": phase_counts,
+        },
+        "actions_today":   actions_today,
+        "playbooks_today": playbooks_today,
+        "notifications": {
+            "unread":   unread_notifs,
+            "critical": critical_notifs,
+        },
+        "recent_incidents": [
+            {
+                "id":          inc.id,
+                "case_number": inc.case_number,
+                "title":       inc.title,
+                "severity":    inc.severity,
+                "status":      inc.status,
+                "ir_status":   inc.ir_status,
+                "assigned_to": inc.assigned_to,
+                "created_at":  inc.created_at.isoformat() if inc.created_at else None,
+            }
+            for inc in sorted_active
+        ],
+    }
+
+
 @router.get("/services-status")
 async def get_services_status(current_user: User = Depends(get_current_user)):
     async def check(url: str, enabled: bool, **kwargs) -> str:

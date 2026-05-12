@@ -86,26 +86,49 @@ def list_tickets(
     status:      Optional[str] = None,
     assigned_to: Optional[str] = None,
     severity:    Optional[str] = None,
-    page:        int = Query(1, ge=1),
-    page_size:   int = Query(20, ge=1, le=100),
+    my_sent:     bool = Query(False),   # show only tickets created by current user
+    page:        int  = Query(1, ge=1),
+    page_size:   int  = Query(20, ge=1, le=100),
     db:          Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     query = db.query(Ticket)
-    # L1 analysts see their queue + any ticket they personally created (to track escalations)
-    if current_user.role == "soc_analyst_l1":
+
+    if my_sent:
+        # Any role: show only tickets I personally created
+        query = query.filter(Ticket.created_by_id == current_user.id)
+    elif current_user.role == "soc_analyst_l1":
+        # L1: their queue + tickets they created (to track escalations)
         query = query.filter(
             or_(
                 Ticket.assigned_to == "L1 Analyst",
                 Ticket.created_by_id == current_user.id,
             )
         )
+    elif current_user.role == "soc_analyst_l2":
+        # L2: their queue + tickets they created
+        query = query.filter(
+            or_(
+                Ticket.assigned_to == "L2 Analyst",
+                Ticket.created_by_id == current_user.id,
+            )
+        )
+    elif current_user.role == "incident_responder":
+        # IR: their queue + tickets they created
+        query = query.filter(
+            or_(
+                Ticket.assigned_to == "Incident Response",
+                Ticket.created_by_id == current_user.id,
+            )
+        )
     elif assigned_to:
         query = query.filter(Ticket.assigned_to == assigned_to)
+
     if status:
         query = query.filter(Ticket.status == status)
     if severity:
         query = query.filter(Ticket.severity == severity)
+
     total   = query.count()
     tickets = query.order_by(Ticket.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
     creators = _resolve_creators(tickets, db)
@@ -206,6 +229,13 @@ def update_ticket(
         raise HTTPException(
             status_code=403,
             detail="L2 analysts can only update tickets assigned to the L2 Analyst queue",
+        )
+
+    # IR analysts may only update tickets routed to their queue
+    if current_user.role == "incident_responder" and ticket.assigned_to != "Incident Response":
+        raise HTTPException(
+            status_code=403,
+            detail="IR analysts can only update tickets assigned to the Incident Response queue",
         )
 
     if data.status and data.status in VALID_STATUSES:
