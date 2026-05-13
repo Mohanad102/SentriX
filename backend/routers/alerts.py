@@ -72,7 +72,10 @@ def list_alerts(
     category: Optional[str] = None,
     search: Optional[str] = None,
     time_range: Optional[str] = None,
-    sort_order: Optional[str] = Query("desc", regex="^(asc|desc)$"),
+    sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$"),
+    hostname: Optional[str] = None,
+    hostnames: Optional[str] = None,
+    source: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -83,6 +86,14 @@ def list_alerts(
         query = query.filter(Alert.status == status)
     if category:
         query = query.filter(Alert.category == category)
+    if source:
+        query = query.filter(Alert.source == source)
+    if hostname:
+        query = query.filter(Alert.hostname.ilike(f"%{hostname}%"))
+    if hostnames:
+        names = [h.strip() for h in hostnames.split(",") if h.strip()]
+        if names:
+            query = query.filter(or_(*[Alert.hostname.ilike(f"%{n}%") for n in names]))
     if search:
         query = query.filter(
             or_(
