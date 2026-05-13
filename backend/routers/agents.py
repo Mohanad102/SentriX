@@ -1,13 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from backend.utils.auth import get_current_user
+from backend.database import get_db
 from backend.config import settings
+from backend.models.agent_label import AgentLabel
 import httpx
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
 
+class LabelUpdate(BaseModel):
+    label: str
+
+
 async def _wazuh_get(path: str) -> dict:
-    """Make an authenticated GET request to the Wazuh API."""
     if not settings.WAZUH_ENABLED:
         raise HTTPException(status_code=503, detail="Wazuh integration is disabled")
 
@@ -34,11 +41,20 @@ async def _wazuh_get(path: str) -> dict:
         raise HTTPException(status_code=503, detail=f"Cannot reach Wazuh: {str(e)}")
 
 
+def _apply_labels(agents: list, db: Session) -> list:
+    labels = {r.agent_id: r.label for r in db.query(AgentLabel).all()}
+    for a in agents:
+        a["label"] = labels.get(a["id"])
+        a["display_name"] = a["label"] or a["name"]
+    return agents
+
+
 @router.get("")
 async def list_agents(
     status: str = "",
     limit: int = 500,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     params = f"?limit={limit}&sort=-dateAdd"
     if status:
@@ -50,22 +66,24 @@ async def list_agents(
     result = []
     for a in agents:
         result.append({
-            "id":           a.get("id"),
-            "name":         a.get("name"),
-            "ip":           a.get("ip"),
-            "os":           _os_label(a.get("os", {})),
-            "os_platform":  a.get("os", {}).get("platform", "unknown"),
-            "status":       a.get("status"),
-            "version":      a.get("version"),
+            "id":             a.get("id"),
+            "name":           a.get("name"),
+            "ip":             a.get("ip"),
+            "os":             _os_label(a.get("os", {})),
+            "os_platform":    a.get("os", {}).get("platform", "unknown"),
+            "status":         a.get("status"),
+            "version":        a.get("version"),
             "last_keepalive": a.get("lastKeepAlive"),
-            "date_add":     a.get("dateAdd"),
-            "group":        ", ".join(a.get("group") or []) or "default",
-            "node_name":    a.get("node_name"),
+            "date_add":       a.get("dateAdd"),
+            "group":          ", ".join(a.get("group") or []) or "default",
+            "node_name":      a.get("node_name"),
         })
 
-    total       = data.get("data", {}).get("total_affected_items", len(result))
-    active      = sum(1 for a in result if a["status"] == "active")
-    disconnected = sum(1 for a in result if a["status"] == "disconnected")
+    result = _apply_labels(result, db)
+
+    total           = data.get("data", {}).get("total_affected_items", len(result))
+    active          = sum(1 for a in result if a["status"] == "active")
+    disconnected    = sum(1 for a in result if a["status"] == "disconnected")
     never_connected = sum(1 for a in result if a["status"] == "never_connected")
 
     return {
@@ -82,24 +100,34 @@ async def agents_summary(current_user=Depends(get_current_user)):
     data = await _wazuh_get("/agents/summary/status")
     summary = data.get("data", {})
     return {
-        "active":           summary.get("active", 0),
-        "disconnected":     summary.get("disconnected", 0),
-        "never_connected":  summary.get("never_connected", 0),
-        "pending":          summary.get("pending", 0),
-        "total":            summary.get("total_affected_items", 0),
+        "active":          summary.get("active", 0),
+        "disconnected":    summary.get("disconnected", 0),
+        "never_connected": summary.get("never_connected", 0),
+        "pending":         summary.get("pending", 0),
+        "total":           summary.get("total_affected_items", 0),
     }
 
 
 @router.get("/{agent_id}")
-async def get_agent(agent_id: str, current_user=Depends(get_current_user)):
+async def get_agent(
+    agent_id: str,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     data = await _wazuh_get(f"/agents?agents_list={agent_id}")
     items = data.get("data", {}).get("affected_items", [])
     if not items:
         raise HTTPException(status_code=404, detail="Agent not found")
     a = items[0]
+
+    lbl = db.query(AgentLabel).filter(AgentLabel.agent_id == agent_id).first()
+    label = lbl.label if lbl else None
+
     return {
         "id":             a.get("id"),
         "name":           a.get("name"),
+        "label":          label,
+        "display_name":   label or a.get("name"),
         "ip":             a.get("ip"),
         "os":             _os_label(a.get("os", {})),
         "os_platform":    a.get("os", {}).get("platform", "unknown"),
@@ -112,6 +140,40 @@ async def get_agent(agent_id: str, current_user=Depends(get_current_user)):
         "manager":        a.get("manager"),
         "register_ip":    a.get("registerIP"),
     }
+
+
+@router.put("/{agent_id}/label")
+async def set_label(
+    agent_id: str,
+    body: LabelUpdate,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    label = body.label.strip()
+    if not label:
+        # Clear label
+        db.query(AgentLabel).filter(AgentLabel.agent_id == agent_id).delete()
+        db.commit()
+        return {"agent_id": agent_id, "label": None}
+
+    existing = db.query(AgentLabel).filter(AgentLabel.agent_id == agent_id).first()
+    if existing:
+        existing.label = label
+    else:
+        db.add(AgentLabel(agent_id=agent_id, label=label))
+    db.commit()
+    return {"agent_id": agent_id, "label": label}
+
+
+@router.delete("/{agent_id}/label")
+async def clear_label(
+    agent_id: str,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db.query(AgentLabel).filter(AgentLabel.agent_id == agent_id).delete()
+    db.commit()
+    return {"agent_id": agent_id, "label": None}
 
 
 @router.delete("/{agent_id}")
