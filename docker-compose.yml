@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+
+  # ── Wazuh Manager ──────────────────────────────────────────────
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.7.5
+    container_name: wazuh-manager
+    hostname: wazuh-manager
+    restart: unless-stopped
+    ports:
+      - "1514:1514"       # Agent communication
+      - "1515:1515"       # Agent enrollment
+      - "55000:55000"     # Wazuh API
+    environment:
+      - WAZUH_API_USER=wazuh
+      - WAZUH_API_PASSWORD=Wazuh@1234!
+    volumes:
+      - wazuh_data:/var/ossec/data
+      - wazuh_logs:/var/ossec/logs
+      - wazuh_queue:/var/ossec/queue
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:55000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── SentriX SOC Platform ───────────────────────────────────────
+  sentrix:
+    build: .
+    container_name: sentrix
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - WAZUH_ENABLED=true
+      - WAZUH_URL=https://wazuh-manager:55000
+      - WAZUH_USER=wazuh
+      - WAZUH_PASSWORD=Wazuh@1234!
+      - WAZUH_ALERTS_LOG=/var/ossec/logs/alerts/alerts.json
+      - VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY:-}
+      - VIRUSTOTAL_ENABLED=${VIRUSTOTAL_ENABLED:-false}
+    volumes:
+      - sentrix_db:/app/sentrix.db
+      - wazuh_logs:/wazuh-logs:ro   # read Wazuh alerts directly
+    depends_on:
+      wazuh-manager:
+        condition: service_healthy
+
+volumes:
+  wazuh_data:
+  wazuh_logs:
+  wazuh_queue:
+  sentrix_db:
