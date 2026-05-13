@@ -22,6 +22,9 @@
         <p class="text-gray-500 text-xs mt-0.5">Monitored endpoints connected to Wazuh</p>
       </div>
       <div class="flex items-center gap-3">
+        <button id="combine-btn" onclick="viewCombinedAlerts()" class="hidden btn btn-secondary btn-sm">
+          <i class="fa-solid fa-layer-group"></i> View Combined Alerts (<span id="combine-count">0</span>)
+        </button>
         <button onclick="loadAgents()" class="btn btn-secondary btn-sm">
           <i class="fa-solid fa-rotate-right"></i> Refresh
         </button>
@@ -108,6 +111,9 @@
         <table class="w-full text-sm hidden" id="agents-table">
           <thead>
             <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <th class="px-4 py-3 w-8">
+                <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" class="accent-emerald-500 w-3.5 h-3.5">
+              </th>
               <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">ID</th>
               <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">Name</th>
               <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">IP Address</th>
@@ -283,6 +289,10 @@
       tbody.innerHTML = agents.map(a => `
         <tr class="row-in border-b border-white/5 hover:bg-white/[0.02] transition cursor-pointer"
             onclick="showDetail('${a.id}')">
+          <td class="px-4 py-3" onclick="event.stopPropagation()">
+            <input type="checkbox" class="agent-cb accent-emerald-500 w-3.5 h-3.5"
+              data-name="${a.name}" onchange="updateCombineBtn()">
+          </td>
           <td class="px-4 py-3 text-gray-500 font-mono text-xs">${a.id}</td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-2">
@@ -410,7 +420,7 @@
           ${row('Registered', fmtDate(a.date_add))}
           ${row('Last Seen', fmtDate(a.last_keepalive))}
           <div class="pt-3 flex justify-end">
-            <a href="/alerts.html?source=wazuh&hostname=${encodeURIComponent(a.name)}"
+            <a href="/alerts.html?hostname=${encodeURIComponent(a.name)}&source=wazuh"
               class="btn btn-primary btn-sm">
               <i class="fa-solid fa-bell"></i> View Alerts from this Agent
             </a>
@@ -501,6 +511,29 @@ sudo /Library/Ossec/bin/wazuh-control start`
     document.getElementById('detail-modal').addEventListener('click', e => {
       if (e.target === e.currentTarget) document.getElementById('detail-modal').classList.add('hidden');
     });
+
+    // ── Select all / combine ──────────────────────────────────────
+    function toggleSelectAll(master) {
+      document.querySelectorAll('.agent-cb').forEach(cb => cb.checked = master.checked);
+      updateCombineBtn();
+    }
+
+    function updateCombineBtn() {
+      const checked = [...document.querySelectorAll('.agent-cb:checked')];
+      const btn = document.getElementById('combine-btn');
+      document.getElementById('combine-count').textContent = checked.length;
+      btn.classList.toggle('hidden', checked.length < 2);
+      // uncheck master if not all selected
+      const all = document.querySelectorAll('.agent-cb');
+      const sa  = document.getElementById('select-all');
+      if (sa) sa.checked = all.length > 0 && checked.length === all.length;
+    }
+
+    function viewCombinedAlerts() {
+      const names = [...document.querySelectorAll('.agent-cb:checked')].map(cb => cb.dataset.name);
+      if (!names.length) return;
+      window.location.href = `/alerts.html?hostnames=${encodeURIComponent(names.join(','))}`;
+    }
 
     // ── Init ──────────────────────────────────────────────────────
     loadAgents();

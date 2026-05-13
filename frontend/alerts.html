@@ -24,6 +24,20 @@
     </header>
 
     <div class="p-6 page-fade">
+
+      <!-- Agent filter banner -->
+      <div id="agent-filter-bar" class="hidden mb-4 px-4 py-3 rounded-xl flex items-center gap-3 justify-between"
+        style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.25);">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-network-wired text-emerald-400 text-sm"></i>
+          <span class="text-emerald-300 text-sm font-medium">Filtered by agent: </span>
+          <span id="agent-filter-label" class="text-white font-semibold text-sm"></span>
+        </div>
+        <button onclick="clearAgentFilter()" class="text-gray-500 hover:text-gray-300 transition text-xs flex items-center gap-1">
+          <i class="fa-solid fa-xmark"></i> Clear filter
+        </button>
+      </div>
+
       <!-- Filters -->
       <div class="panel p-4 mb-4 flex flex-wrap items-center gap-3">
         <div class="relative flex-1 min-w-48">
@@ -574,6 +588,25 @@
     }
 
     // ── Load & Render ─────────────────────────────────────────
+    // ── Read URL params for agent filtering ──────────────────────
+    const _urlParams   = new URLSearchParams(window.location.search);
+    const _hostname    = _urlParams.get('hostname')  || '';
+    const _hostnames   = _urlParams.get('hostnames') || '';
+    const _source      = _urlParams.get('source')    || '';
+
+    if (_hostname || _hostnames) {
+      const bar   = document.getElementById('agent-filter-bar');
+      const label = document.getElementById('agent-filter-label');
+      bar.classList.remove('hidden');
+      label.textContent = _hostnames
+        ? _hostnames.split(',').map(s => s.trim()).join(', ')
+        : _hostname;
+    }
+
+    function clearAgentFilter() {
+      window.location.href = '/alerts.html';
+    }
+
     async function loadAlerts(page = 1) {
       currentPage = page;
       document.getElementById('table-loading').classList.remove('hidden');
@@ -586,6 +619,9 @@
         status:      document.getElementById('filter-status').value,
         time_range:  document.getElementById('filter-time').value,
         sort_order:  sortOrder,
+        hostname:    _hostname,
+        hostnames:   _hostnames,
+        source:      _source,
       };
       Object.keys(params).forEach(k => !params[k] && delete params[k]);
 
