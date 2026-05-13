@@ -534,17 +534,16 @@
 
     async function loadAgentLabels() {
       try {
-        const r = await fetch('/api/agents', { headers: { Authorization: `Bearer ${TOKEN}` } });
-        if (!r.ok) return;
-        const d = await r.json();
+        const d = await apiGet('/api/agents');
+        if (!d) return;
         _agentLabels = {};
         const sel = document.getElementById('filter-agent');
         const prev = sel.value;
-        // keep first option
         while (sel.options.length > 1) sel.remove(1);
-        (d.agents || []).forEach(a => {
+        (d.agents || []).filter(a => a.id !== '000').forEach(a => {
           _agentLabels[a.name] = a.display_name || a.name;
-          const opt = new Option(`${a.display_name || a.name} (${a.status})`, a.name);
+          const statusIcon = a.status === 'active' ? '🟢' : '🔴';
+          const opt = new Option(`${statusIcon} ${a.display_name || a.name}`, a.name);
           sel.add(opt);
         });
         if (prev) sel.value = prev;
