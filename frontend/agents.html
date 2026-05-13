@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — Agents</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="text-gray-100 flex" id="body" style="background:#020817;">
+
+  <div class="mesh-bg"></div>
+  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;"></aside>
+
+  <main class="flex-1 min-h-screen overflow-auto" style="position:relative;z-index:1;">
+
+    <!-- Header -->
+    <header class="px-6 py-4 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
+      <div>
+        <h1 class="text-white font-semibold text-lg">Wazuh Agents</h1>
+        <p class="text-gray-500 text-xs mt-0.5">Monitored endpoints connected to Wazuh</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="loadAgents()" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+        <button onclick="showInstallGuide()" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-plus"></i> Add Agent
+        </button>
+      </div>
+    </header>
+
+    <div class="p-6 page-fade">
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="stats-row">
+        <div class="stat-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Total Agents</span>
+            <i class="fa-solid fa-server text-emerald-400 text-sm"></i>
+          </div>
+          <div class="text-3xl font-bold text-white" id="stat-total">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Active</span>
+            <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+          </div>
+          <div class="text-3xl font-bold text-emerald-400" id="stat-active">—</div>
+        </div>
+        <div class="stat-card stat-card-red">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Disconnected</span>
+            <i class="fa-solid fa-circle-xmark text-red-400 text-sm"></i>
+          </div>
+          <div class="text-3xl font-bold text-red-400" id="stat-disconnected">—</div>
+        </div>
+        <div class="stat-card stat-card-yellow">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wide">Never Connected</span>
+            <i class="fa-solid fa-clock text-yellow-400 text-sm"></i>
+          </div>
+          <div class="text-3xl font-bold text-yellow-400" id="stat-never">—</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="panel p-4 mb-4 flex flex-wrap items-center gap-3">
+        <div class="relative flex-1 min-w-48">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+          <input type="text" id="search-input" placeholder="Search by name or IP..." class="form-input pl-9" oninput="filterTable()" />
+        </div>
+        <select id="filter-status" class="form-input form-select w-40" onchange="filterTable()">
+          <option value="">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="disconnected">Disconnected</option>
+          <option value="never_connected">Never Connected</option>
+          <option value="pending">Pending</option>
+        </select>
+        <select id="filter-os" class="form-input form-select w-36" onchange="filterTable()">
+          <option value="">All OS</option>
+          <option value="windows">Windows</option>
+          <option value="linux">Linux</option>
+          <option value="darwin">macOS</option>
+        </select>
+      </div>
+
+      <!-- Wazuh disabled notice -->
+      <div id="wazuh-notice" class="hidden panel p-8 text-center mb-4">
+        <i class="fa-solid fa-plug-circle-xmark text-4xl text-gray-600 mb-3 block"></i>
+        <p class="text-gray-400 font-medium mb-1">Wazuh is not connected</p>
+        <p class="text-gray-600 text-sm">Enable Wazuh in your <code class="text-emerald-400">.env</code> file and start the Docker Compose stack.</p>
+        <div class="mt-4">
+          <code class="text-xs text-gray-500 bg-gray-900 px-3 py-1 rounded-lg">docker-compose up -d</code>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="panel overflow-hidden" id="table-wrap">
+        <div id="table-loading" class="flex items-center justify-center py-16">
+          <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+        </div>
+        <div id="table-empty" class="hidden text-center py-16">
+          <i class="fa-solid fa-server text-4xl text-gray-700 mb-3 block"></i>
+          <p class="text-gray-500">No agents found</p>
+        </div>
+        <table class="w-full text-sm hidden" id="agents-table">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">ID</th>
+              <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">Name</th>
+              <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">IP Address</th>
+              <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">OS</th>
+              <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">Group</th>
+              <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">Status</th>
+              <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">Last Seen</th>
+              <th class="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">Version</th>
+              <th class="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody id="agents-body"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Install Guide Modal -->
+  <div id="install-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);">
+    <div class="panel w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4" style="animation:modal-in 0.3s cubic-bezier(0.34,1.56,0.64,1);">
+      <div class="flex items-center justify-between p-5 border-b border-white/5">
+        <h3 class="text-white font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-terminal text-emerald-400"></i> Add Wazuh Agent
+        </h3>
+        <button onclick="closeModal()" class="text-gray-500 hover:text-gray-300 transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-5">
+
+        <!-- OS Tabs -->
+        <div class="flex gap-2">
+          <button onclick="switchOS('windows')" id="tab-windows" class="os-tab active px-4 py-2 rounded-xl text-sm font-medium transition">
+            <i class="fa-brands fa-windows mr-1"></i> Windows
+          </button>
+          <button onclick="switchOS('linux')" id="tab-linux" class="os-tab px-4 py-2 rounded-xl text-sm font-medium transition">
+            <i class="fa-brands fa-linux mr-1"></i> Linux
+          </button>
+          <button onclick="switchOS('macos')" id="tab-macos" class="os-tab px-4 py-2 rounded-xl text-sm font-medium transition">
+            <i class="fa-brands fa-apple mr-1"></i> macOS
+          </button>
+        </div>
+
+        <div class="rounded-xl p-1" style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);">
+          <div class="flex items-center gap-2 px-3 py-2 border-b border-white/5">
+            <i class="fa-solid fa-circle text-red-500 text-xs"></i>
+            <i class="fa-solid fa-circle text-yellow-500 text-xs"></i>
+            <i class="fa-solid fa-circle text-emerald-500 text-xs"></i>
+            <span class="text-gray-500 text-xs ml-2">Terminal</span>
+          </div>
+          <pre id="install-cmd" class="text-emerald-300 text-xs p-4 leading-relaxed overflow-x-auto whitespace-pre-wrap"></pre>
+        </div>
+
+        <div class="rounded-xl p-4 flex gap-3" style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);">
+          <i class="fa-solid fa-circle-info text-blue-400 mt-0.5"></i>
+          <div class="text-gray-400 text-sm">
+            Replace <code class="text-emerald-400">MANAGER_IP</code> with the IP address of the machine running Wazuh.<br/>
+            After installing, the agent will appear in this list within a few seconds.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Detail Modal -->
+  <div id="detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);">
+    <div class="panel w-full max-w-lg mx-4" style="animation:modal-in 0.3s cubic-bezier(0.34,1.56,0.64,1);">
+      <div class="flex items-center justify-between p-5 border-b border-white/5">
+        <h3 class="text-white font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-server text-emerald-400"></i>
+          <span id="detail-name">Agent Details</span>
+        </h3>
+        <button onclick="document.getElementById('detail-modal').classList.add('hidden')" class="text-gray-500 hover:text-gray-300 transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-3" id="detail-body"></div>
+    </div>
+  </div>
+
+  <script src="/static/js/sidebar.js"></script>
+  <script>
+    const TOKEN = localStorage.getItem('sentrix_token');
+    if (!TOKEN) window.location.href = '/';
+
+    const HDR = { Authorization: `Bearer ${TOKEN}` };
+    let allAgents = [];
+
+    // ── OS icons ──────────────────────────────────────────────────
+    function osIcon(platform) {
+      if (!platform) return '<i class="fa-solid fa-microchip text-gray-500"></i>';
+      const p = platform.toLowerCase();
+      if (p === 'windows') return '<i class="fa-brands fa-windows text-blue-400"></i>';
+      if (p === 'darwin')  return '<i class="fa-brands fa-apple text-gray-300"></i>';
+      return '<i class="fa-brands fa-linux text-yellow-400"></i>';
+    }
+
+    // ── Status badge ──────────────────────────────────────────────
+    function statusBadge(status) {
+      const map = {
+        active:          ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', 'fa-circle-check',   'Active'],
+        disconnected:    ['bg-red-500/10 text-red-400 border-red-500/30',             'fa-circle-xmark',   'Disconnected'],
+        never_connected: ['bg-yellow-500/10 text-yellow-400 border-yellow-500/30',    'fa-clock',          'Never Connected'],
+        pending:         ['bg-blue-500/10 text-blue-400 border-blue-500/30',          'fa-hourglass-half', 'Pending'],
+      };
+      const [cls, icon, label] = map[status] || ['bg-gray-500/10 text-gray-400 border-gray-500/30', 'fa-question', status];
+      return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ${cls}">
+        <i class="fa-solid ${icon} text-xs"></i> ${label}
+      </span>`;
+    }
+
+    // ── Format date ───────────────────────────────────────────────
+    function fmtDate(iso) {
+      if (!iso) return '<span class="text-gray-600">—</span>';
+      const d = new Date(iso);
+      const diff = Date.now() - d.getTime();
+      if (diff < 60000) return '<span class="text-emerald-400">Just now</span>';
+      if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`;
+      if (diff < 86400000) return `${Math.floor(diff/3600000)}h ago`;
+      return d.toLocaleDateString();
+    }
+
+    // ── Load agents ───────────────────────────────────────────────
+    async function loadAgents() {
+      document.getElementById('table-loading').classList.remove('hidden');
+      document.getElementById('agents-table').classList.add('hidden');
+      document.getElementById('table-empty').classList.add('hidden');
+      document.getElementById('wazuh-notice').classList.add('hidden');
+
+      try {
+        const r = await fetch('/api/agents', { headers: HDR });
+        if (r.status === 503) {
+          document.getElementById('wazuh-notice').classList.remove('hidden');
+          document.getElementById('table-wrap').querySelector('table')?.classList.add('hidden');
+          document.getElementById('table-loading').classList.add('hidden');
+          // zero out stats
+          ['stat-total','stat-active','stat-disconnected','stat-never'].forEach(id => {
+            document.getElementById(id).textContent = '0';
+          });
+          return;
+        }
+
+        const data = await r.json();
+        allAgents = data.agents || [];
+
+        document.getElementById('stat-total').textContent       = data.total ?? 0;
+        document.getElementById('stat-active').textContent      = data.active ?? 0;
+        document.getElementById('stat-disconnected').textContent = data.disconnected ?? 0;
+        document.getElementById('stat-never').textContent       = data.never_connected ?? 0;
+
+        document.getElementById('table-loading').classList.add('hidden');
+        renderTable(allAgents);
+
+      } catch (e) {
+        document.getElementById('table-loading').classList.add('hidden');
+        document.getElementById('wazuh-notice').classList.remove('hidden');
+      }
+    }
+
+    // ── Render table ──────────────────────────────────────────────
+    function renderTable(agents) {
+      const tbody = document.getElementById('agents-body');
+      if (!agents.length) {
+        document.getElementById('table-empty').classList.remove('hidden');
+        document.getElementById('agents-table').classList.add('hidden');
+        return;
+      }
+      document.getElementById('agents-table').classList.remove('hidden');
+      document.getElementById('table-empty').classList.add('hidden');
+
+      tbody.innerHTML = agents.map(a => `
+        <tr class="row-in border-b border-white/5 hover:bg-white/[0.02] transition cursor-pointer"
+            onclick="showDetail('${a.id}')">
+          <td class="px-4 py-3 text-gray-500 font-mono text-xs">${a.id}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              ${osIcon(a.os_platform)}
+              <span class="text-white font-medium">${a.name || '—'}</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 font-mono text-gray-300 text-xs">${a.ip || '—'}</td>
+          <td class="px-4 py-3 text-gray-400 text-xs max-w-40 truncate" title="${a.os}">${a.os}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-lg text-xs text-gray-400 border border-white/10">${a.group}</span>
+          </td>
+          <td class="px-4 py-3">${statusBadge(a.status)}</td>
+          <td class="px-4 py-3 text-gray-400 text-xs">${fmtDate(a.last_keepalive)}</td>
+          <td class="px-4 py-3 text-gray-600 text-xs">${a.version || '—'}</td>
+          <td class="px-4 py-3">
+            <button onclick="event.stopPropagation();showDetail('${a.id}')"
+              class="text-gray-600 hover:text-emerald-400 transition px-2">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+          </td>
+        </tr>`).join('');
+    }
+
+    // ── Filter table ──────────────────────────────────────────────
+    function filterTable() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const status = document.getElementById('filter-status').value;
+      const os     = document.getElementById('filter-os').value;
+
+      const filtered = allAgents.filter(a => {
+        const matchSearch = !search ||
+          (a.name || '').toLowerCase().includes(search) ||
+          (a.ip || '').includes(search);
+        const matchStatus = !status || a.status === status;
+        const matchOS     = !os || (a.os_platform || '').toLowerCase() === os;
+        return matchSearch && matchStatus && matchOS;
+      });
+      renderTable(filtered);
+    }
+
+    // ── Agent detail modal ────────────────────────────────────────
+    async function showDetail(agentId) {
+      document.getElementById('detail-modal').classList.remove('hidden');
+      document.getElementById('detail-name').textContent = 'Loading...';
+      document.getElementById('detail-body').innerHTML =
+        '<div class="flex justify-center py-8"><i class="fa-solid fa-spinner fa-spin text-emerald-400 text-xl"></i></div>';
+
+      try {
+        const r = await fetch(`/api/agents/${agentId}`, { headers: HDR });
+        const a = await r.json();
+        document.getElementById('detail-name').textContent = a.name || agentId;
+
+        const row = (label, val) => `
+          <div class="flex items-center justify-between py-2 border-b border-white/5">
+            <span class="text-gray-500 text-sm">${label}</span>
+            <span class="text-gray-200 text-sm font-medium">${val || '—'}</span>
+          </div>`;
+
+        document.getElementById('detail-body').innerHTML = `
+          ${row('Agent ID', a.id)}
+          ${row('Status', statusBadge(a.status))}
+          ${row('IP Address', `<span class="font-mono">${a.ip}</span>`)}
+          ${row('OS', a.os)}
+          ${row('Group', a.group)}
+          ${row('Manager', a.manager)}
+          ${row('Node', a.node_name)}
+          ${row('Version', a.version)}
+          ${row('Registered', fmtDate(a.date_add))}
+          ${row('Last Seen', fmtDate(a.last_keepalive))}
+          <div class="pt-3 flex justify-end">
+            <a href="/alerts.html?source=wazuh&hostname=${encodeURIComponent(a.name)}"
+              class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-bell"></i> View Alerts from this Agent
+            </a>
+          </div>`;
+      } catch {
+        document.getElementById('detail-body').innerHTML =
+          '<p class="text-red-400 text-sm text-center py-6">Failed to load agent details</p>';
+      }
+    }
+
+    // ── Install guide modal ───────────────────────────────────────
+    const CMDS = {
+      windows: `# 1. Download Wazuh Agent installer
+Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.7.5-1.msi -OutFile wazuh-agent.msi
+
+# 2. Install and connect to your Wazuh Manager
+msiexec.exe /i wazuh-agent.msi /q \\
+  WAZUH_MANAGER="MANAGER_IP" \\
+  WAZUH_AGENT_NAME="MyWindowsPC"
+
+# 3. Start the agent service
+NET START WazuhSvc`,
+
+      linux: `# 1. Add Wazuh repository
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add -
+echo "deb https://packages.wazuh.com/4.x/apt/ stable main" \\
+  | tee /etc/apt/sources.list.d/wazuh.list
+
+# 2. Install agent
+apt-get update && apt-get install -y wazuh-agent
+
+# 3. Set Manager IP
+sed -i 's|MANAGER_IP|MANAGER_IP|g' /var/ossec/etc/ossec.conf
+
+# 4. Start & enable agent
+systemctl daemon-reload
+systemctl enable wazuh-agent
+systemctl start wazuh-agent`,
+
+      macos: `# 1. Download Wazuh Agent for macOS
+curl -so wazuh-agent.pkg \\
+  https://packages.wazuh.com/4.x/macos/wazuh-agent-4.7.5-1.intel64.pkg
+
+# 2. Install
+sudo installer -pkg wazuh-agent.pkg -target /
+
+# 3. Set Manager IP
+sudo /Library/Ossec/bin/agent-auth -m MANAGER_IP
+
+# 4. Start agent
+sudo /Library/Ossec/bin/wazuh-control start`
+    };
+
+    let currentOS = 'windows';
+    function switchOS(os) {
+      currentOS = os;
+      ['windows','linux','macos'].forEach(o => {
+        document.getElementById(`tab-${o}`).classList.toggle('active', o === os);
+      });
+      document.getElementById('install-cmd').textContent = CMDS[os];
+    }
+
+    function showInstallGuide() {
+      document.getElementById('install-modal').classList.remove('hidden');
+      switchOS('windows');
+    }
+
+    function closeModal() {
+      document.getElementById('install-modal').classList.add('hidden');
+    }
+
+    // Close modals on backdrop click
+    document.getElementById('install-modal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.getElementById('detail-modal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) document.getElementById('detail-modal').classList.add('hidden');
+    });
+
+    // ── Init ──────────────────────────────────────────────────────
+    loadAgents();
+    setInterval(loadAgents, 30000);
+  </script>
+
+  <style>
+    .os-tab {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #6b7280;
+    }
+    .os-tab.active {
+      background: rgba(16,185,129,0.1);
+      border-color: rgba(16,185,129,0.3);
+      color: #10b981;
+    }
+    .os-tab:hover:not(.active) {
+      background: rgba(255,255,255,0.06);
+      color: #d1d5db;
+    }
+    @keyframes modal-in {
+      from { opacity:0; transform: scale(0.95) translateY(10px); }
+      to   { opacity:1; transform: scale(1) translateY(0); }
+    }
+  </style>
+</body>
+</html>

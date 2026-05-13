@@ -29,8 +29,9 @@
     {
       label: 'Tools',
       links: [
-        { href: '/ai_analyst.html', icon: 'fa-robot',      label: 'AI Analyst',  roles: ['admin', 'soc_analyst_l2'] },
-        { href: '/virustotal.html', icon: 'fa-virus-slash', label: 'VirusTotal', roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
+        { href: '/ai_analyst.html', icon: 'fa-robot',        label: 'AI Analyst',  roles: ['admin', 'soc_analyst_l2'] },
+        { href: '/virustotal.html', icon: 'fa-virus-slash',  label: 'VirusTotal',  roles: ['admin', 'soc_analyst_l1', 'soc_analyst_l2', 'incident_responder'] },
+        { href: '/agents.html',     icon: 'fa-network-wired', label: 'Agents',     roles: ['admin', 'soc_analyst_l2'] },
       ]
     },
     {
