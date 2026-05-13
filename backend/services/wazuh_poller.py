@@ -1,15 +1,17 @@
 """
-Wazuh alert poller — reads alerts.json from the shared Docker volume
-and imports new alerts into SentriX in real time.
-Falls back to the Wazuh REST API if the log file is unavailable.
+Wazuh alert poller — reads alerts from the Wazuh Manager container via docker exec.
+Imports new alerts into SentriX in real time.
 """
 import asyncio
 import json
-import os
+import subprocess
 import uuid
 from datetime import datetime
 
 from backend.config import settings
+
+WAZUH_CONTAINER = "wazuh-manager"
+ALERTS_LOG_PATH = "/var/ossec/logs/alerts/alerts.json"
 
 
 def _level_to_severity(level: int) -> str:
@@ -47,25 +49,77 @@ def parse_wazuh_alert(raw: dict) -> dict | None:
     }
 
 
-# ── Tail the alerts.json file from the shared volume ─────────────────────────
-async def _tail_log_file():
-    """
-    Async generator: tails alerts.json from the mounted Wazuh volume.
-    Works in Docker Compose (shared volume) or when log path exists locally.
-    """
-    log_path = settings.WAZUH_ALERTS_LOG
+def _docker_available() -> bool:
+    try:
+        result = subprocess.run(
+            ["docker", "inspect", WAZUH_CONTAINER, "--format", "{{.State.Running}}"],
+            capture_output=True, text=True, timeout=5
+        )
+        return result.stdout.strip() == "true"
+    except Exception:
+        return False
 
-    # Wait for file to appear (Wazuh takes time to start)
-    for _ in range(30):
-        if os.path.exists(log_path):
-            break
-        await asyncio.sleep(10)
-    else:
-        print(f"[Wazuh] Log file not found at {log_path} — giving up")
-        return
 
+# ── Backfill all existing alerts ──────────────────────────────────────────────
+async def backfill_existing_alerts(db) -> int:
+    from backend.models.alert import Alert
+
+    if not _docker_available():
+        print("[Wazuh] Container not running — skipping backfill")
+        return 0
+
+    try:
+        result = subprocess.run(
+            ["docker", "exec", WAZUH_CONTAINER, "cat", ALERTS_LOG_PATH],
+            capture_output=True, text=True, timeout=60
+        )
+        lines = result.stdout.strip().splitlines()
+    except Exception as e:
+        print(f"[Wazuh] Backfill read error: {e}")
+        return 0
+
+    existing = {
+        r[0] for r in db.query(Alert.rule_id, Alert.hostname)
+        .filter(Alert.source == "wazuh").all()
+    }
+
+    count = 0
+    for line in lines:
+        try:
+            raw = json.loads(line)
+            alert_data = parse_wazuh_alert(raw)
+            if not alert_data:
+                continue
+
+            # Deduplicate by rule_id + hostname
+            dup_key = (alert_data["rule_id"], alert_data["hostname"])
+            if dup_key in existing:
+                continue
+            existing.add(dup_key)
+
+            alert = Alert(**alert_data)
+            ts = raw.get("timestamp")
+            if ts:
+                try:
+                    alert.created_at = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                except Exception:
+                    pass
+
+            db.add(alert)
+            count += 1
+        except Exception:
+            continue
+
+    if count:
+        db.commit()
+        print(f"[Wazuh] Backfilled {count} alerts")
+    return count
+
+
+# ── Real-time tail ────────────────────────────────────────────────────────────
+async def _tail_container_log():
     proc = await asyncio.create_subprocess_exec(
-        "tail", "-F", "-n", "0", log_path,
+        "docker", "exec", WAZUH_CONTAINER, "tail", "-F", "-n", "0", ALERTS_LOG_PATH,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.DEVNULL,
     )
@@ -85,51 +139,6 @@ async def _tail_log_file():
         proc.kill()
 
 
-# ── Backfill existing alerts ──────────────────────────────────────────────────
-async def backfill_existing_alerts(db) -> int:
-    from backend.models.alert import Alert
-
-    log_path = settings.WAZUH_ALERTS_LOG
-    if not os.path.exists(log_path):
-        return 0
-
-    try:
-        with open(log_path, "r", errors="ignore") as f:
-            lines = f.read().strip().splitlines()
-    except Exception:
-        return 0
-
-    existing = {
-        r[0] for r in db.query(Alert.alert_id)
-        .filter(Alert.source == "wazuh").all()
-    }
-
-    count = 0
-    for line in lines:
-        try:
-            raw = json.loads(line)
-            alert_data = parse_wazuh_alert(raw)
-            if not alert_data or alert_data["alert_id"] in existing:
-                continue
-
-            alert = Alert(**alert_data)
-            ts = raw.get("timestamp")
-            if ts:
-                try:
-                    alert.created_at = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                except Exception:
-                    pass
-
-            db.add(alert)
-            count += 1
-        except Exception:
-            continue
-
-    if count:
-        db.commit()
-    return count
-
-
 # ── Main polling loop ─────────────────────────────────────────────────────────
 async def run_wazuh_poller():
     if not settings.WAZUH_ENABLED:
@@ -137,20 +146,25 @@ async def run_wazuh_poller():
 
     from backend.database import SessionLocal
 
+    # Wait for startup
     await asyncio.sleep(10)
 
+    if not _docker_available():
+        print("[Wazuh] Container not available — poller exiting")
+        return
+
+    # Backfill first
     db = SessionLocal()
     try:
-        count = await backfill_existing_alerts(db)
-        if count:
-            print(f"[Wazuh] Backfilled {count} existing alert(s)")
+        await backfill_existing_alerts(db)
     finally:
         db.close()
 
+    # Real-time tail
     print("[Wazuh] Starting real-time alert tail...")
     while True:
         try:
-            async for alert_data in _tail_log_file():
+            async for alert_data in _tail_container_log():
                 db = SessionLocal()
                 try:
                     from backend.models.alert import Alert
@@ -158,7 +172,7 @@ async def run_wazuh_poller():
                     db.add(alert)
                     db.commit()
                     db.refresh(alert)
-                    print(f"[Wazuh] New alert: [{alert.severity.upper()}] {alert.title}")
+                    print(f"[Wazuh] [{alert.severity.upper()}] {alert.title} — {alert.hostname}")
                     asyncio.create_task(_enrich_one(alert.id))
                 except Exception:
                     db.rollback()
