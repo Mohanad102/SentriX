@@ -575,14 +575,18 @@
     }
 
     // ── VT Threat Indicator ───────────────────────────────────
+    function threatLabel(level) {
+      if (level >= 13) return { text: 'Critical',     icon: 'fa-triangle-exclamation', style: 'background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);' };
+      if (level >= 10) return { text: 'Attack',       icon: 'fa-fire',                 style: 'background:rgba(249,115,22,0.15);color:#fb923c;border:1px solid rgba(249,115,22,0.3);' };
+      if (level >= 7)  return { text: 'Warning',      icon: 'fa-exclamation',          style: 'background:rgba(234,179,8,0.12);color:#fbbf24;border:1px solid rgba(234,179,8,0.25);' };
+      if (level >= 5)  return { text: 'Notice',       icon: 'fa-circle-info',          style: 'background:rgba(59,130,246,0.10);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);' };
+      return                   { text: 'Informational', icon: 'fa-circle-info',         style: 'background:rgba(255,255,255,0.04);color:#6b7280;border:1px solid rgba(255,255,255,0.08);' };
+    }
+
     function vtIndicator(a) {
-      // Show rule level badge always
       const level = a.rule_level || 0;
-      let levelBadge = '';
-      if (level >= 13) levelBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mr-1" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);"><i class="fa-solid fa-triangle-exclamation"></i> L${level}</span>`;
-      else if (level >= 10) levelBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mr-1" style="background:rgba(249,115,22,0.15);color:#fb923c;border:1px solid rgba(249,115,22,0.3);"><i class="fa-solid fa-fire"></i> L${level}</span>`;
-      else if (level >= 7) levelBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mr-1" style="background:rgba(234,179,8,0.12);color:#fbbf24;border:1px solid rgba(234,179,8,0.25);"><i class="fa-solid fa-exclamation"></i> L${level}</span>`;
-      else levelBadge = `<span class="text-gray-600 text-xs mr-1">L${level}</span>`;
+      const { text, icon, style } = threatLabel(level);
+      let levelBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mr-1" style="${style}" title="Rule Level ${level}"><i class="fa-solid ${icon}"></i> ${text}</span>`;
 
       if (!a.source_ip) return levelBadge;
       if (a.vt_enriched) {
