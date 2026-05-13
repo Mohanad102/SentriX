@@ -287,7 +287,14 @@
           <td class="px-4 py-3">
             <div class="flex items-center gap-2">
               ${osIcon(a.os_platform)}
-              <span class="text-white font-medium">${a.name || '—'}</span>
+              <div class="flex items-center gap-1.5 group/name">
+                <span class="text-white font-medium">${a.display_name || a.name || '—'}</span>
+                ${a.label ? `<span class="text-gray-600 text-xs">(${a.name})</span>` : ''}
+                <button onclick="event.stopPropagation();startRename('${a.id}','${(a.label || a.name || '').replace(/'/g,"\\'")}',this)"
+                  class="opacity-0 group-hover/name:opacity-100 text-gray-600 hover:text-emerald-400 transition text-xs ml-1">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              </div>
             </div>
           </td>
           <td class="px-4 py-3 font-mono text-gray-300 text-xs">${a.ip || '—'}</td>
@@ -324,6 +331,44 @@
       renderTable(filtered);
     }
 
+    // ── Inline rename ─────────────────────────────────────────────
+    function startRename(agentId, currentLabel, btn) {
+      const nameSpan = btn.closest('.flex.items-center').querySelector('span.text-white');
+      const subSpan  = btn.closest('.flex.items-center').querySelector('span.text-gray-600');
+      const original = currentLabel;
+
+      const input = document.createElement('input');
+      input.value = currentLabel;
+      input.className = 'bg-transparent border-b border-emerald-500 text-white text-sm font-medium outline-none w-40';
+      input.placeholder = 'Device name...';
+
+      nameSpan.replaceWith(input);
+      if (subSpan) subSpan.remove();
+      btn.classList.add('hidden');
+      input.focus();
+      input.select();
+
+      async function saveLabel() {
+        const newLabel = input.value.trim();
+        try {
+          await fetch(`/api/agents/${agentId}/label`, {
+            method: 'PUT',
+            headers: { ...HDR, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ label: newLabel })
+          });
+          await loadAgents();
+        } catch {
+          input.value = original;
+        }
+      }
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); saveLabel(); }
+        if (e.key === 'Escape') loadAgents();
+      });
+      input.addEventListener('blur', saveLabel);
+    }
+
     // ── Agent detail modal ────────────────────────────────────────
     async function showDetail(agentId) {
       document.getElementById('detail-modal').classList.remove('hidden');
@@ -334,7 +379,7 @@
       try {
         const r = await fetch(`/api/agents/${agentId}`, { headers: HDR });
         const a = await r.json();
-        document.getElementById('detail-name').textContent = a.name || agentId;
+        document.getElementById('detail-name').textContent = a.display_name || a.name || agentId;
 
         const row = (label, val) => `
           <div class="flex items-center justify-between py-2 border-b border-white/5">
@@ -344,6 +389,17 @@
 
         document.getElementById('detail-body').innerHTML = `
           ${row('Agent ID', a.id)}
+          ${row('Wazuh Name', a.name)}
+          <div class="flex items-center justify-between py-2 border-b border-white/5">
+            <span class="text-gray-500 text-sm">Display Name</span>
+            <div class="flex items-center gap-2">
+              <span id="modal-label" class="text-gray-200 text-sm font-medium">${a.label || '<span class="text-gray-600">—</span>'}</span>
+              <button onclick="startModalRename('${a.id}','${(a.label||'').replace(/'/g,"\\'")}','${a.name.replace(/'/g,"\\'")}' )"
+                class="text-gray-600 hover:text-emerald-400 transition text-xs">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+            </div>
+          </div>
           ${row('Status', statusBadge(a.status))}
           ${row('IP Address', `<span class="font-mono">${a.ip}</span>`)}
           ${row('OS', a.os)}
@@ -363,6 +419,18 @@
         document.getElementById('detail-body').innerHTML =
           '<p class="text-red-400 text-sm text-center py-6">Failed to load agent details</p>';
       }
+    }
+
+    async function startModalRename(agentId, currentLabel, agentName) {
+      const newLabel = prompt(`Rename "${agentName}"\nEnter display name (leave empty to clear):`, currentLabel);
+      if (newLabel === null) return;
+      await fetch(`/api/agents/${agentId}/label`, {
+        method: 'PUT',
+        headers: { ...HDR, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: newLabel.trim() })
+      });
+      showDetail(agentId);
+      loadAgents();
     }
 
     // ── Install guide modal ───────────────────────────────────────
