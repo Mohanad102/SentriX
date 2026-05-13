@@ -6,6 +6,8 @@ from backend.database import get_db
 from backend.config import settings
 from backend.models.agent_label import AgentLabel
 import httpx
+import json
+import os
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
@@ -106,6 +108,20 @@ async def agents_summary(current_user=Depends(get_current_user)):
         "pending":         summary.get("pending", 0),
         "total":           summary.get("total_affected_items", 0),
     }
+
+
+@router.get("/tunnel-info")
+async def tunnel_info(current_user=Depends(get_current_user)):
+    """Return current bore tunnel ports so Windows agents can auto-update their config."""
+    state_file = "/tmp/sentrix_tunnels.json"
+    if not os.path.exists(state_file):
+        raise HTTPException(status_code=503, detail="No tunnel info available — bore tunnels may not be running")
+    try:
+        with open(state_file) as f:
+            state = json.load(f)
+        return state
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read tunnel state: {e}")
 
 
 @router.get("/{agent_id}")
