@@ -14,7 +14,7 @@ services:
       - "55000:55000"     # Wazuh API
     environment:
       - WAZUH_API_USER=wazuh
-      - WAZUH_API_PASSWORD=Wazuh@1234!
+      - WAZUH_API_PASSWORD=wazuh
     volumes:
       - wazuh_data:/var/ossec/data
       - wazuh_logs:/var/ossec/logs
@@ -37,7 +37,7 @@ services:
       - WAZUH_ENABLED=true
       - WAZUH_URL=https://wazuh-manager:55000
       - WAZUH_USER=wazuh
-      - WAZUH_PASSWORD=Wazuh@1234!
+      - WAZUH_PASSWORD=wazuh
       - WAZUH_ALERTS_LOG=/var/ossec/logs/alerts/alerts.json
       - VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY:-}
       - VIRUSTOTAL_ENABLED=${VIRUSTOTAL_ENABLED:-false}
