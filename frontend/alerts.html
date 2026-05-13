@@ -64,6 +64,9 @@
           <option value="7d">Last 7 Days</option>
           <option value="30d">Last 30 Days</option>
         </select>
+        <select id="filter-agent" class="form-input form-select w-44" onchange="onAgentFilterChange()">
+          <option value="">All Agents</option>
+        </select>
         <button onclick="loadAlerts()" class="btn btn-secondary btn-sm">
           <i class="fa-solid fa-rotate-right"></i>
         </button>
@@ -526,23 +529,76 @@
       loadAlerts(currentPage);
     }
 
+    // ── Agent labels map: hostname → display name ─────────────
+    let _agentLabels = {};
+
+    async function loadAgentLabels() {
+      try {
+        const r = await fetch('/api/agents', { headers: { Authorization: `Bearer ${TOKEN}` } });
+        if (!r.ok) return;
+        const d = await r.json();
+        _agentLabels = {};
+        const sel = document.getElementById('filter-agent');
+        const prev = sel.value;
+        // keep first option
+        while (sel.options.length > 1) sel.remove(1);
+        (d.agents || []).forEach(a => {
+          _agentLabels[a.name] = a.display_name || a.name;
+          const opt = new Option(`${a.display_name || a.name} (${a.status})`, a.name);
+          sel.add(opt);
+        });
+        if (prev) sel.value = prev;
+      } catch {}
+    }
+
+    function getHostLabel(hostname) {
+      return _agentLabels[hostname] || hostname || '—';
+    }
+
+    function onAgentFilterChange() {
+      const val = document.getElementById('filter-agent').value;
+      if (val) {
+        // update URL silently
+        const url = new URL(window.location);
+        url.searchParams.set('hostname', val);
+        url.searchParams.delete('hostnames');
+        window.history.replaceState({}, '', url);
+        document.getElementById('agent-filter-bar').classList.remove('hidden');
+        document.getElementById('agent-filter-label').textContent = getHostLabel(val);
+      } else {
+        const url = new URL(window.location);
+        url.searchParams.delete('hostname');
+        url.searchParams.delete('hostnames');
+        window.history.replaceState({}, '', url);
+        document.getElementById('agent-filter-bar').classList.add('hidden');
+      }
+      loadAlerts();
+    }
+
     // ── VT Threat Indicator ───────────────────────────────────
     function vtIndicator(a) {
-      if (!a.source_ip) return '<span class="text-gray-600 text-xs">—</span>';
+      // Show rule level badge always
+      const level = a.rule_level || 0;
+      let levelBadge = '';
+      if (level >= 13) levelBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mr-1" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);"><i class="fa-solid fa-triangle-exclamation"></i> L${level}</span>`;
+      else if (level >= 10) levelBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mr-1" style="background:rgba(249,115,22,0.15);color:#fb923c;border:1px solid rgba(249,115,22,0.3);"><i class="fa-solid fa-fire"></i> L${level}</span>`;
+      else if (level >= 7) levelBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mr-1" style="background:rgba(234,179,8,0.12);color:#fbbf24;border:1px solid rgba(234,179,8,0.25);"><i class="fa-solid fa-exclamation"></i> L${level}</span>`;
+      else levelBadge = `<span class="text-gray-600 text-xs mr-1">L${level}</span>`;
+
+      if (!a.source_ip) return levelBadge;
       if (a.vt_enriched) {
         if (a.is_malicious === true)
-          return `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+          return levelBadge + `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
             style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);">
             <i class="fa-solid fa-skull-crossbones"></i> Malicious</span>`;
         if (a.is_malicious === false)
-          return `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+          return levelBadge + `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
             style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);">
             <i class="fa-solid fa-shield-check"></i> Clean</span>`;
-        return `<span class="inline-flex items-center gap-1 text-xs text-gray-500">
-          <i class="fa-solid fa-minus"></i> N/A</span>`;
+        return levelBadge;
       }
-      return `<span id="vt-spin-${a.id}" class="inline-flex items-center gap-1 text-xs text-gray-500">
-        <i class="fa-solid fa-spinner fa-spin"></i> Scanning</span>`;
+      return levelBadge + `<span id="vt-spin-${a.id}" class="inline-flex items-center gap-1 text-xs text-gray-500">
+        <i class="fa-solid fa-spinner fa-spin"></i></span>`;
     }
 
     let _vtPollTimer    = null;
@@ -654,8 +710,11 @@
           </td>
           <td>${severityBadge(a.severity)}</td>
           <td id="vt-cell-${a.id}">${vtIndicator(a)}</td>
-          <td><span class="font-mono text-xs text-gray-400">${a.source_ip||'—'}</span></td>
-          <td><span class="text-xs text-gray-400">${a.hostname||'—'}</span></td>
+          <td><span class="font-mono text-xs text-gray-400">${a.source_ip || a.dest_ip || '<span class="text-gray-600">—</span>'}</span></td>
+          <td>
+            <span class="text-xs text-gray-200 font-medium">${getHostLabel(a.hostname)}</span>
+            ${_agentLabels[a.hostname] && _agentLabels[a.hostname] !== a.hostname ? `<span class="block text-gray-600" style="font-size:0.65rem;">${a.hostname}</span>` : ''}
+          </td>
           <td><span class="text-xs text-gray-400 capitalize">${(a.category||'—').replace('_',' ')}</span></td>
           <td>
             ${statusBadge(a.status)}
@@ -1107,7 +1166,14 @@
     document.querySelectorAll('.modal-overlay').forEach(m =>
       m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
 
-    loadAlerts();
+    // sync agent filter dropdown with URL param on load
+    if (_hostname) {
+      const sel = document.getElementById('filter-agent');
+      // will be set after loadAgentLabels populates it
+      setTimeout(() => { sel.value = _hostname; }, 500);
+    }
+
+    loadAgentLabels().then(() => loadAlerts());
   </script>
 </body>
 </html>
