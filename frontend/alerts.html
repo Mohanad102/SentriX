@@ -64,6 +64,14 @@
           <option value="7d">Last 7 Days</option>
           <option value="30d">Last 30 Days</option>
         </select>
+        <select id="filter-threat" class="form-input form-select w-40" onchange="loadAlerts()">
+          <option value="">All Threats</option>
+          <option value="13">🔴 Critical (13+)</option>
+          <option value="10">🟠 Attack (10+)</option>
+          <option value="7">🟡 Warning (7+)</option>
+          <option value="5">🔵 Notice (5+)</option>
+          <option value="3">⚪ Informational (3+)</option>
+        </select>
         <select id="filter-agent" class="form-input form-select w-44" onchange="onAgentFilterChange()">
           <option value="">All Agents</option>
         </select>
@@ -677,8 +685,9 @@
         severity:    document.getElementById('filter-severity').value,
         status:      document.getElementById('filter-status').value,
         time_range:  document.getElementById('filter-time').value,
+        min_level:   document.getElementById('filter-threat').value,
         sort_order:  sortOrder,
-        hostname:    _hostname,
+        hostname:    _hostname || document.getElementById('filter-agent').value,
         hostnames:   _hostnames,
         source:      _source,
       };
