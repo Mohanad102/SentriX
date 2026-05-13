@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+*.pyo
+.env
+sentrix.db
+chroma_db/
+.git/
+*.doc
+*.docx
+SentriX-main/
+home.txt

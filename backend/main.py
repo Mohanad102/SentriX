@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+import asyncio
 import os
 
 from backend.database import init_db
@@ -61,10 +62,16 @@ def serve_page(page: str):
 
 
 @app.on_event("startup")
-def startup_event():
+async def startup_event():
     init_db()
     _seed_data()
     _seed_ir_data()
+    # Start Wazuh poller in background if enabled
+    from backend.config import settings
+    if settings.WAZUH_ENABLED:
+        from backend.services.wazuh_poller import run_wazuh_poller
+        asyncio.create_task(run_wazuh_poller())
+        print("[Wazuh] Poller scheduled")
 
 
 def _seed_ir_data():
