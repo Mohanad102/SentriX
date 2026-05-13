@@ -76,6 +76,7 @@ def list_alerts(
     hostname: Optional[str] = None,
     hostnames: Optional[str] = None,
     source: Optional[str] = None,
+    min_level: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -103,6 +104,8 @@ def list_alerts(
                 Alert.alert_id.ilike(f"%{search}%"),
             )
         )
+    if min_level is not None:
+        query = query.filter(Alert.rule_level >= min_level)
     if time_range:
         from datetime import timedelta
         cutoffs = {"24h": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30)}
