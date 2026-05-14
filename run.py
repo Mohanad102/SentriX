@@ -57,6 +57,33 @@ def _drain(proc):
         pass
 
 
+def _start_and_watch(bore_bin, local_port, port_slot):
+    """Start a bore tunnel and restart it automatically if it dies."""
+    while True:
+        proc, public_port = _start_bore_tunnel(bore_bin, local_port)
+        if public_port:
+            # Update the saved state with the new port
+            try:
+                state = {}
+                if os.path.exists(TUNNEL_STATE_FILE):
+                    with open(TUNNEL_STATE_FILE) as f:
+                        state = json.load(f)
+                state[port_slot] = public_port
+                state["host"] = "bore.pub"
+                with open(TUNNEL_STATE_FILE, "w") as f:
+                    json.dump(state, f)
+                print(f"  [Bore] Port {local_port} → bore.pub:{public_port}")
+            except Exception:
+                pass
+            # Drain until process dies
+            _drain(proc)
+            proc.wait()
+            print(f"  [Bore] Tunnel for port {local_port} died — restarting...")
+        else:
+            print(f"  [Bore] Failed to get port for {local_port} — retrying in 10s")
+        time.sleep(10)
+
+
 def start_bore_tunnels():
     bore_bin = _find_bore()
     if not bore_bin:
@@ -67,17 +94,11 @@ def start_bore_tunnels():
     subprocess.run(["pkill", "-f", "bore local"], capture_output=True)
     time.sleep(1)
 
-    print("  Starting Wazuh tunnels via bore...")
-    proc1, port_1514 = _start_bore_tunnel(bore_bin, 1514)
-    proc2, port_1515 = _start_bore_tunnel(bore_bin, 1515)
-
-    if port_1514 and port_1515:
-        _save_tunnel_state(port_1514, port_1515)
-        # Drain stdout in background so processes don't block
-        threading.Thread(target=_drain, args=(proc1,), daemon=True).start()
-        threading.Thread(target=_drain, args=(proc2,), daemon=True).start()
-    else:
-        print("  [Bore] Failed to get tunnel ports")
+    print("  Starting Wazuh tunnels via bore (with auto-restart watchdog)...")
+    threading.Thread(target=_start_and_watch, args=(bore_bin, 1514, "port_1514"), daemon=True).start()
+    threading.Thread(target=_start_and_watch, args=(bore_bin, 1515, "port_1515"), daemon=True).start()
+    # Give tunnels time to connect before server starts
+    time.sleep(6)
 
 
 if __name__ == "__main__":
