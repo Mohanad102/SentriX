@@ -118,6 +118,10 @@
             ${roleLabels[role] || role}
           </p>
         </div>
+        <button id="sidebar-theme-btn" onclick="window.__sentrixToggleTheme()" style="color:#475569;background:none;border:none;cursor:pointer;font-size:0.875rem;transition:color 0.2s;"
+          onmouseover="this.style.color='#a3e635'" onmouseout="this.style.color='#475569'" title="Toggle theme">
+          <i id="sidebar-theme-icon" class="fa-solid fa-moon"></i>
+        </button>
         <button onclick="logout()" style="color:#475569;background:none;border:none;cursor:pointer;font-size:0.875rem;transition:color 0.2s;"
           onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#475569'" title="Logout">
           <i class="fa-solid fa-right-from-bracket"></i>
@@ -145,6 +149,31 @@
   }
   pollAlertBadge();
   setInterval(pollAlertBadge, 60000);
+
+  // ── Theme (global, runs on every page) ───────────────────────
+  const THEME_KEY = 'sentrix_theme';
+  function _applyTheme(theme) {
+    const body = document.getElementById('body');
+    const icon = document.getElementById('sidebar-theme-icon');
+    // also sync dashboard's own icon if present
+    const dashIcon = document.getElementById('theme-icon');
+    if (theme === 'light') {
+      if (body) body.classList.add('light-mode');
+      if (icon) icon.className = 'fa-solid fa-sun';
+      if (dashIcon) dashIcon.className = 'fa-solid fa-sun text-sm';
+    } else {
+      if (body) body.classList.remove('light-mode');
+      if (icon) icon.className = 'fa-solid fa-moon';
+      if (dashIcon) dashIcon.className = 'fa-solid fa-moon text-sm';
+    }
+  }
+  window.__sentrixToggleTheme = function () {
+    const cur = localStorage.getItem(THEME_KEY) || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(THEME_KEY, next);
+    _applyTheme(next);
+  };
+  _applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
   // Poll IR notifications (non-L1 only)
   if (canIR) {
