@@ -29,7 +29,7 @@
           style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.18);color:#34d399;">
           <div class="live-dot"></div> LIVE
         </div>
-        <button onclick="toggleTheme()" id="theme-btn" title="Toggle theme"
+        <button onclick="window.__sentrixToggleTheme()" id="theme-btn" title="Toggle theme"
           class="w-9 h-9 flex items-center justify-center rounded-xl transition text-gray-400 hover:text-white"
           style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);">
           <i class="fa-solid fa-moon text-sm" id="theme-icon"></i>
@@ -447,26 +447,6 @@
     const isL2 = _dashRole === 'soc_analyst_l2';
     const isIR = _dashRole === 'incident_responder';
 
-    // ── Theme ─────────────────────────────────────────────────
-    const THEME_KEY = 'sentrix_theme';
-    function applyTheme(theme) {
-      const body = document.getElementById('body');
-      const icon = document.getElementById('theme-icon');
-      if (theme === 'light') {
-        body.classList.add('light-mode');
-        icon.className = 'fa-solid fa-sun text-sm';
-      } else {
-        body.classList.remove('light-mode');
-        icon.className = 'fa-solid fa-moon text-sm';
-      }
-    }
-    function toggleTheme() {
-      const cur = localStorage.getItem(THEME_KEY) || 'dark';
-      const next = cur === 'dark' ? 'light' : 'dark';
-      localStorage.setItem(THEME_KEY, next);
-      applyTheme(next);
-    }
-    applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
     // ── Notifications ─────────────────────────────────────────
     let _notifOpen = false;
