@@ -22,10 +22,16 @@ def _find_bore():
     return None
 
 
+FIXED_PORTS = {1514: 11514, 1515: 11515}
+
+
 def _start_bore_tunnel(bore_bin, local_port):
     """Start a bore tunnel and return (process, public_port)."""
+    cmd = [bore_bin, "local", str(local_port), "--to", "bore.pub"]
+    if local_port in FIXED_PORTS:
+        cmd += ["--port", str(FIXED_PORTS[local_port])]
     proc = subprocess.Popen(
-        [bore_bin, "local", str(local_port), "--to", "bore.pub"],
+        cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
