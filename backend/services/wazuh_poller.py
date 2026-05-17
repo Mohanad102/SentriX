@@ -14,6 +14,47 @@ WAZUH_CONTAINER = "wazuh-manager"
 ALERTS_LOG_PATH = "/var/ossec/logs/alerts/alerts.json"
 
 
+def _build_description(raw: dict, rule: dict) -> str:
+    """Build a human-readable description, pulling Windows event fields when full_log is absent."""
+    if raw.get("full_log"):
+        return raw["full_log"]
+    if raw.get("message"):
+        return raw["message"]
+
+    # Windows Event Channel alerts — construct from win.* fields
+    win  = raw.get("data", {}).get("win", {})
+    sys  = win.get("system", {})
+    evt  = win.get("eventdata", {})
+    parts = []
+
+    event_id = sys.get("eventID")
+    provider = sys.get("providerName")
+    if event_id:
+        parts.append(f"Event ID: {event_id}" + (f" ({provider})" if provider else ""))
+
+    process = evt.get("processName") or evt.get("image") or evt.get("newProcessName")
+    if process:
+        parts.append(f"Process: {process}")
+
+    user = evt.get("subjectUserName") or evt.get("targetUserName")
+    domain = evt.get("subjectDomainName") or evt.get("targetDomainName")
+    if user:
+        parts.append(f"User: {domain + chr(92) + user if domain else user}")
+
+    obj = evt.get("objectName") or evt.get("targetFilename")
+    if obj:
+        parts.append(f"Object: {obj}")
+
+    computer = sys.get("computer")
+    if computer:
+        parts.append(f"Computer: {computer}")
+
+    if parts:
+        return "\n".join(parts)
+
+    return rule.get("description", "")
+
+
 def _level_to_severity(level: int) -> str:
     if level >= 13:
         return "critical"
@@ -36,7 +77,7 @@ def parse_wazuh_alert(raw: dict) -> dict | None:
     return {
         "alert_id":    f"WZH-{uuid.uuid4().hex[:8].upper()}",
         "title":       rule.get("description", "Wazuh Alert"),
-        "description": raw.get("full_log") or raw.get("message") or rule.get("description", ""),
+        "description": _build_description(raw, rule),
         "severity":    _level_to_severity(level),
         "source":      "wazuh",
         "source_ip":   data.get("srcip") or data.get("src_ip"),
