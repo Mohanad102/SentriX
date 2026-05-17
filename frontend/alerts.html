@@ -163,9 +163,29 @@
       <div class="grid grid-cols-3 gap-2 mb-5" id="triage-meta"></div>
 
       <!-- Description -->
-      <div class="bg-gray-800/50 rounded-xl p-3 mb-5">
+      <div class="bg-gray-800/50 rounded-xl p-3 mb-3">
         <p class="text-gray-500 text-xs mb-1">Description</p>
         <p class="text-gray-200 text-sm whitespace-pre-wrap" id="triage-description"></p>
+      </div>
+
+      <!-- Raw Event Details -->
+      <div id="raw-event-section" class="hidden mb-5">
+        <button onclick="toggleRawEvent()" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left mb-1"
+          style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.18);">
+          <span class="text-indigo-300 text-xs font-medium flex items-center gap-1.5">
+            <i class="fa-solid fa-list-ul"></i> Event Details
+          </span>
+          <i id="raw-event-chevron" class="fa-solid fa-chevron-down text-indigo-400 text-xs transition-transform"></i>
+        </button>
+        <div id="raw-event-body" class="hidden">
+          <div id="raw-event-fields" class="rounded-xl p-3 mb-1 grid grid-cols-2 gap-x-4 gap-y-2"
+            style="background:rgba(15,15,25,0.6);border:1px solid rgba(99,102,241,0.12);"></div>
+          <button onclick="toggleRawJson()" class="text-xs text-gray-500 hover:text-gray-300 px-1 mt-1 transition">
+            <i class="fa-solid fa-code mr-1"></i><span id="raw-json-toggle-label">Show raw JSON</span>
+          </button>
+          <pre id="raw-json-view" class="hidden mt-2 text-xs font-mono text-gray-400 overflow-x-auto rounded-xl p-3"
+            style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.06);max-height:260px;"></pre>
+        </div>
       </div>
 
       <!-- ── L1 Step indicator ─────────────────────────────── -->
@@ -798,6 +818,9 @@
 
         document.getElementById('triage-description').textContent = a.description || 'No description provided.';
 
+        // Raw event details
+        populateRawEvent(a);
+
         // Restore previous classification
         if (a.triage_result) setClassification(a.triage_result);
 
@@ -870,6 +893,82 @@
       } catch (err) {
         showToast(err.message, 'error');
       }
+    }
+
+    // ── Raw Event Details ─────────────────────────────────────
+    function populateRawEvent(a) {
+      const section = document.getElementById('raw-event-section');
+      const body    = document.getElementById('raw-event-body');
+      const fields  = document.getElementById('raw-event-fields');
+      const jsonEl  = document.getElementById('raw-json-view');
+
+      // Reset state
+      body.classList.add('hidden');
+      jsonEl.classList.add('hidden');
+      document.getElementById('raw-event-chevron').style.transform = '';
+      document.getElementById('raw-json-toggle-label').textContent = 'Show raw JSON';
+
+      if (!a.raw_data) { section.classList.add('hidden'); return; }
+
+      let raw;
+      try { raw = JSON.parse(a.raw_data); } catch { section.classList.add('hidden'); return; }
+
+      // Extract interesting fields — Windows Event Channel + generic Wazuh
+      const win   = raw.data?.win || {};
+      const sys   = win.system   || {};
+      const evt   = win.eventdata || {};
+      const data  = raw.data     || {};
+      const agent = raw.agent    || {};
+      const rule  = raw.rule     || {};
+
+      const rows = [
+        ['Rule ID',        rule.id          ? `#${rule.id}`              : null],
+        ['Rule Level',     rule.level != null ? `Level ${rule.level}`    : null],
+        ['Rule Groups',    rule.groups?.join(', ')                        || null],
+        ['Event ID',       sys.eventID                                    || null],
+        ['Provider',       sys.providerName                               || null],
+        ['Channel',        sys.channel                                    || null],
+        ['Computer',       sys.computer                                   || null],
+        ['Process',        evt.processName || evt.image || evt.newProcessName || data.process?.name || null],
+        ['Process ID',     sys.processID || evt.processId                 || null],
+        ['User',           evt.subjectUserName || evt.targetUserName || sys.securityUserID || null],
+        ['Domain',         evt.subjectDomainName || evt.targetDomainName  || null],
+        ['File / Path',    evt.objectName || evt.image || evt.targetFilename || null],
+        ['Parent Process', evt.parentProcessName || evt.parentImage        || null],
+        ['Source IP',      data.srcip || data.src_ip                      || null],
+        ['Dest IP',        data.dstip || data.dst_ip                      || null],
+        ['Source Port',    data.srcport                                    || null],
+        ['Protocol',       data.protocol                                   || null],
+        ['Agent',          agent.name || agent.id                         || null],
+        ['Manager',        raw.manager?.name                              || null],
+        ['Decoder',        raw.decoder?.name                              || null],
+        ['Full Log',       raw.full_log                                   || null],
+      ].filter(([_, v]) => v != null && v !== '');
+
+      if (!rows.length) { section.classList.add('hidden'); return; }
+
+      fields.innerHTML = rows.map(([label, val]) => `
+        <div class="min-w-0">
+          <p class="text-gray-500 text-xs mb-0.5">${label}</p>
+          <p class="text-gray-200 text-xs font-mono break-all">${String(val)}</p>
+        </div>`).join('');
+
+      jsonEl.textContent = JSON.stringify(raw, null, 2);
+      section.classList.remove('hidden');
+    }
+
+    function toggleRawEvent() {
+      const body    = document.getElementById('raw-event-body');
+      const chevron = document.getElementById('raw-event-chevron');
+      const hidden  = body.classList.toggle('hidden');
+      chevron.style.transform = hidden ? '' : 'rotate(180deg)';
+    }
+
+    function toggleRawJson() {
+      const jsonEl = document.getElementById('raw-json-view');
+      const label  = document.getElementById('raw-json-toggle-label');
+      const hidden = jsonEl.classList.toggle('hidden');
+      label.textContent = hidden ? 'Show raw JSON' : 'Hide raw JSON';
     }
 
     // ── Classification ────────────────────────────────────────
