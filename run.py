@@ -22,7 +22,7 @@ def _find_bore():
     return None
 
 
-FIXED_PORTS = {1514: 11514, 1515: 11515}
+FIXED_PORTS = {1514: 11514, 1515: 11515, 55000: 55000}
 
 
 def _start_bore_tunnel(bore_bin, local_port):
@@ -103,6 +103,7 @@ def start_bore_tunnels():
     print("  Starting Wazuh tunnels via bore (with auto-restart watchdog)...")
     threading.Thread(target=_start_and_watch, args=(bore_bin, 1514, "port_1514"), daemon=True).start()
     threading.Thread(target=_start_and_watch, args=(bore_bin, 1515, "port_1515"), daemon=True).start()
+    threading.Thread(target=_start_and_watch, args=(bore_bin, 55000, "port_55000"), daemon=True).start()
     # Give tunnels time to connect before server starts
     time.sleep(6)
 
