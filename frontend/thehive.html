@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentriX — SOAR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    .tab-btn { color:#6b7280;transition:all .15s; }
+    .tab-btn.active { background:#1f2937;color:#fff; }
+    .status-dot { width:8px;height:8px;border-radius:50%;display:inline-block; }
+    .status-dot.connected { background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.5); }
+    .status-dot.disconnected { background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,.4); }
+    .case-row:hover { background:rgba(255,255,255,.02); }
+    .sev-badge { display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em; }
+    .sev-low      { background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2); }
+    .sev-medium   { background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.2); }
+    .sev-high     { background:rgba(249,115,22,.12);color:#fb923c;border:1px solid rgba(249,115,22,.2); }
+    .sev-critical { background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2); }
+    .analyzer-card { background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;transition:border-color .2s;cursor:pointer; }
+    .analyzer-card:hover { border-color:rgba(16,185,129,.3); }
+    .analyzer-card.selected { border-color:rgba(16,185,129,.6);background:rgba(16,185,129,.04); }
+    .job-row:hover { background:rgba(255,255,255,.02); }
+    .job-status-badge { display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:600;text-transform:uppercase; }
+    .job-Waiting    { background:rgba(107,114,128,.15);color:#9ca3af;border:1px solid rgba(107,114,128,.2); }
+    .job-InProgress { background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2); }
+    .job-Success    { background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2); }
+    .job-Failure    { background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2); }
+  </style>
+</head>
+<body class="text-gray-100 flex" id="body" style="background:#020817;">
+
+  <div class="mesh-bg"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;"></aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-h-screen overflow-auto min-w-0" style="position:relative;z-index:1;">
+
+    <!-- Header -->
+    <header class="px-6 py-4 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
+      <div>
+        <h1 class="text-white font-semibold text-lg flex items-center gap-2">
+          <i class="fa-solid fa-bugs text-emerald-400"></i> SOAR — TheHive &amp; Cortex
+        </h1>
+        <p class="text-gray-500 text-xs">Case management · Observable analysis · Response orchestration</p>
+      </div>
+      <!-- Status badges -->
+      <div class="flex items-center gap-3">
+        <div id="hive-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
+          style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+          <span class="status-dot disconnected" id="hive-dot"></span>
+          <span id="hive-status-text" class="text-gray-400">TheHive</span>
+        </div>
+        <div id="cortex-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
+          style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+          <span class="status-dot disconnected" id="cortex-dot"></span>
+          <span id="cortex-status-text" class="text-gray-400">Cortex</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="p-6 page-fade">
+
+      <!-- Tabs -->
+      <div class="flex items-center gap-1 mb-6 p-1 rounded-xl w-fit" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">
+        <button onclick="switchTab('cases')" id="tab-cases" class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium">
+          <i class="fa-solid fa-folder-open mr-1.5"></i> Cases
+        </button>
+        <button onclick="switchTab('cortex')" id="tab-cortex" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium">
+          <i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i> Cortex Analyzers
+        </button>
+        <button onclick="switchTab('jobs')" id="tab-jobs" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium">
+          <i class="fa-solid fa-list-check mr-1.5"></i> Jobs
+        </button>
+      </div>
+
+      <!-- ═══════════════════════════ CASES TAB ═══════════════════════════ -->
+      <div id="panel-cases">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-white font-semibold">TheHive Cases</h2>
+          <div class="flex gap-2">
+            <button onclick="openPushModal('alert')" class="btn btn-secondary text-xs">
+              <i class="fa-solid fa-bell mr-1"></i> Push Alert
+            </button>
+            <button onclick="openPushModal('incident')" class="btn btn-secondary text-xs">
+              <i class="fa-solid fa-shield-virus mr-1"></i> Push Incident
+            </button>
+            <button onclick="openNewCaseModal()" class="btn btn-primary text-xs">
+              <i class="fa-solid fa-plus mr-1"></i> New Case
+            </button>
+          </div>
+        </div>
+
+        <!-- Cases table -->
+        <div class="panel overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(255,255,255,.05);">
+                  <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Case #</th>
+                  <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Title</th>
+                  <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Severity</th>
+                  <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Status</th>
+                  <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Tags</th>
+                  <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Created</th>
+                </tr>
+              </thead>
+              <tbody id="cases-tbody">
+                <tr>
+                  <td colspan="6" class="py-12 text-center text-gray-500">
+                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading cases...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between mt-4">
+          <span id="cases-info" class="text-xs text-gray-500"></span>
+          <div class="flex gap-2">
+            <button id="cases-prev" onclick="loadCases(-1)" class="btn btn-secondary text-xs" disabled>
+              <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+            <button id="cases-next" onclick="loadCases(1)" class="btn btn-secondary text-xs" disabled>
+              Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════ CORTEX TAB ═══════════════════════════ -->
+      <div id="panel-cortex" class="hidden">
+        <!-- Run analysis form -->
+        <div class="panel mb-6">
+          <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-flask-vial text-emerald-400"></i> Run Analysis
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Observable</label>
+              <input id="obs-value" type="text" placeholder="IP, domain, hash, URL..."
+                class="w-full px-3 py-2 rounded-lg text-sm text-white"
+                style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Type</label>
+              <select id="obs-type" class="w-full px-3 py-2 rounded-lg text-sm text-white"
+                style="background:rgba(15,23,42,1);border:1px solid rgba(255,255,255,.1);">
+                <option value="ip">IP Address</option>
+                <option value="domain">Domain</option>
+                <option value="url">URL</option>
+                <option value="hash">File Hash</option>
+                <option value="mail">Email</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button onclick="runAnalysis()" id="run-btn" class="btn btn-primary w-full">
+                <i class="fa-solid fa-play mr-1"></i> Run
+              </button>
+            </div>
+          </div>
+          <div id="job-result" class="hidden mt-4 p-4 rounded-xl text-sm"
+            style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);">
+          </div>
+        </div>
+
+        <!-- Analyzers grid -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-white font-semibold">Available Analyzers</h3>
+          <input id="analyzer-search" oninput="filterAnalyzers()" type="text" placeholder="Search analyzers..."
+            class="px-3 py-1.5 rounded-lg text-sm text-white"
+            style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);width:220px;" />
+        </div>
+        <div id="analyzers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div class="col-span-3 py-12 text-center text-gray-500">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading analyzers...
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════ JOBS TAB ═══════════════════════════ -->
+      <div id="panel-jobs" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-white font-semibold">Recent Jobs</h3>
+          <button onclick="clearJobs()" class="btn btn-secondary text-xs">
+            <i class="fa-solid fa-trash mr-1"></i> Clear
+          </button>
+        </div>
+        <div class="panel overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr style="border-bottom:1px solid rgba(255,255,255,.05);">
+                <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Job ID</th>
+                <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Analyzer</th>
+                <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Observable</th>
+                <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Status</th>
+                <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="jobs-tbody">
+              <tr>
+                <td colspan="5" class="py-12 text-center text-gray-500 text-sm">No jobs yet — run an analysis from the Cortex tab</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /p-6 -->
+  </main>
+
+  <!-- ─── New Case Modal ─── -->
+  <div id="modal-new-case" class="fixed inset-0 hidden items-center justify-center" style="z-index:50;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);">
+    <div class="panel w-full max-w-lg mx-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-white font-semibold"><i class="fa-solid fa-folder-plus text-emerald-400 mr-2"></i>New TheHive Case</h3>
+        <button onclick="closeModal('modal-new-case')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Title *</label>
+          <input id="nc-title" type="text" placeholder="Case title..."
+            class="w-full px-3 py-2 rounded-lg text-sm text-white"
+            style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Description</label>
+          <textarea id="nc-desc" rows="4" placeholder="Case description..."
+            class="w-full px-3 py-2 rounded-lg text-sm text-white resize-none"
+            style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Severity</label>
+            <select id="nc-severity" class="w-full px-3 py-2 rounded-lg text-sm text-white"
+              style="background:rgba(15,23,42,1);border:1px solid rgba(255,255,255,.1);">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider">Tags (comma-sep)</label>
+            <input id="nc-tags" type="text" placeholder="sentrix, malware..."
+              class="w-full px-3 py-2 rounded-lg text-sm text-white"
+              style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);" />
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-5">
+        <button onclick="closeModal('modal-new-case')" class="btn btn-secondary">Cancel</button>
+        <button onclick="submitNewCase()" class="btn btn-primary">
+          <i class="fa-solid fa-paper-plane mr-1"></i> Create Case
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Push to TheHive Modal ─── -->
+  <div id="modal-push" class="fixed inset-0 hidden items-center justify-center" style="z-index:50;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);">
+    <div class="panel w-full max-w-md mx-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="push-modal-title" class="text-white font-semibold"><i class="fa-solid fa-share-from-square text-emerald-400 mr-2"></i>Push to TheHive</h3>
+        <button onclick="closeModal('modal-push')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-gray-400 text-sm mb-4" id="push-modal-desc">Enter the ID of the item to push as a TheHive case.</p>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1 uppercase tracking-wider" id="push-id-label">Alert ID</label>
+        <input id="push-id" type="number" placeholder="e.g. 42"
+          class="w-full px-3 py-2 rounded-lg text-sm text-white"
+          style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);" />
+      </div>
+      <div class="flex justify-end gap-2 mt-5">
+        <button onclick="closeModal('modal-push')" class="btn btn-secondary">Cancel</button>
+        <button onclick="submitPush()" class="btn btn-primary">
+          <i class="fa-solid fa-share-from-square mr-1"></i> Push
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Job Report Modal ─── -->
+  <div id="modal-report" class="fixed inset-0 hidden items-center justify-center" style="z-index:50;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);">
+    <div class="panel w-full max-w-2xl mx-4" style="max-height:85vh;overflow-y:auto;">
+      <div class="flex items-center justify-between mb-4 sticky top-0" style="background:#0d1526;padding-bottom:8px;">
+        <h3 class="text-white font-semibold"><i class="fa-solid fa-file-lines text-emerald-400 mr-2"></i>Job Report</h3>
+        <button onclick="closeModal('modal-report')" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <pre id="report-content" class="text-xs text-gray-300 whitespace-pre-wrap" style="font-family:monospace;"></pre>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/sidebar.js"></script>
+  <script>
+    requireAuth();
+
+    // ─── State ───
+    let casesOffset = 0;
+    const CASES_LIMIT = 15;
+    let allAnalyzers = [];
+    let selectedAnalyzerId = null;
+    let pushType = 'alert';
+    const jobs = [];
+
+    // ─── Tab switching ───
+    function switchTab(name) {
+      ['cases', 'cortex', 'jobs'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== name);
+        document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+      });
+      if (name === 'cortex' && allAnalyzers.length === 0) loadAnalyzers();
+    }
+
+    // ─── Status checks ───
+    async function checkStatuses() {
+      const token = localStorage.getItem('sentrix_token');
+      const h = { Authorization: `Bearer ${token}` };
+      try {
+        const [hiveRes, cortexRes] = await Promise.all([
+          fetch('/api/thehive/status', { headers: h }),
+          fetch('/api/cortex/status', { headers: h }),
+        ]);
+        if (hiveRes.ok) {
+          const d = await hiveRes.json();
+          setStatus('hive', d.enabled && d.connected, d.version ? `TheHive ${d.version}` : d.error || 'Disabled');
+        }
+        if (cortexRes.ok) {
+          const d = await cortexRes.json();
+          setStatus('cortex', d.enabled && d.connected, d.user ? `Cortex (${d.user})` : d.error || 'Disabled');
+        }
+      } catch {}
+    }
+    function setStatus(prefix, ok, label) {
+      document.getElementById(`${prefix}-dot`).className = `status-dot ${ok ? 'connected' : 'disconnected'}`;
+      document.getElementById(`${prefix}-status-text`).textContent = label;
+      document.getElementById(`${prefix}-status-text`).style.color = ok ? '#34d399' : '#9ca3af';
+    }
+
+    // ─── Cases ───
+    async function loadCases(dir = 0) {
+      casesOffset = Math.max(0, casesOffset + dir * CASES_LIMIT);
+      const token = localStorage.getItem('sentrix_token');
+      const tbody = document.getElementById('cases-tbody');
+      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading...</td></tr>`;
+      try {
+        const r = await fetch(`/api/thehive/cases?limit=${CASES_LIMIT}&offset=${casesOffset}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!r.ok) {
+          const e = await r.json();
+          tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-gray-500">${e.detail || 'TheHive not connected'}</td></tr>`;
+          return;
+        }
+        const cases = await r.json();
+        if (!cases.length) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-gray-500">No cases found</td></tr>`;
+          document.getElementById('cases-prev').disabled = casesOffset === 0;
+          document.getElementById('cases-next').disabled = true;
+          return;
+        }
+        tbody.innerHTML = cases.map(c => `
+          <tr class="case-row" style="border-bottom:1px solid rgba(255,255,255,.03);">
+            <td class="py-3 px-4 text-gray-400 text-xs font-mono">#${c.number || c._id?.slice(-6) || '—'}</td>
+            <td class="py-3 px-4 text-white text-sm font-medium max-w-xs truncate">${escHtml(c.title || '—')}</td>
+            <td class="py-3 px-4">${sevBadge(c.severity)}</td>
+            <td class="py-3 px-4 text-gray-300 text-xs">${escHtml(c.status || '—')}</td>
+            <td class="py-3 px-4">
+              ${(c.tags || []).slice(0, 3).map(t => `<span class="text-xs px-1.5 py-0.5 rounded mr-1" style="background:rgba(16,185,129,.1);color:#34d399;border:1px solid rgba(16,185,129,.2);">${escHtml(t)}</span>`).join('')}
+            </td>
+            <td class="py-3 px-4 text-gray-400 text-xs">${c._createdAt ? new Date(c._createdAt).toLocaleDateString() : '—'}</td>
+          </tr>`).join('');
+        document.getElementById('cases-info').textContent = `Showing ${casesOffset + 1}–${casesOffset + cases.length}`;
+        document.getElementById('cases-prev').disabled = casesOffset === 0;
+        document.getElementById('cases-next').disabled = cases.length < CASES_LIMIT;
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-400">Error loading cases</td></tr>`;
+      }
+    }
+
+    // ─── New Case modal ───
+    function openNewCaseModal() {
+      document.getElementById('nc-title').value = '';
+      document.getElementById('nc-desc').value = '';
+      document.getElementById('nc-severity').value = 'medium';
+      document.getElementById('nc-tags').value = '';
+      openModal('modal-new-case');
+    }
+    async function submitNewCase() {
+      const title = document.getElementById('nc-title').value.trim();
+      if (!title) return showToast('Title is required', 'error');
+      const tags = document.getElementById('nc-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+      const token = localStorage.getItem('sentrix_token');
+      try {
+        const r = await fetch('/api/thehive/cases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            title,
+            description: document.getElementById('nc-desc').value.trim(),
+            severity: document.getElementById('nc-severity').value,
+            tags,
+          })
+        });
+        if (!r.ok) { const e = await r.json(); showToast(e.detail || 'Failed', 'error'); return; }
+        closeModal('modal-new-case');
+        showToast('Case created in TheHive', 'success');
+        loadCases(0);
+      } catch { showToast('Network error', 'error'); }
+    }
+
+    // ─── Push modal ───
+    function openPushModal(type) {
+      pushType = type;
+      document.getElementById('push-id').value = '';
+      document.getElementById('push-modal-title').innerHTML =
+        `<i class="fa-solid fa-share-from-square text-emerald-400 mr-2"></i>Push ${type === 'alert' ? 'Alert' : 'Incident'} to TheHive`;
+      document.getElementById('push-modal-desc').textContent =
+        `Enter the SentriX ${type === 'alert' ? 'Alert' : 'Incident'} ID to push as a TheHive case.`;
+      document.getElementById('push-id-label').textContent = `${type === 'alert' ? 'Alert' : 'Incident'} ID`;
+      openModal('modal-push');
+    }
+    async function submitPush() {
+      const id = document.getElementById('push-id').value.trim();
+      if (!id) return showToast('ID is required', 'error');
+      const token = localStorage.getItem('sentrix_token');
+      const endpoint = pushType === 'alert'
+        ? `/api/thehive/cases/from-alert/${id}`
+        : `/api/thehive/cases/from-incident/${id}`;
+      try {
+        const r = await fetch(endpoint, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!r.ok) { const e = await r.json(); showToast(e.detail || 'Failed', 'error'); return; }
+        const c = await r.json();
+        closeModal('modal-push');
+        showToast(`Case created: ${c.title || c._id}`, 'success');
+        loadCases(0);
+        switchTab('cases');
+      } catch { showToast('Network error', 'error'); }
+    }
+
+    // ─── Analyzers ───
+    async function loadAnalyzers() {
+      const grid = document.getElementById('analyzers-grid');
+      grid.innerHTML = `<div class="col-span-3 py-10 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading...</div>`;
+      const token = localStorage.getItem('sentrix_token');
+      try {
+        const r = await fetch('/api/cortex/analyzers', { headers: { Authorization: `Bearer ${token}` } });
+        if (!r.ok) {
+          const e = await r.json();
+          grid.innerHTML = `<div class="col-span-3 py-10 text-center text-gray-500">${e.detail || 'Cortex not connected'}</div>`;
+          return;
+        }
+        allAnalyzers = await r.json();
+        renderAnalyzers(allAnalyzers);
+      } catch {
+        grid.innerHTML = `<div class="col-span-3 py-10 text-center text-red-400">Error loading analyzers</div>`;
+      }
+    }
+    function renderAnalyzers(list) {
+      const grid = document.getElementById('analyzers-grid');
+      if (!list.length) {
+        grid.innerHTML = `<div class="col-span-3 py-10 text-center text-gray-500">No analyzers available</div>`;
+        return;
+      }
+      grid.innerHTML = list.map(a => `
+        <div class="analyzer-card ${selectedAnalyzerId === a.id ? 'selected' : ''}"
+          onclick="selectAnalyzer('${a.id}', '${escAttr(a.name)}')">
+          <div class="flex items-start justify-between mb-1">
+            <span class="text-white text-sm font-medium">${escHtml(a.name)}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded" style="background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);">v${escHtml(String(a.version || '?'))}</span>
+          </div>
+          <p class="text-gray-400 text-xs mb-2 line-clamp-2">${escHtml(a.description || '')}</p>
+          <div class="flex flex-wrap gap-1">
+            ${(a.dataTypeList || []).map(dt => `<span class="text-xs px-1.5 rounded" style="background:rgba(16,185,129,.08);color:#6ee7b7;">${escHtml(dt)}</span>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+    function filterAnalyzers() {
+      const q = document.getElementById('analyzer-search').value.toLowerCase();
+      renderAnalyzers(allAnalyzers.filter(a =>
+        a.name.toLowerCase().includes(q) || (a.description || '').toLowerCase().includes(q)
+      ));
+    }
+    function selectAnalyzer(id, name) {
+      selectedAnalyzerId = id;
+      document.getElementById('run-btn').textContent = '';
+      document.getElementById('run-btn').innerHTML = `<i class="fa-solid fa-play mr-1"></i> Run: ${name}`;
+      // Re-render to update selected state
+      filterAnalyzers();
+      // Switch to run form focus
+      document.getElementById('obs-value').focus();
+    }
+
+    // ─── Run analysis ───
+    async function runAnalysis() {
+      const observable = document.getElementById('obs-value').value.trim();
+      const dataType = document.getElementById('obs-type').value;
+      if (!observable) return showToast('Enter an observable value', 'error');
+      if (!selectedAnalyzerId) return showToast('Select an analyzer from the grid below', 'error');
+      const token = localStorage.getItem('sentrix_token');
+      const btn = document.getElementById('run-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Running...';
+      try {
+        const r = await fetch('/api/cortex/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ observable, data_type: dataType, analyzer_id: selectedAnalyzerId })
+        });
+        if (!r.ok) {
+          const e = await r.json();
+          showToast(e.detail || 'Failed to submit job', 'error');
+          return;
+        }
+        const job = await r.json();
+        jobs.unshift({ ...job, _observable: observable });
+        showToast(`Job submitted: ${job.id}`, 'success');
+        showJobResult(job);
+        renderJobsTable();
+      } catch { showToast('Network error', 'error'); }
+      finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> Run';
+      }
+    }
+    function showJobResult(job) {
+      const el = document.getElementById('job-result');
+      el.classList.remove('hidden');
+      el.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs text-gray-400 uppercase tracking-wider">Job Submitted</span>
+            <p class="text-white font-mono text-sm mt-0.5">${escHtml(job.id)}</p>
+          </div>
+          <span class="job-status-badge job-${escAttr(job.status || 'Waiting')}">${escHtml(job.status || 'Waiting')}</span>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <button onclick="pollJob('${job.id}')" class="btn btn-secondary text-xs">
+            <i class="fa-solid fa-rotate mr-1"></i> Refresh Status
+          </button>
+          <button onclick="viewReport('${job.id}')" class="btn btn-secondary text-xs">
+            <i class="fa-solid fa-file-lines mr-1"></i> View Report
+          </button>
+        </div>`;
+    }
+
+    // ─── Jobs ───
+    function renderJobsTable() {
+      const tbody = document.getElementById('jobs-tbody');
+      if (!jobs.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-gray-500 text-sm">No jobs yet</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = jobs.map(j => `
+        <tr class="job-row" style="border-bottom:1px solid rgba(255,255,255,.03);">
+          <td class="py-3 px-4 text-gray-400 font-mono text-xs">${escHtml(j.id || '—')}</td>
+          <td class="py-3 px-4 text-white text-xs">${escHtml(j.analyzerName || j.workerId || '—')}</td>
+          <td class="py-3 px-4 text-gray-300 text-xs">${escHtml(j._observable || j.data || '—')}</td>
+          <td class="py-3 px-4"><span class="job-status-badge job-${escAttr(j.status || 'Waiting')}">${escHtml(j.status || 'Waiting')}</span></td>
+          <td class="py-3 px-4">
+            <button onclick="pollJob('${j.id}')" class="text-blue-400 hover:text-blue-300 text-xs mr-3">
+              <i class="fa-solid fa-rotate mr-1"></i>Refresh
+            </button>
+            <button onclick="viewReport('${j.id}')" class="text-emerald-400 hover:text-emerald-300 text-xs">
+              <i class="fa-solid fa-file-lines mr-1"></i>Report
+            </button>
+          </td>
+        </tr>`).join('');
+    }
+    async function pollJob(jobId) {
+      const token = localStorage.getItem('sentrix_token');
+      try {
+        const r = await fetch(`/api/cortex/jobs/${jobId}`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!r.ok) return showToast('Could not fetch job', 'error');
+        const job = await r.json();
+        const idx = jobs.findIndex(j => j.id === jobId);
+        if (idx !== -1) { jobs[idx] = { ...jobs[idx], ...job }; renderJobsTable(); }
+        showToast(`Status: ${job.status}`, 'info');
+      } catch { showToast('Error', 'error'); }
+    }
+    async function viewReport(jobId) {
+      const token = localStorage.getItem('sentrix_token');
+      try {
+        const r = await fetch(`/api/cortex/jobs/${jobId}/report`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!r.ok) {
+          const e = await r.json();
+          return showToast(e.detail || 'Report not available yet', 'error');
+        }
+        const report = await r.json();
+        document.getElementById('report-content').textContent = JSON.stringify(report, null, 2);
+        openModal('modal-report');
+      } catch { showToast('Error fetching report', 'error'); }
+    }
+    function clearJobs() {
+      jobs.length = 0;
+      renderJobsTable();
+    }
+
+    // ─── Helpers ───
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function escAttr(s) { return escHtml(s); }
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+
+    const SEV_NUM = { 1: 'low', 2: 'medium', 3: 'high', 4: 'critical' };
+    function sevBadge(sev) {
+      const s = typeof sev === 'number' ? SEV_NUM[sev] || 'medium' : (sev || 'medium').toLowerCase();
+      return `<span class="sev-badge sev-${s}">${s}</span>`;
+    }
+
+    // ─── Init ───
+    checkStatuses();
+    loadCases();
+  </script>
+</body>
+</html>

@@ -6,7 +6,7 @@ import asyncio
 import os
 
 from backend.database import init_db
-from backend.routers import auth, alerts, incidents, ioc, dashboard, ai_analyst, reports, users, audit, rules, virustotal, tickets, investigation, ir, agents
+from backend.routers import auth, alerts, incidents, ioc, dashboard, ai_analyst, reports, users, audit, rules, virustotal, tickets, investigation, ir, agents, thehive, cortex, integrations
 
 app = FastAPI(
     title="SentriX API",
@@ -38,6 +38,9 @@ app.include_router(tickets.router)
 app.include_router(investigation.router)
 app.include_router(ir.router)
 app.include_router(agents.router)
+app.include_router(thehive.router)
+app.include_router(cortex.router)
+app.include_router(integrations.router)
 
 # Serve frontend static files
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
