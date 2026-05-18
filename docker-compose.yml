@@ -2,6 +2,102 @@ version: "3.8"
 
 services:
 
+  # ── Elasticsearch (shared by TheHive + Cortex) ─────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.12
+    container_name: elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:9200/_cluster/health?wait_for_status=yellow"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ── Cassandra (TheHive database) ───────────────────────────────
+  cassandra:
+    image: cassandra:4.0
+    container_name: cassandra
+    restart: unless-stopped
+    environment:
+      - CASSANDRA_CLUSTER_NAME=thp
+      - HEAP_NEWSIZE=128M
+      - MAX_HEAP_SIZE=512M
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe keyspaces' || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 120s
+
+  # ── TheHive 5 ──────────────────────────────────────────────────
+  thehive:
+    image: strangebee/thehive:5.2
+    container_name: thehive
+    restart: unless-stopped
+    depends_on:
+      cassandra:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./docker/thehive/application.conf:/etc/thehive/application.conf:ro
+      - thehive_data:/opt/thp/thehive/files
+    command: ["--config-file", "/etc/thehive/application.conf"]
+    healthcheck:
+      # 401 = TheHive running but requires auth — that's fine
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:9000/api/v1/status | grep -qE '^(200|401)'"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 120s
+
+  # ── Cortex 3 ───────────────────────────────────────────────────
+  cortex:
+    image: thehiveproject/cortex:3.1.7-1
+    container_name: cortex
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "9001:9001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - cortex_jobs:/tmp/cortex-jobs
+    command:
+      - "--secret"
+      - "SentriX-Cortex-Secret-ChangeMeInProduction-2025"
+      - "--es-uri"
+      - "http://elasticsearch:9200"
+      - "--job-directory"
+      - "/tmp/cortex-jobs"
+      - "--analyzer-url"
+      - "https://download.thehive-project.org/analyzers.json"
+      - "--responder-url"
+      - "https://download.thehive-project.org/responders.json"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9001/api/status | grep -q Cortex || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
+
   # ── Wazuh Manager ──────────────────────────────────────────────
   wazuh-manager:
     image: wazuh/wazuh-manager:4.7.5
@@ -9,9 +105,9 @@ services:
     hostname: wazuh-manager
     restart: unless-stopped
     ports:
-      - "1514:1514"       # Agent communication
-      - "1515:1515"       # Agent enrollment
-      - "55000:55000"     # Wazuh API
+      - "1514:1514"
+      - "1515:1515"
+      - "55000:55000"
     environment:
       - WAZUH_API_USER=wazuh
       - WAZUH_API_PASSWORD=wazuh
@@ -34,21 +130,41 @@ services:
     ports:
       - "8000:8000"
     environment:
+      # Wazuh
       - WAZUH_ENABLED=true
       - WAZUH_URL=https://wazuh-manager:55000
       - WAZUH_USER=wazuh
       - WAZUH_PASSWORD=wazuh
       - WAZUH_ALERTS_LOG=/var/ossec/logs/alerts/alerts.json
+      # TheHive
+      - THEHIVE_URL=http://thehive:9000
+      - THEHIVE_API_KEY=${THEHIVE_API_KEY:-}
+      - THEHIVE_ENABLED=${THEHIVE_ENABLED:-false}
+      # Cortex
+      - CORTEX_URL=http://cortex:9001
+      - CORTEX_API_KEY=${CORTEX_API_KEY:-}
+      - CORTEX_ENABLED=${CORTEX_ENABLED:-false}
+      # Threat Intel
       - VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY:-}
       - VIRUSTOTAL_ENABLED=${VIRUSTOTAL_ENABLED:-false}
+      - ABUSEIPDB_API_KEY=${ABUSEIPDB_API_KEY:-}
+      - ABUSEIPDB_ENABLED=${ABUSEIPDB_ENABLED:-false}
+      # AI
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - AI_ENABLED=${AI_ENABLED:-false}
     volumes:
       - sentrix_db:/app/sentrix.db
-      - wazuh_logs:/wazuh-logs:ro   # read Wazuh alerts directly
+      - wazuh_logs:/wazuh-logs:ro
     depends_on:
       wazuh-manager:
         condition: service_healthy
 
 volumes:
+  elasticsearch_data:
+  cassandra_data:
+  thehive_data:
+  cortex_jobs:
   wazuh_data:
   wazuh_logs:
   wazuh_queue:

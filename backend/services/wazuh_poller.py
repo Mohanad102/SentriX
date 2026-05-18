@@ -90,13 +90,14 @@ def parse_wazuh_alert(raw: dict) -> dict | None:
     }
 
 
-def _docker_available() -> bool:
+async def _docker_available() -> bool:
     try:
-        result = subprocess.run(
-            ["docker", "inspect", WAZUH_CONTAINER, "--format", "{{.State.Running}}"],
-            capture_output=True, text=True, timeout=5
+        proc = await asyncio.create_subprocess_exec(
+            "docker", "inspect", WAZUH_CONTAINER, "--format", "{{.State.Running}}",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
         )
-        return result.stdout.strip() == "true"
+        stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+        return stdout.decode().strip() == "true"
     except Exception:
         return False
 
@@ -105,16 +106,17 @@ def _docker_available() -> bool:
 async def backfill_existing_alerts(db) -> int:
     from backend.models.alert import Alert
 
-    if not _docker_available():
+    if not await _docker_available():
         print("[Wazuh] Container not running — skipping backfill")
         return 0
 
     try:
-        result = subprocess.run(
-            ["docker", "exec", WAZUH_CONTAINER, "cat", ALERTS_LOG_PATH],
-            capture_output=True, text=True, timeout=60
+        proc = await asyncio.create_subprocess_exec(
+            "docker", "exec", WAZUH_CONTAINER, "cat", ALERTS_LOG_PATH,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
         )
-        lines = result.stdout.strip().splitlines()
+        stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=60)
+        lines = stdout.decode().strip().splitlines()
     except Exception as e:
         print(f"[Wazuh] Backfill read error: {e}")
         return 0
