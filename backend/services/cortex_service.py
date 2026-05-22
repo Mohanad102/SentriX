@@ -12,6 +12,8 @@ def _headers() -> Dict:
 
 
 async def get_status() -> Dict:
+    if not settings.CORTEX_ENABLED:
+        return {"connected": False, "url": settings.CORTEX_URL, "error": "Service disabled — set CORTEX_ENABLED=true in .env"}
     try:
         async with httpx.AsyncClient(timeout=5, verify=False) as client:
             r = await client.get(f"{settings.CORTEX_URL}/api/user/current", headers=_headers())
@@ -24,7 +26,7 @@ async def get_status() -> Dict:
                 }
             return {"connected": False, "url": settings.CORTEX_URL, "error": f"HTTP {r.status_code}"}
     except Exception as e:
-        return {"connected": False, "url": settings.CORTEX_URL, "error": str(e)}
+        return {"connected": False, "url": settings.CORTEX_URL, "error": "Connection refused — is Cortex running?"}
 
 
 async def list_analyzers() -> List[Dict]:

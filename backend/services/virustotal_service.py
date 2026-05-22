@@ -41,7 +41,7 @@ def extract_iocs_from_text(text: str) -> list[tuple[str, str]]:
             found[h] = 'hash'
 
     for h in _RE_SHA1.findall(text):
-        if h not in found and h not in found:
+        if h not in found:
             found[h] = 'hash'
 
     for h in _RE_MD5.findall(text):
@@ -113,8 +113,7 @@ async def enrich_and_store_ioc(db, value: str, ioc_type: str, alert_id: int = No
         if alert_id and not existing.alert_id:
             existing.alert_id = alert_id
     else:
-        from backend.models.ioc import IOC as IOCModel
-        ioc = IOCModel(
+        ioc = IOC(
             value=value,
             ioc_type=ioc_type,
             alert_id=alert_id,
