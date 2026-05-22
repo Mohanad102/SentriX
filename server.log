@@ -1,0 +1,497 @@
+[Wazuh] Poller scheduled
+[Wazuh] Container not available — poller exiting
+INFO:     127.0.0.1:60991 - "POST /api/auth/login HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:60991 - "GET /api/dashboard/services-status HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:61000 - "POST /api/auth/login HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:61000 - "GET /api/dashboard/services-status HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:61004 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61004 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50926 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50926 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50926 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54481 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /dashboard.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /static/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64372 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64372 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55198 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64372 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61631 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63000 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63000 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52733 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52733 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65182 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63202 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63202 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63202 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54436 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54436 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56599 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50717 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54436 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63202 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63202 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52606 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62823 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62823 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62823 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62823 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52087 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52454 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53685 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52454 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62236 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51512 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52454 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62582 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62403 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53685 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53685 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62125 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51967 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51967 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51967 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51967 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54399 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59415 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53182 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59415 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50161 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59415 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60197 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62752 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53182 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53182 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55509 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58212 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58212 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58212 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58212 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57083 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57532 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57532 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62786 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61723 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57532 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56389 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52042 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51629 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52616 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52616 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52616 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52616 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51642 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51642 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51642 - "GET /dashboard.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51642 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51642 - "GET /static/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60224 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51642 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60224 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60224 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51642 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60224 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60224 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49386 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49386 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51642 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64938 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63126 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50819 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50819 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50819 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50819 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58220 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52641 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60026 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60026 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60026 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60026 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62524 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64278 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60026 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52641 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52641 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56278 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /dashboard.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50315 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /static/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50315 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56599 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50315 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56599 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56599 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50315 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50315 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54299 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /integrations.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /static/js/sidebar.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50315 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "GET /api/integrations/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54299 - "POST /api/integrations/test/thehive HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56599 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56599 - "POST /api/integrations/test/cortex HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56976 - "GET /thehive.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62509 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56976 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62509 - "GET /api/thehive/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56718 - "GET /api/cortex/status HTTP/1.1" 200 OK
+[TheHive] list_cases error: All connection attempts failed
+INFO:     127.0.0.1:56976 - "GET /api/thehive/cases?limit=15&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56976 - "GET /agents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56718 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56976 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56718 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53002 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53002 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:49731 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49731 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49731 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53171 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51164 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62019 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63163 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58688 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:63257 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63257 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53689 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53689 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53689 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57897 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49483 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49980 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:63980 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52336 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55097 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54527 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56543 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59805 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50671 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63423 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50671 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:51593 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52640 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51593 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55148 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57463 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55148 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:56432 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50034 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56432 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55986 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51064 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55986 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50813 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50574 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50813 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60514 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64529 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60514 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53185 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52039 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53185 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62972 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59846 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62972 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52051 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55801 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52051 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:51867 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62152 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51867 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:61731 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58096 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61731 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57701 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65270 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57701 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50914 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61187 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50914 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58600 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55221 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58600 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:59153 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57488 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59153 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53484 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53507 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51829 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58060 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60194 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58060 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50591 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53121 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50591 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55244 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55601 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61132 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55452 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63063 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55452 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60025 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55760 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61093 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:61984 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49216 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61984 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52643 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61404 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52643 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50165 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64476 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50165 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57489 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61387 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57489 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52512 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49893 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52512 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:56355 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49232 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56355 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:64818 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54432 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64818 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:63923 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51018 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63923 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54086 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63816 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54086 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:63425 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55070 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63425 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:49159 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53368 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49159 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50854 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55653 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50854 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54059 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62956 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54059 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55724 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63395 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55724 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52687 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63412 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52687 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58727 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62274 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58727 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53744 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52112 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53744 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50153 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49166 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50153 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54079 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55768 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54079 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:63269 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58310 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58033 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57103 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56984 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52668 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53745 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52166 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53745 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60375 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59285 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60375 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52036 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53575 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52036 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58852 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62720 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49956 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:61961 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59376 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61961 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:63153 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50968 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63153 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50225 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61467 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50225 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57450 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62200 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57450 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50319 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53594 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61253 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52549 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56204 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52549 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62411 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51528 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62411 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57300 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65483 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62749 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58401 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60499 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58401 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:63289 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61655 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65459 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:49286 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62895 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51058 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57514 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59413 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57514 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57763 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50055 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57763 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50023 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64112 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50023 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50349 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55901 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50349 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53383 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52818 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53383 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57242 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52089 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64688 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60560 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59045 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49193 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55018 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54706 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55018 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55705 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63947 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55705 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:61489 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49529 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61489 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55385 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58710 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55385 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60825 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56794 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60825 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:51576 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53655 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51576 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:51258 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51258 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62936 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60139 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62936 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:56083 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50164 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56083 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57194 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53402 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59266 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:59982 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52482 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59982 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:64050 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58881 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64050 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60518 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53313 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60518 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50134 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62289 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50134 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52994 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56878 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52994 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50376 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57596 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50376 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:53158 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53158 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:56602 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53080 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56602 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:59291 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59291 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62240 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62240 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62240 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57657 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57657 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52134 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65109 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52134 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:58018 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58018 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:51391 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51391 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51391 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:65068 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65068 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60295 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57686 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60295 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:56109 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51980 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50001 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50170 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49918 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:59462 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56526 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:56526 - "GET /agents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59462 - "GET /static/js/sidebar.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56526 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59462 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56526 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59462 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56526 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57550 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57550 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:52219 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62962 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62962 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:57487 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57487 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:54971 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49177 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49177 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:61779 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61779 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:49617 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54281 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54281 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:60921 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60921 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:51782 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61370 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64794 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:55775 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59644 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49488 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:62395 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50703 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58176 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:50622 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50622 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50622 - "GET /api/agents HTTP/1.1" 503 Service Unavailable
