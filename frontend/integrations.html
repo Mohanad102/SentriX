@@ -159,6 +159,10 @@
               <span class="text-gray-400">URL</span>
               <span id="val-wazuh-url" class="text-gray-300 font-mono">—</span>
             </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-400">Connection</span>
+              <span id="val-wazuh-conn" class="text-gray-500">—</span>
+            </div>
           </div>
           <p class="env-hint">WAZUH_URL · WAZUH_USER · WAZUH_PASSWORD · WAZUH_ENABLED=true</p>
         </div>
@@ -320,28 +324,36 @@ AI_ENABLED=true</pre>
       const el = document.getElementById(id);
       if (!el) return;
       el.textContent = msg;
-      el.style.color = connected ? '#34d399' : '#f87171';
+      if (connected === true)  el.style.color = '#34d399';
+      else if (connected === false) el.style.color = '#f87171';
+      else el.style.color = '#475569';
     }
+
+    let _settings = {};
 
     async function loadSettings() {
       try {
         const r = await fetch('/api/integrations/settings', { headers: { Authorization: `Bearer ${token()}` } });
         if (!r.ok) return;
         const d = await r.json();
+        _settings = d;
 
         // TheHive
         setPill('pill-thehive', d.thehive.enabled);
         setVal('val-thehive-url', d.thehive.url);
         setVal('val-thehive-key', d.thehive.api_key_set ? '••••••••' : 'Not set');
+        setConn('val-thehive-conn', null, d.thehive.enabled ? '—' : 'Not configured');
 
         // Cortex
         setPill('pill-cortex', d.cortex.enabled);
         setVal('val-cortex-url', d.cortex.url);
         setVal('val-cortex-key', d.cortex.api_key_set ? '••••••••' : 'Not set');
+        setConn('val-cortex-conn', null, d.cortex.enabled ? '—' : 'Not configured');
 
         // Wazuh
         setPill('pill-wazuh', d.wazuh.enabled);
         setVal('val-wazuh-url', d.wazuh.url);
+        setConn('val-wazuh-conn', null, d.wazuh.enabled ? '—' : 'Not configured');
 
         // VirusTotal
         setPill('pill-virustotal', d.virustotal.enabled);
@@ -363,6 +375,15 @@ AI_ENABLED=true</pre>
 
     async function testConnection(service) {
       const connEl = document.getElementById(`val-${service}-conn`);
+      const svcSettings = _settings[service];
+      const isEnabled = svcSettings ? svcSettings.enabled : false;
+
+      if (!isEnabled) {
+        setConn(`val-${service}-conn`, null, 'Not configured');
+        showToast(`${service} is disabled — enable it in .env to test`, 'info');
+        return;
+      }
+
       if (connEl) { connEl.textContent = 'Testing...'; connEl.style.color = '#9ca3af'; }
       try {
         const r = await fetch(`/api/integrations/test/${service}`, {
@@ -372,16 +393,16 @@ AI_ENABLED=true</pre>
         const d = await r.json();
         if (d.connected) {
           const detail = d.version ? `v${d.version}` : (d.user || 'OK');
-          if (connEl) setConn(`val-${service}-conn`, true, `Connected — ${detail}`);
+          setConn(`val-${service}-conn`, true, `Connected — ${detail}`);
           setPill(`pill-${service}`, true, 'Connected');
           showToast(`${service} connected successfully`, 'success');
         } else {
           const err = d.error || 'Unreachable';
-          if (connEl) setConn(`val-${service}-conn`, false, err);
+          setConn(`val-${service}-conn`, false, err);
           showToast(`${service}: ${err}`, 'error');
         }
       } catch {
-        if (connEl) setConn(`val-${service}-conn`, false, 'Error');
+        setConn(`val-${service}-conn`, false, 'Network error');
         showToast('Network error', 'error');
       }
     }

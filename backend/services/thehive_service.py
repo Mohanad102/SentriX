@@ -14,6 +14,8 @@ def _headers() -> Dict:
 
 
 async def get_status() -> Dict:
+    if not settings.THEHIVE_ENABLED:
+        return {"connected": False, "url": settings.THEHIVE_URL, "error": "Service disabled — set THEHIVE_ENABLED=true in .env"}
     try:
         async with httpx.AsyncClient(timeout=5, verify=False) as client:
             r = await client.get(f"{settings.THEHIVE_URL}/api/v1/status", headers=_headers())
@@ -26,7 +28,7 @@ async def get_status() -> Dict:
                 }
             return {"connected": False, "url": settings.THEHIVE_URL, "error": f"HTTP {r.status_code}"}
     except Exception as e:
-        return {"connected": False, "url": settings.THEHIVE_URL, "error": str(e)}
+        return {"connected": False, "url": settings.THEHIVE_URL, "error": "Connection refused — is TheHive running?"}
 
 
 async def list_cases(limit: int = 20, offset: int = 0) -> List[Dict]:

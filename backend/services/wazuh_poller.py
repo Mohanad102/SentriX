@@ -192,7 +192,7 @@ async def run_wazuh_poller():
     # Wait for startup
     await asyncio.sleep(10)
 
-    if not _docker_available():
+    if not await _docker_available():
         print("[Wazuh] Container not available — poller exiting")
         return
 
