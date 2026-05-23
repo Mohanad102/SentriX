@@ -8,7 +8,8 @@ from backend.database import get_db
 from backend.models.user import User
 from backend.utils.auth import (
     verify_password, get_password_hash,
-    create_access_token, get_current_user
+    create_access_token, get_current_user,
+    validate_password_strength,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -83,6 +84,8 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already registered")
     if db.query(User).filter(User.email == user_data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
+
+    validate_password_strength(user_data.password)
 
     user = User(
         username=user_data.username,

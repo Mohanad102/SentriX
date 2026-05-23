@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 from backend.database import get_db
 from backend.models.user import User
-from backend.utils.auth import get_password_hash, require_admin, get_current_user
+from backend.utils.auth import get_password_hash, require_admin, get_current_user, validate_password_strength
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -60,6 +60,7 @@ def update_user(
     if data.email is not None:
         user.email = data.email
     if data.password is not None:
+        validate_password_strength(data.password)
         user.hashed_password = get_password_hash(data.password)
     db.commit()
     db.refresh(user)

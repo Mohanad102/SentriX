@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -10,6 +11,24 @@ from backend.database import get_db
 from backend.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+_SPECIAL = r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?`~]"
+
+def validate_password_strength(password: str) -> None:
+    errors = []
+    if len(password) < 8:
+        errors.append("at least 8 characters")
+    if not re.search(r"[A-Z]", password):
+        errors.append("an uppercase letter")
+    if not re.search(r"\d", password):
+        errors.append("a digit")
+    if not re.search(_SPECIAL, password):
+        errors.append("a special character (!@#$%^&* …)")
+    if errors:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Password must contain: {', '.join(errors)}.",
+        )
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

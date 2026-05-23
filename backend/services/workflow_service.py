@@ -263,10 +263,54 @@ async def _step_thehive_case(db, alert, vt_summary: dict, cortex_findings: list,
                 alert.thehive_case_id = case_id
                 db.commit()
                 print(f"{tag} TheHive case created: {case_id}")
+                await _step_create_incident(db, alert, case_id, tag)
         else:
             print(f"{tag} TheHive create_case returned None")
     except Exception as e:
         print(f"{tag} TheHive case creation error: {e}")
+
+
+async def _step_create_incident(db, alert, hive_case_id: str, tag: str) -> None:
+    """Auto-create a SentriX Incident linked to the TheHive case so the IR team can run playbooks."""
+    if alert.incident_id:
+        # Incident already exists — just stamp the TheHive ID onto it
+        try:
+            from backend.models.incident import Incident
+            inc = db.query(Incident).filter(Incident.id == alert.incident_id).first()
+            if inc and not inc.thehive_id:
+                inc.thehive_id = hive_case_id
+                db.commit()
+                print(f"{tag} Stamped TheHive ID onto existing incident {inc.case_number}")
+        except Exception as e:
+            print(f"{tag} Failed to stamp TheHive ID on incident: {e}")
+        return
+
+    try:
+        import uuid
+        from backend.models.incident import Incident
+
+        inc = Incident(
+            case_number=f"INC-{uuid.uuid4().hex[:6].upper()}",
+            title=f"[Auto] {alert.title}",
+            description=(
+                f"Auto-created from Wazuh alert '{alert.title}'.\n"
+                f"TheHive Case: {hive_case_id}\n\n"
+                f"{alert.description or ''}"
+            ),
+            severity=alert.severity,
+            category=alert.category,
+            assigned_to="system",
+            thehive_id=hive_case_id,
+            ir_status="new",
+            status="open",
+        )
+        db.add(inc)
+        db.flush()
+        alert.incident_id = inc.id
+        db.commit()
+        print(f"{tag} Auto-created incident {inc.case_number} linked to TheHive {hive_case_id}")
+    except Exception as e:
+        print(f"{tag} Failed to auto-create incident: {e}")
 
 
 def _build_case_description(alert, vt_summary: dict, cortex_findings: list) -> str:

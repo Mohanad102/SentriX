@@ -145,7 +145,7 @@
                   <thead class="bg-gray-800/50">
                     <tr>
                       <th>Case #</th><th>Title</th><th>Severity</th>
-                      <th>Threat</th><th>Status</th><th>IR Phase</th><th>Assigned</th><th>Created</th><th>Actions</th>
+                      <th>IR Phase</th><th>Status</th><th>Assigned</th><th>Created</th><th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="incidents-tbody"></tbody>
@@ -253,16 +253,16 @@
         <div class="flex gap-2 mt-4 flex-wrap" id="lifecycle-btns"></div>
       </div>
 
-      <!-- Tab Bar -->
+      <!-- Tab Bar — ordered by IR workflow: act first, investigate second -->
       <div class="flex gap-0.5 mb-5 bg-gray-800/50 rounded-lg p-1 overflow-x-auto">
-        <button onclick="switchTab('details')"      id="tab-details"      class="tab-btn active shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-circle-info mr-1"></i>Details</button>
+        <button onclick="switchTab('playbooks')"    id="tab-playbooks"    class="tab-btn active shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-book-open mr-1"></i>Playbooks</button>
+        <button onclick="switchTab('actions')"      id="tab-actions"      class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-bolt mr-1"></i>Actions</button>
+        <button onclick="switchTab('details')"      id="tab-details"      class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-circle-info mr-1"></i>Details</button>
+        <button onclick="switchTab('evidence')"     id="tab-evidence"     class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-box-archive mr-1"></i>Evidence</button>
+        <button onclick="switchTab('alerts')"       id="tab-alerts"       class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-bell mr-1"></i>Alerts</button>
         <button onclick="switchTab('timeline')"     id="tab-timeline"     class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-timeline mr-1"></i>Timeline</button>
         <button onclick="switchTab('correlations')" id="tab-correlations" class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-diagram-project mr-1"></i>Correlations</button>
         <button onclick="switchTab('ti')"           id="tab-ti"           class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-fingerprint mr-1"></i>Threat Intel</button>
-        <button onclick="switchTab('actions')"      id="tab-actions"      class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-bolt mr-1"></i>Actions</button>
-        <button onclick="switchTab('playbooks')"    id="tab-playbooks"    class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-book-open mr-1"></i>Playbooks</button>
-        <button onclick="switchTab('evidence')"     id="tab-evidence"     class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-box-archive mr-1"></i>Evidence</button>
-        <button onclick="switchTab('alerts')"       id="tab-alerts"       class="tab-btn shrink-0 px-3 py-1.5 text-xs font-medium rounded"><i class="fa-solid fa-bell mr-1"></i>Alerts</button>
       </div>
 
       <div id="tab-details-content"      class="tab-content"></div>
@@ -369,7 +369,7 @@
     const IR_LABELS     = { new:'New', investigating:'Investigating', contained:'Contained', eradicated:'Eradicated', recovered:'Recovered' };
     const IR_ICONS      = { new:'fa-circle-plus', investigating:'fa-magnifying-glass', contained:'fa-shield-halved', eradicated:'fa-trash-can', recovered:'fa-heart-pulse' };
     const IR_NEXT_LABEL = { new:'Start Investigation', investigating:'Mark Contained', contained:'Mark Eradicated', eradicated:'Mark Recovered' };
-    const TABS = ['details','timeline','correlations','ti','actions','playbooks','evidence','alerts'];
+    const TABS = ['playbooks','actions','details','evidence','alerts','timeline','correlations','ti'];
     const STATUSES = ['open','in_progress','resolved','closed'];
 
     const user   = JSON.parse(localStorage.getItem('sentrix_user') || '{}');
@@ -477,11 +477,13 @@
       document.getElementById('incidents-tbody').innerHTML = items.map(inc => `
         <tr>
           <td><span class="font-mono text-xs text-emerald-400">${inc.case_number}</span></td>
-          <td style="max-width:200px"><p class="truncate text-sm" title="${inc.title}">${inc.title}</p></td>
+          <td style="max-width:220px">
+            <p class="truncate text-sm" title="${inc.title}">${inc.title}</p>
+            ${inc.thehive_id ? `<span class="inline-flex items-center gap-1 mt-0.5 text-xs px-1.5 py-0.5 rounded" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);"><i class="fa-solid fa-bugs" style="font-size:0.6rem"></i>TheHive</span>` : ''}
+          </td>
           <td>${severityBadge(inc.severity)}</td>
-          <td>${incThreatBadge(inc)}</td>
-          <td>${statusBadge(inc.status)}</td>
           <td>${irStatusBadge(inc.ir_status)}</td>
+          <td>${statusBadge(inc.status)}</td>
           <td><span class="text-xs text-gray-400">${inc.assigned_to||'—'}</span></td>
           <td><span class="text-xs text-gray-500 whitespace-nowrap">${timeAgo(inc.created_at)}</span></td>
           <td>
@@ -492,7 +494,7 @@
               </button>
             </div>
           </td>
-        </tr>`).join('') || '<tr><td colspan="9" class="text-center text-gray-500 py-10">No incidents found</td></tr>';
+        </tr>`).join('') || '<tr><td colspan="8" class="text-center text-gray-500 py-10">No incidents found</td></tr>';
     }
 
     // ── Playbook Library ──────────────────────────────────────
@@ -533,7 +535,10 @@
             <p class="text-sm text-gray-200 font-medium leading-snug mb-2 line-clamp-2">${inc.title}</p>
             <div class="flex items-center justify-between text-xs text-gray-500">
               <span>${inc.assigned_to||'Unassigned'}</span>
-              <span>${timeAgo(inc.created_at)}</span>
+              <div class="flex items-center gap-1">
+                ${inc.thehive_id ? `<span style="color:#fbbf24;"><i class="fa-solid fa-bugs" title="Linked to TheHive"></i></span>` : ''}
+                <span>${timeAgo(inc.created_at)}</span>
+              </div>
             </div>
           </div>`).join('') || '<p class="text-center text-gray-700 text-xs py-4">Empty</p>';
       });
@@ -586,43 +591,25 @@
             <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Status</p>${statusBadge(inc.status)}</div>
             <div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Priority</p>${severityBadge(inc.priority)}</div>
           </div>
+          ${inc.thehive_id ? `
+          <div class="rounded-lg p-3 flex items-center gap-3" style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);">
+            <i class="fa-solid fa-bugs text-yellow-400"></i>
+            <div>
+              <p class="text-yellow-400 text-xs font-semibold">Linked TheHive Case</p>
+              <p class="text-yellow-200 font-mono text-xs mt-0.5">${inc.thehive_id}</p>
+            </div>
+            <span class="ml-auto text-xs px-2 py-0.5 rounded" style="background:rgba(251,191,36,0.15);color:#fbbf24;">SOAR</span>
+          </div>` : ''}
           ${inc.description ? `<div class="bg-gray-800 rounded-lg p-3"><p class="text-gray-500 text-xs mb-1">Description</p><p class="text-gray-200">${inc.description}</p></div>` : ''}
           ${inc.ai_summary ? `<div class="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3"><p class="text-emerald-400 text-xs font-semibold mb-2"><i class="fa-solid fa-robot mr-1"></i>AI Summary</p><p class="text-gray-300">${inc.ai_summary}</p></div>` : ''}
           ${inc.ai_recommendations ? `<div class="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3"><p class="text-blue-400 text-xs font-semibold mb-2"><i class="fa-solid fa-list-check mr-1"></i>Recommendations</p><pre class="text-gray-300 whitespace-pre-wrap text-xs">${inc.ai_recommendations}</pre></div>` : ''}
-          ${canL2 ? `
-          <div class="border border-yellow-500/20 bg-yellow-500/5 rounded-xl p-4 space-y-3">
-            <p class="text-yellow-400 text-xs font-semibold uppercase tracking-wide"><i class="fa-solid fa-user-shield mr-1"></i>L2 Investigation</p>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-gray-400 text-xs mb-1">L2 Status</label>
-                <select id="l2-status-sel" class="form-input form-select text-xs">
-                  <option value="">— Not Set —</option>
-                  <option value="under_investigation" ${inc.l2_status==='under_investigation'?'selected':''}>Under Investigation</option>
-                  <option value="contained"           ${inc.l2_status==='contained'?'selected':''}>Contained</option>
-                  <option value="escalated_to_ir"     ${inc.l2_status==='escalated_to_ir'?'selected':''}>Escalated to IR</option>
-                </select>
-              </div>
-              <div class="flex items-end">
-                ${l2StatusBadge(inc.l2_status)}
-                ${inc.contained_at ? `<span class="text-xs text-gray-500 ml-2">Contained: ${formatDate(inc.contained_at)}</span>` : ''}
-              </div>
+          <div class="border border-gray-700 rounded-xl p-4 space-y-3">
+            <p class="text-gray-400 text-xs font-semibold uppercase tracking-wide"><i class="fa-solid fa-file-lines mr-1"></i>IR Notes</p>
+            <textarea id="ir-notes-ta" rows="3" class="form-input resize-none text-xs" placeholder="Document containment steps, findings, actions taken...">${inc.investigation_notes || ''}</textarea>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="saveIRNotes(${inc.id})" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk mr-1"></i>Save Notes</button>
+              <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs"><i class="fa-solid fa-robot mr-1"></i>AI Analysis</button>
             </div>
-            <div>
-              <label class="block text-gray-400 text-xs mb-1">Investigation Notes</label>
-              <textarea id="l2-notes-ta" rows="4" class="form-input resize-none text-xs" placeholder="Document your investigation findings...">${inc.investigation_notes || ''}</textarea>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="saveL2Fields(${inc.id})" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk mr-1"></i>Save</button>
-              ${inc.l2_status !== 'escalated_to_ir' ? `<button onclick="escalateIncidentToIR(${inc.id})" class="btn btn-sm bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"><i class="fa-solid fa-arrow-up-right-dots mr-1"></i>Escalate to IR</button>` : ''}
-            </div>
-          </div>` : (inc.investigation_notes ? `
-          <div class="bg-gray-800 rounded-lg p-3">
-            <p class="text-gray-500 text-xs mb-1"><i class="fa-solid fa-user-shield mr-1"></i>L2 Investigation Notes</p>
-            <p class="text-gray-300 text-xs">${inc.investigation_notes}</p>
-          </div>` : '')}
-          <div class="flex flex-wrap gap-2 pt-1">
-            <button onclick="changeStatus(${inc.id},'${inc.status}')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Status</button>
-            <button onclick="openAiAnalysis(${inc.id})" class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"><i class="fa-solid fa-robot"></i> AI Analysis</button>
           </div>
         </div>`;
 
@@ -692,7 +679,7 @@
           </div>`).join('')}</div>` :
         '<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-bell-slash text-2xl mb-2 block"></i>No related alerts</div>';
 
-      switchTab('details');
+      switchTab('playbooks');
       loadActionsTab(inc.id);
       document.getElementById('detail-modal').classList.remove('hidden');
     }
@@ -1140,24 +1127,12 @@
       } catch(err) { showToast(err.message, 'error'); }
     }
 
-    // ── L2 Save / Escalate ────────────────────────────────────
-    async function saveL2Fields(id) {
-      const l2_status           = document.getElementById('l2-status-sel').value || null;
-      const investigation_notes = document.getElementById('l2-notes-ta').value.trim() || null;
+    // ── IR Notes Save ─────────────────────────────────────────
+    async function saveIRNotes(id) {
+      const investigation_notes = document.getElementById('ir-notes-ta').value.trim() || null;
       try {
-        await apiPatch(`/api/incidents/${id}`, { l2_status, investigation_notes });
-        showToast('Investigation saved', 'success');
-        showDetail(id);
-      } catch(err) { showToast(err.message, 'error'); }
-    }
-
-    async function escalateIncidentToIR(id) {
-      if (!confirm('Escalate this incident to Incident Response team?')) return;
-      try {
-        await apiPatch(`/api/incidents/${id}`, { l2_status: 'escalated_to_ir', status: 'in_progress' });
-        showToast('Escalated to Incident Response', 'success');
-        showDetail(id);
-        loadIncidents(currentPage);
+        await apiPatch(`/api/incidents/${id}`, { investigation_notes });
+        showToast('Notes saved', 'success');
       } catch(err) { showToast(err.message, 'error'); }
     }
 

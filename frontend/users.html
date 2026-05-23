@@ -199,7 +199,21 @@
           <label class="block text-gray-400 text-sm mb-1">
             New Password <span class="text-gray-600 text-xs">(leave blank to keep current)</span>
           </label>
-          <input type="password" id="edit-password" class="form-input" placeholder="••••••••" />
+          <input type="password" id="edit-password" class="form-input" placeholder="••••••••" oninput="updateStrength('edit')" />
+          <div id="edit-strength-meter" class="mt-2 hidden">
+            <div class="flex gap-1 mb-2">
+              <div id="edit-bar-0" class="h-1 flex-1 rounded-full bg-gray-700 transition-all duration-300"></div>
+              <div id="edit-bar-1" class="h-1 flex-1 rounded-full bg-gray-700 transition-all duration-300"></div>
+              <div id="edit-bar-2" class="h-1 flex-1 rounded-full bg-gray-700 transition-all duration-300"></div>
+              <div id="edit-bar-3" class="h-1 flex-1 rounded-full bg-gray-700 transition-all duration-300"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-0.5">
+              <span id="edit-req-len" class="text-xs flex items-center gap-1 text-gray-600"><i class="fa-solid fa-circle text-xs"></i> 8+ characters</span>
+              <span id="edit-req-up"  class="text-xs flex items-center gap-1 text-gray-600"><i class="fa-solid fa-circle text-xs"></i> Uppercase letter</span>
+              <span id="edit-req-dig" class="text-xs flex items-center gap-1 text-gray-600"><i class="fa-solid fa-circle text-xs"></i> Digit</span>
+              <span id="edit-req-sp"  class="text-xs flex items-center gap-1 text-gray-600"><i class="fa-solid fa-circle text-xs"></i> Special char</span>
+            </div>
+          </div>
         </div>
         <div class="flex gap-3 pt-2">
           <button type="submit" class="btn btn-primary flex-1">
@@ -239,7 +253,21 @@
         </div>
         <div>
           <label class="block text-gray-400 text-sm mb-1">Password *</label>
-          <input type="password" id="c-password" class="form-input" required placeholder="••••••••" />
+          <input type="password" id="c-password" class="form-input" required placeholder="••••••••" oninput="updateStrength('c')" />
+          <div id="c-strength-meter" class="mt-2 hidden">
+            <div class="flex gap-1 mb-2">
+              <div id="c-bar-0" class="h-1 flex-1 rounded-full bg-gray-700 transition-all duration-300"></div>
+              <div id="c-bar-1" class="h-1 flex-1 rounded-full bg-gray-700 transition-all duration-300"></div>
+              <div id="c-bar-2" class="h-1 flex-1 rounded-full bg-gray-700 transition-all duration-300"></div>
+              <div id="c-bar-3" class="h-1 flex-1 rounded-full bg-gray-700 transition-all duration-300"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-0.5">
+              <span id="c-req-len"  class="text-xs flex items-center gap-1 text-gray-600"><i class="fa-solid fa-circle text-xs"></i> 8+ characters</span>
+              <span id="c-req-up"   class="text-xs flex items-center gap-1 text-gray-600"><i class="fa-solid fa-circle text-xs"></i> Uppercase letter</span>
+              <span id="c-req-dig"  class="text-xs flex items-center gap-1 text-gray-600"><i class="fa-solid fa-circle text-xs"></i> Digit</span>
+              <span id="c-req-sp"   class="text-xs flex items-center gap-1 text-gray-600"><i class="fa-solid fa-circle text-xs"></i> Special char</span>
+            </div>
+          </div>
         </div>
         <div>
           <label class="block text-gray-400 text-sm mb-1">Role</label>
@@ -474,9 +502,50 @@
       }
     }
 
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      // hide strength meters when modal closes
+      ['c', 'edit'].forEach(p => {
+        const m = document.getElementById(`${p}-strength-meter`);
+        if (m) m.classList.add('hidden');
+      });
+    }
     document.querySelectorAll('.modal-overlay').forEach(m =>
       m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
+
+    // ── Password strength meter ───────────────────────────────
+    const BAR_COLORS = ['#ef4444', '#f59e0b', '#f59e0b', '#10b981'];
+
+    function updateStrength(prefix) {
+      const pw = document.getElementById(`${prefix}-password`).value;
+      const meter = document.getElementById(`${prefix}-strength-meter`);
+
+      if (!pw) { meter.classList.add('hidden'); return; }
+      meter.classList.remove('hidden');
+
+      const checks = {
+        len: pw.length >= 8,
+        up:  /[A-Z]/.test(pw),
+        dig: /\d/.test(pw),
+        sp:  /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>/?`~]/.test(pw),
+      };
+
+      const score = Object.values(checks).filter(Boolean).length;
+
+      // Update bars
+      for (let i = 0; i < 4; i++) {
+        const bar = document.getElementById(`${prefix}-bar-${i}`);
+        bar.style.background = i < score ? BAR_COLORS[score - 1] : '#374151';
+      }
+
+      // Update requirement labels
+      Object.entries(checks).forEach(([key, met]) => {
+        const el = document.getElementById(`${prefix}-req-${key}`);
+        if (!el) return;
+        el.className = `text-xs flex items-center gap-1 ${met ? 'text-emerald-400' : 'text-gray-600'}`;
+        el.querySelector('i').className = `fa-solid ${met ? 'fa-circle-check' : 'fa-circle'} text-xs`;
+      });
+    }
 
     loadUsers();
   </script>
