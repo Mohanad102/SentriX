@@ -150,9 +150,22 @@ def get_alert(
 
 
 async def _bg_run_workflow(alert_id: int):
-    """Background task: run the full automated workflow for an alert."""
     from backend.services.workflow_service import run_auto_workflow
     await run_auto_workflow(alert_id)
+
+
+def _bg_evaluate_rules(alert_id: int, user_id: int):
+    from backend.routers.rules import evaluate_rules
+    db = SessionLocal()
+    try:
+        alert = db.query(Alert).filter(Alert.id == alert_id).first()
+        user  = db.query(User).filter(User.id == user_id).first() if user_id else None
+        if alert:
+            evaluate_rules(alert, db, user)
+    except Exception as e:
+        print(f"[Rules] evaluate_rules error: {e}")
+    finally:
+        db.close()
 
 
 @router.post("")
@@ -180,6 +193,7 @@ async def create_alert(
     db.commit()
     db.refresh(alert)
     background_tasks.add_task(_bg_run_workflow, alert.id)
+    background_tasks.add_task(_bg_evaluate_rules, alert.id, current_user.id)
     return alert_to_dict(alert)
 
 

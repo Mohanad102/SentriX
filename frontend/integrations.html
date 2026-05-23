@@ -164,6 +164,11 @@
               <span id="val-wazuh-conn" class="text-gray-500">—</span>
             </div>
           </div>
+          <div class="flex items-center gap-2">
+            <button class="test-btn" onclick="testConnection('wazuh')">
+              <i class="fa-solid fa-rotate mr-1"></i> Test Connection
+            </button>
+          </div>
           <p class="env-hint">WAZUH_URL · WAZUH_USER · WAZUH_PASSWORD · WAZUH_ENABLED=true</p>
         </div>
       </div>
@@ -192,8 +197,15 @@
               <span class="text-gray-400">API Key</span>
               <span id="val-vt-key" class="text-gray-300">—</span>
             </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-400">Connection</span>
+              <span id="val-virustotal-conn" class="text-gray-500">—</span>
+            </div>
           </div>
           <div class="flex items-center gap-2">
+            <button class="test-btn" onclick="testConnection('virustotal')">
+              <i class="fa-solid fa-rotate mr-1"></i> Test Connection
+            </button>
             <a href="/virustotal.html" class="test-btn" style="text-decoration:none;">
               <i class="fa-solid fa-arrow-right mr-1"></i> Open Scanner
             </a>
@@ -201,29 +213,6 @@
           <p class="env-hint">VIRUSTOTAL_API_KEY · VIRUSTOTAL_ENABLED=true</p>
         </div>
 
-        <!-- AbuseIPDB -->
-        <div class="int-card">
-          <div class="flex items-start justify-between mb-3">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                style="background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);">
-                <i class="fa-solid fa-ban text-purple-400"></i>
-              </div>
-              <div>
-                <p class="text-white font-semibold text-sm">AbuseIPDB</p>
-                <p class="text-gray-500 text-xs">IP reputation &amp; abuse reporting</p>
-              </div>
-            </div>
-            <span id="pill-abuseipdb" class="status-pill pill-off">Disabled</span>
-          </div>
-          <div class="space-y-1 mb-3">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-gray-400">API Key</span>
-              <span id="val-abuse-key" class="text-gray-300">—</span>
-            </div>
-          </div>
-          <p class="env-hint">ABUSEIPDB_API_KEY · ABUSEIPDB_ENABLED=true</p>
-        </div>
       </div>
 
       <!-- Section: AI -->
@@ -287,9 +276,6 @@ WAZUH_ENABLED=true
 # Threat Intel
 VIRUSTOTAL_API_KEY=your-vt-key
 VIRUSTOTAL_ENABLED=true
-ABUSEIPDB_API_KEY=your-abuse-key
-ABUSEIPDB_ENABLED=true
-
 # AI Engine
 OPENAI_API_KEY=your-openai-key
 OPENAI_MODEL=gpt-4o-mini
@@ -358,10 +344,6 @@ AI_ENABLED=true</pre>
         // VirusTotal
         setPill('pill-virustotal', d.virustotal.enabled);
         setVal('val-vt-key', d.virustotal.api_key_set ? '••••••••' : 'Not set');
-
-        // AbuseIPDB
-        setPill('pill-abuseipdb', d.abuseipdb.enabled);
-        setVal('val-abuse-key', d.abuseipdb.api_key_set ? '••••••••' : 'Not set');
 
         // AI
         setPill('pill-ai', d.ai.enabled);

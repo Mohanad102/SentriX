@@ -14,8 +14,12 @@ class AlertRule(Base):
     value       = Column(String, nullable=False)
     count       = Column(Integer, default=1)       # trigger after N occurrences
     window_mins = Column(Integer, default=5)       # within X minutes
-    action      = Column(String, default="escalate")  # escalate, set_severity
+    action      = Column(String, default="escalate")  # escalate, set_severity, tag_alert, notify
     action_value= Column(String, nullable=True)    # e.g. "critical"
-    is_active   = Column(Boolean, default=True)
-    created_at  = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at  = Column(DateTime(timezone=True), onupdate=func.now())
+    conditions  = Column(Text, nullable=True)      # JSON array of {field, operator, value}
+    logic       = Column(String, default="AND")    # AND | OR
+    is_active         = Column(Boolean, default=True)
+    trigger_count     = Column(Integer, default=0)
+    last_triggered_at = Column(DateTime(timezone=True), nullable=True)
+    created_at        = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at        = Column(DateTime(timezone=True), onupdate=func.now())

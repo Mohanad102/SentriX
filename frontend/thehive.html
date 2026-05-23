@@ -95,6 +95,47 @@
           </div>
         </div>
 
+        <!-- Filter bar -->
+        <div class="panel p-4 mb-4 flex flex-wrap items-center gap-3">
+          <div class="relative flex-1 min-w-44">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+            <input type="text" id="filter-search" placeholder="Search by title…"
+              class="w-full pl-8 pr-3 py-2 rounded-lg text-sm text-white"
+              style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"
+              oninput="debouncedLoadCases()" />
+          </div>
+          <select id="filter-status" onchange="resetAndLoad()"
+            class="px-3 py-2 rounded-lg text-sm text-white w-36"
+            style="background:rgba(15,23,42,1);border:1px solid rgba(255,255,255,.1);">
+            <option value="">All Statuses</option>
+            <option value="New">New</option>
+            <option value="InProgress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Deleted">Deleted</option>
+          </select>
+          <select id="filter-severity" onchange="resetAndLoad()"
+            class="px-3 py-2 rounded-lg text-sm text-white w-32"
+            style="background:rgba(15,23,42,1);border:1px solid rgba(255,255,255,.1);">
+            <option value="">All Severities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+          <select id="filter-time" onchange="resetAndLoad()"
+            class="px-3 py-2 rounded-lg text-sm text-white w-32"
+            style="background:rgba(15,23,42,1);border:1px solid rgba(255,255,255,.1);">
+            <option value="">All Time</option>
+            <option value="24h">Last 24h</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+          <button onclick="resetAndLoad()" class="btn btn-secondary text-xs flex-shrink-0">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh
+          </button>
+        </div>
+
         <!-- Cases table -->
         <div class="panel overflow-hidden">
           <div class="overflow-x-auto">
@@ -107,11 +148,12 @@
                   <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Status</th>
                   <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Tags</th>
                   <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Created</th>
+                  <th class="text-left py-3 px-4 text-gray-400 font-medium text-xs uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody id="cases-tbody">
                 <tr>
-                  <td colspan="6" class="py-12 text-center text-gray-500">
+                  <td colspan="7" class="py-12 text-center text-gray-500">
                     <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading cases...
                   </td>
                 </tr>
@@ -344,44 +386,94 @@
     }
 
     // ─── Cases ───
+    let caseSearchTimer;
+    function debouncedLoadCases() { clearTimeout(caseSearchTimer); caseSearchTimer = setTimeout(() => { casesOffset = 0; loadCases(); }, 350); }
+    function resetAndLoad() { casesOffset = 0; loadCases(); }
+
     async function loadCases(dir = 0) {
       casesOffset = Math.max(0, casesOffset + dir * CASES_LIMIT);
       const token = localStorage.getItem('sentrix_token');
       const tbody = document.getElementById('cases-tbody');
-      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading...</td></tr>`;
+
+      const params = new URLSearchParams({ limit: CASES_LIMIT, offset: casesOffset });
+      const search   = document.getElementById('filter-search')?.value?.trim();
+      const status   = document.getElementById('filter-status')?.value;
+      const severity = document.getElementById('filter-severity')?.value;
+      const timeRange= document.getElementById('filter-time')?.value;
+      if (search)    params.set('search', search);
+      if (status)    params.set('status', status);
+      if (severity)  params.set('severity', severity);
+      if (timeRange) params.set('time_range', timeRange);
+
       try {
-        const r = await fetch(`/api/thehive/cases?limit=${CASES_LIMIT}&offset=${casesOffset}`, {
+        const r = await fetch(`/api/thehive/cases?${params}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!r.ok) {
           const e = await r.json();
-          tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-gray-500">${e.detail || 'TheHive not connected'}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="py-10 text-center text-gray-500">${e.detail || 'TheHive not connected'}</td></tr>`;
           return;
         }
         const cases = await r.json();
+        cases.sort((a, b) => (b._createdAt || 0) - (a._createdAt || 0));
         if (!cases.length) {
-          tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-gray-500">No cases found</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="py-10 text-center text-gray-500"><i class="fa-solid fa-folder-open mr-2"></i>No cases match your filters</td></tr>`;
           document.getElementById('cases-prev').disabled = casesOffset === 0;
           document.getElementById('cases-next').disabled = true;
+          document.getElementById('cases-info').textContent = '';
           return;
         }
-        tbody.innerHTML = cases.map(c => `
+        tbody.innerHTML = cases.map(c => {
+          const caseId = c._id || c.id || '';
+          const created = c._createdAt ? new Date(c._createdAt).toLocaleString() : '—';
+          return `
           <tr class="case-row" style="border-bottom:1px solid rgba(255,255,255,.03);">
-            <td class="py-3 px-4 text-gray-400 text-xs font-mono">#${c.number || c._id?.slice(-6) || '—'}</td>
-            <td class="py-3 px-4 text-white text-sm font-medium max-w-xs truncate">${escHtml(c.title || '—')}</td>
-            <td class="py-3 px-4">${sevBadge(c.severity)}</td>
-            <td class="py-3 px-4 text-gray-300 text-xs">${escHtml(c.status || '—')}</td>
-            <td class="py-3 px-4">
-              ${(c.tags || []).slice(0, 3).map(t => `<span class="text-xs px-1.5 py-0.5 rounded mr-1" style="background:rgba(16,185,129,.1);color:#34d399;border:1px solid rgba(16,185,129,.2);">${escHtml(t)}</span>`).join('')}
+            <td class="py-3 px-4 text-gray-400 text-xs font-mono">#${escHtml(String(c.number || caseId.slice(-6) || '—'))}</td>
+            <td class="py-3 px-4 text-white text-sm font-medium max-w-xs">
+              <span class="truncate block max-w-xs" title="${escHtml(c.title||'')}">${escHtml(c.title || '—')}</span>
             </td>
-            <td class="py-3 px-4 text-gray-400 text-xs">${c._createdAt ? new Date(c._createdAt).toLocaleDateString() : '—'}</td>
-          </tr>`).join('');
+            <td class="py-3 px-4">${sevBadge(c.severity)}</td>
+            <td class="py-3 px-4">
+              <span class="text-xs px-2 py-0.5 rounded font-medium ${statusClass(c.status)}">${escHtml(c.status || '—')}</span>
+            </td>
+            <td class="py-3 px-4">
+              ${(c.tags || []).slice(0, 3).map(t =>
+                `<span class="text-xs px-1.5 py-0.5 rounded mr-1" style="background:rgba(16,185,129,.1);color:#34d399;border:1px solid rgba(16,185,129,.2);">${escHtml(t)}</span>`
+              ).join('')}
+            </td>
+            <td class="py-3 px-4 text-gray-400 text-xs whitespace-nowrap" title="${created}">${c._createdAt ? new Date(c._createdAt).toLocaleDateString() : '—'}</td>
+            <td class="py-3 px-4">
+              <button onclick="deleteCase('${escAttr(caseId)}')"
+                class="text-gray-600 hover:text-red-400 transition text-xs flex items-center gap-1" title="Delete case">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
         document.getElementById('cases-info').textContent = `Showing ${casesOffset + 1}–${casesOffset + cases.length}`;
         document.getElementById('cases-prev').disabled = casesOffset === 0;
         document.getElementById('cases-next').disabled = cases.length < CASES_LIMIT;
       } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-red-400">Error loading cases</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-red-400">Error loading cases</td></tr>`;
       }
+    }
+
+    async function deleteCase(caseId) {
+      if (!caseId || !confirm('Delete this TheHive case? This action cannot be undone.')) return;
+      const token = localStorage.getItem('sentrix_token');
+      try {
+        const r = await fetch(`/api/thehive/cases/${encodeURIComponent(caseId)}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!r.ok) {
+          const e = await r.json().catch(() => ({}));
+          showToast(e.detail || 'Failed to delete case', 'error'); return;
+        }
+        showToast('Case deleted', 'success');
+        loadCases();
+      } catch { showToast('Network error', 'error'); }
     }
 
     // ─── New Case modal ───
@@ -617,6 +709,15 @@
     function sevBadge(sev) {
       const s = typeof sev === 'number' ? SEV_NUM[sev] || 'medium' : (sev || 'medium').toLowerCase();
       return `<span class="sev-badge sev-${s}">${s}</span>`;
+    }
+    function statusClass(status) {
+      const map = {
+        New:        'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+        InProgress: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+        Resolved:   'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+        Deleted:    'bg-gray-500/10 text-gray-500 border border-gray-500/20',
+      };
+      return map[status] || 'bg-gray-500/10 text-gray-400 border border-gray-500/20';
     }
 
     // ─── Init ───

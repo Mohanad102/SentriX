@@ -31,13 +31,38 @@ async def get_status() -> Dict:
         return {"connected": False, "url": settings.THEHIVE_URL, "error": "Connection refused — is TheHive running?"}
 
 
-async def list_cases(limit: int = 20, offset: int = 0) -> List[Dict]:
+async def list_cases(
+    limit: int = 20,
+    offset: int = 0,
+    status: Optional[str] = None,
+    severity: Optional[int] = None,
+    time_range_hours: Optional[int] = None,
+    search: Optional[str] = None,
+) -> List[Dict]:
     if not settings.THEHIVE_ENABLED:
         return []
     try:
+        import time as _time
+        filters = []
+        if status:
+            filters.append({"_eq": {"_field": "status", "_value": status}})
+        if severity:
+            filters.append({"_eq": {"_field": "severity", "_value": severity}})
+        if time_range_hours:
+            cutoff_ms = int((_time.time() - time_range_hours * 3600) * 1000)
+            filters.append({"_gte": {"_field": "_createdAt", "_value": cutoff_ms}})
+        if search:
+            filters.append({"_like": {"_field": "title", "_value": f"*{search}*"}})
+
+        query: list = [{"_name": "listCase"}]
+        if len(filters) == 1:
+            query.append({"_name": "filter", **filters[0]})
+        elif len(filters) > 1:
+            query.append({"_name": "filter", "_and": filters})
+
         async with httpx.AsyncClient(timeout=10, verify=False) as client:
             body = {
-                "query": [{"_name": "listCase"}],
+                "query": query,
                 "from": offset,
                 "to": offset + limit,
                 "sort": ["-_createdAt"],
@@ -49,9 +74,25 @@ async def list_cases(limit: int = 20, offset: int = 0) -> List[Dict]:
             )
             if r.status_code == 200:
                 return r.json()
+            print(f"[TheHive] list_cases HTTP {r.status_code}: {r.text[:300]}")
     except Exception as e:
         print(f"[TheHive] list_cases error: {e}")
     return []
+
+
+async def delete_case(case_id: str) -> bool:
+    if not settings.THEHIVE_ENABLED:
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=10, verify=False) as client:
+            r = await client.delete(
+                f"{settings.THEHIVE_URL}/api/v1/case/{case_id}",
+                headers=_headers(),
+            )
+            return r.status_code in (200, 204)
+    except Exception as e:
+        print(f"[TheHive] delete_case error: {e}")
+    return False
 
 
 async def get_case(case_id: str) -> Optional[Dict]:

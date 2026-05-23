@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, List
 from backend.utils.auth import get_current_user
@@ -30,11 +30,33 @@ async def thehive_status(current_user: User = Depends(get_current_user)):
 async def list_cases(
     limit: int = 20,
     offset: int = 0,
+    status: Optional[str] = None,
+    severity: Optional[str] = None,
+    time_range: Optional[str] = None,
+    search: Optional[str] = None,
     current_user: User = Depends(get_current_user),
 ):
     if not settings.THEHIVE_ENABLED:
         raise HTTPException(status_code=503, detail="TheHive integration is not enabled")
-    return await thehive_service.list_cases(limit=limit, offset=offset)
+    sev_int = {"low": 1, "medium": 2, "high": 3, "critical": 4}.get(severity or "")
+    hours = {"24h": 24, "7d": 168, "30d": 720, "90d": 2160}.get(time_range or "")
+    return await thehive_service.list_cases(
+        limit=limit, offset=offset,
+        status=status or None,
+        severity=sev_int,
+        time_range_hours=hours,
+        search=search or None,
+    )
+
+
+@router.delete("/cases/{case_id}")
+async def delete_case(case_id: str, current_user: User = Depends(get_current_user)):
+    if not settings.THEHIVE_ENABLED:
+        raise HTTPException(status_code=503, detail="TheHive integration is not enabled")
+    ok = await thehive_service.delete_case(case_id)
+    if not ok:
+        raise HTTPException(status_code=503, detail="Failed to delete case — check TheHive connection")
+    return {"message": "Case deleted"}
 
 
 @router.get("/cases/{case_id}")

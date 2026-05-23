@@ -22,7 +22,7 @@ def get_db():
 
 def init_db():
     from backend.models import user, alert, incident, ioc, audit_log, alert_rule, ticket  # noqa: F401
-    from backend.models import response_action, playbook, evidence, notification, agent_label  # noqa: F401
+    from backend.models import response_action, playbook, evidence, notification, agent_label, rule_execution  # noqa: F401
     Base.metadata.create_all(bind=engine)
     _run_migrations()
 
@@ -53,6 +53,13 @@ def _run_migrations():
         # Automated workflow tracking
         "ALTER TABLE alerts ADD COLUMN thehive_case_id VARCHAR",
         "ALTER TABLE alerts ADD COLUMN cortex_jobs TEXT",
+        # Alert rules trigger tracking
+        "ALTER TABLE alert_rules ADD COLUMN trigger_count INTEGER DEFAULT 0",
+        "ALTER TABLE alert_rules ADD COLUMN last_triggered_at DATETIME",
+        # Multi-condition rule support + alert tags
+        "ALTER TABLE alert_rules ADD COLUMN conditions TEXT",
+        "ALTER TABLE alert_rules ADD COLUMN logic VARCHAR DEFAULT 'AND'",
+        "ALTER TABLE alerts ADD COLUMN tags VARCHAR",
     ]
     with engine.connect() as conn:
         for sql in migrations:

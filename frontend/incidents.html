@@ -53,6 +53,12 @@
         <p class="text-gray-500 text-xs">Case tracking · Containment · Mitigation · Recovery</p>
       </div>
       <div class="flex items-center gap-2">
+        <!-- Refresh Button -->
+        <button onclick="refreshDashboard()" id="refresh-btn" title="Refresh"
+          class="w-9 h-9 rounded-lg flex items-center justify-center transition"
+          style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);">
+          <i id="refresh-icon" class="fa-solid fa-arrows-rotate text-gray-400 text-sm"></i>
+        </button>
         <!-- Notification Bell -->
         <div class="relative">
           <button onclick="toggleNotifPanel()" id="notif-bell-btn"
@@ -761,7 +767,6 @@
             </select>
             <select id="ti-provider" class="form-input form-select w-36 text-xs">
               <option value="vt">VirusTotal</option>
-              <option value="abuse">AbuseIPDB</option>
             </select>
             <button onclick="runTILookup()" class="btn btn-primary btn-sm"><i class="fa-solid fa-search mr-1"></i>Lookup</button>
           </div>
@@ -1293,6 +1298,19 @@
 
     document.querySelectorAll('.modal-overlay').forEach(m =>
       m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
+
+    async function refreshDashboard() {
+      const icon = document.getElementById('refresh-icon');
+      icon.classList.add('fa-spin');
+      document.getElementById('refresh-btn').disabled = true;
+      try {
+        await Promise.all([loadDashboard(), loadIncidents(currentPage)]);
+        showToast('Dashboard refreshed', 'success');
+      } finally {
+        icon.classList.remove('fa-spin');
+        document.getElementById('refresh-btn').disabled = false;
+      }
+    }
 
     loadIncidents();
     loadDashboard();

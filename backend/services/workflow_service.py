@@ -19,7 +19,7 @@ AUTO_THEHIVE_THRESHOLD = "high"
 
 # Preferred analyzers, in order of preference per data type
 _ANALYZER_PREFS = {
-    "ip":     ["VirusTotal", "AbuseIPDB", "Shodan"],
+    "ip":     ["VirusTotal", "Shodan"],
     "domain": ["VirusTotal", "URLhaus", "OTX"],
     "url":    ["VirusTotal", "URLhaus"],
     "hash":   ["VirusTotal", "MalwareBazaar"],

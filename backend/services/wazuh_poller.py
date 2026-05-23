@@ -164,6 +164,21 @@ async def _run_workflow(alert_id: int):
     await run_auto_workflow(alert_id)
 
 
+async def _run_rules(alert_id: int):
+    from backend.routers.rules import evaluate_rules
+    from backend.models.alert import Alert
+    from backend.database import SessionLocal
+    db = SessionLocal()
+    try:
+        alert = db.query(Alert).filter(Alert.id == alert_id).first()
+        if alert:
+            evaluate_rules(alert, db, None)
+    except Exception as e:
+        print(f"[Rules] evaluate error: {e}")
+    finally:
+        db.close()
+
+
 # ── Real-time tail ────────────────────────────────────────────────────────────
 async def _tail_container_log():
     proc = await asyncio.create_subprocess_exec(
@@ -222,6 +237,7 @@ async def run_wazuh_poller():
                     db.refresh(alert)
                     print(f"[Wazuh] [{alert.severity.upper()}] {alert.title} — {alert.hostname}")
                     asyncio.create_task(_run_workflow(alert.id))
+                    asyncio.create_task(_run_rules(alert.id))
                 except Exception:
                     db.rollback()
                 finally:

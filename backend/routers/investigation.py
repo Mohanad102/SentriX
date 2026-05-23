@@ -488,7 +488,7 @@ async def ti_lookup(
 ):
     """
     Quick Threat Intelligence lookup with DB caching (24h TTL).
-    Supports VirusTotal (all IOC types) and AbuseIPDB (IP only).
+    Supports VirusTotal (all IOC types).
     """
     value    = data.value.strip()
     ioc_type = data.ioc_type
@@ -510,40 +510,13 @@ async def ti_lookup(
             }
 
     # Live lookup
-    if provider == "abuse" and ioc_type == "ip":
-        from backend.config import settings
-        import httpx
-        api_key = getattr(settings, "ABUSEIPDB_API_KEY", "")
-        if not api_key:
-            result = {"error": "AbuseIPDB not configured — set ABUSEIPDB_API_KEY in .env"}
-        else:
-            try:
-                async with httpx.AsyncClient(timeout=10) as client:
-                    resp = await client.get(
-                        "https://api.abuseipdb.com/api/v2/check",
-                        headers={"Key": api_key, "Accept": "application/json"},
-                        params={"ipAddress": value, "maxAgeInDays": 90},
-                    )
-                d = resp.json().get("data", {})
-                score = d.get("abuseConfidenceScore", 0)
-                result = {
-                    "abuse_score": score,
-                    "is_malicious": score >= 50,
-                    "country": d.get("countryCode"),
-                    "isp": d.get("isp"),
-                    "total_reports": d.get("totalReports", 0),
-                    "last_reported": d.get("lastReportedAt"),
-                }
-            except Exception as e:
-                result = {"error": str(e)}
-    else:
-        from backend.services.virustotal_service import enrich_with_virustotal
-        vt = await enrich_with_virustotal(value, ioc_type)
-        result = {
-            "score":       vt.get("score"),
-            "is_malicious": vt.get("is_malicious"),
-            "report":      vt.get("report", {}),
-        }
+    from backend.services.virustotal_service import enrich_with_virustotal
+    vt = await enrich_with_virustotal(value, ioc_type)
+    result = {
+        "score":        vt.get("score"),
+        "is_malicious": vt.get("is_malicious"),
+        "report":       vt.get("report", {}),
+    }
 
     # Cache result
     if cached:

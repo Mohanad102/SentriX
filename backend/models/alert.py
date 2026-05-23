@@ -32,5 +32,6 @@ class Alert(Base):
     # Automated workflow tracking
     thehive_case_id = Column(String, nullable=True)  # auto-created TheHive case
     cortex_jobs = Column(Text, nullable=True)         # JSON list of Cortex job IDs
+    tags = Column(String, nullable=True)              # comma-separated tags
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
