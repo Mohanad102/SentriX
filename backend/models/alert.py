@@ -29,5 +29,8 @@ class Alert(Base):
     ticket_ref = Column(String, nullable=True)       # TKT-XXXXXXXX — set when a ticket is created
     closed_by_id = Column(Integer, nullable=True)    # user who closed/resolved the alert
     closed_at = Column(DateTime(timezone=True), nullable=True)
+    # Automated workflow tracking
+    thehive_case_id = Column(String, nullable=True)  # auto-created TheHive case
+    cortex_jobs = Column(Text, nullable=True)         # JSON list of Cortex job IDs
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -50,6 +50,9 @@ def _run_migrations():
         # L2 resolver tracking
         "ALTER TABLE tickets ADD COLUMN resolved_by VARCHAR",
         "ALTER TABLE tickets ADD COLUMN resolved_at DATETIME",
+        # Automated workflow tracking
+        "ALTER TABLE alerts ADD COLUMN thehive_case_id VARCHAR",
+        "ALTER TABLE alerts ADD COLUMN cortex_jobs TEXT",
     ]
     with engine.connect() as conn:
         for sql in migrations:

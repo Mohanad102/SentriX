@@ -117,6 +117,7 @@
                 <th>Category</th>
                 <th>Status</th>
                 <th>Ticket</th>
+                <th title="Automated pipeline: VT → Cortex → TheHive">Pipeline</th>
                 <th class="cursor-pointer select-none" onclick="toggleTimeSort()" title="Sort by time">
                   Time <i id="sort-icon" class="fa-solid fa-arrow-down text-emerald-400 text-xs ml-1"></i>
                 </th>
@@ -269,6 +270,20 @@
           </button>
         </div>
         <div id="vt-result" class="hidden"></div>
+      </div>
+
+      <!-- Auto Workflow Status -->
+      <div class="mb-5" id="workflow-section">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-gray-400 text-sm font-medium">
+            <i class="fa-solid fa-robot mr-1 text-gray-500"></i> Automated Pipeline
+          </p>
+          <span class="text-gray-600 text-xs">Wazuh → VT → Cortex → TheHive</span>
+        </div>
+        <div id="workflow-status" class="rounded-xl p-3 space-y-2"
+          style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);">
+          <p class="text-gray-600 text-xs">Loading workflow status…</p>
+        </div>
       </div>
 
       <!-- Analyst Notes -->
@@ -602,6 +617,47 @@
       loadAlerts();
     }
 
+    // ── Pipeline Badges (table column) ───────────────────────
+    function pipelineBadges(a) {
+      const parts = [];
+
+      // VT badge
+      if (a.vt_enriched) {
+        if (a.is_malicious === true)
+          parts.push(`<span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium"
+            style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);"
+            title="VirusTotal: MALICIOUS">
+            <i class="fa-solid fa-virus text-xs"></i> VT</span>`);
+        else
+          parts.push(`<span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full"
+            style="background:rgba(34,197,94,0.08);color:#4ade80;border:1px solid rgba(34,197,94,0.2);"
+            title="VirusTotal: Clean">
+            <i class="fa-solid fa-virus-slash text-xs"></i> VT</span>`);
+      }
+
+      // Cortex badge
+      if (a.cortex_jobs) {
+        let jobCount = 0;
+        try { jobCount = JSON.parse(a.cortex_jobs).length; } catch {}
+        parts.push(`<span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full"
+          style="background:rgba(139,92,246,0.12);color:#c4b5fd;border:1px solid rgba(139,92,246,0.3);"
+          title="Cortex: ${jobCount} analyzer job(s) submitted">
+          <i class="fa-solid fa-flask text-xs"></i> ${jobCount}J</span>`);
+      }
+
+      // TheHive badge
+      if (a.thehive_case_id) {
+        parts.push(`<span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full"
+          style="background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.3);"
+          title="TheHive Case: ${a.thehive_case_id}">
+          <i class="fa-solid fa-shield-halved text-xs"></i> TH</span>`);
+      }
+
+      return parts.length
+        ? `<div class="flex flex-wrap gap-1">${parts.join('')}</div>`
+        : '<span class="text-gray-700 text-xs">—</span>';
+    }
+
     // ── VT Threat Indicator ───────────────────────────────────
     function threatLabel(level) {
       if (level >= 13) return { text: 'Critical',     icon: 'fa-triangle-exclamation', style: 'background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);' };
@@ -759,6 +815,7 @@
               ? `<a href="/tickets.html" class="text-xs font-mono text-emerald-400 hover:text-emerald-300">${a.ticket_ref}</a>`
               : '<span class="text-gray-600 text-xs">—</span>'}
           </td>
+          <td>${pipelineBadges(a)}</td>
           <td><span class="text-xs text-gray-500">${timeAgo(a.created_at)}</span></td>
           <td>
             <button onclick="openTriage(${a.id})" class="btn btn-primary btn-sm" title="Triage">
@@ -888,11 +945,130 @@
 
         document.getElementById('triage-modal').classList.remove('hidden');
 
+        // Render automated workflow status
+        renderWorkflowStatus(a);
+
         // Auto-run VirusTotal if source IP is available
         if (a.source_ip) checkVT();
       } catch (err) {
         showToast(err.message, 'error');
       }
+    }
+
+    // ── Automated Workflow Status ─────────────────────────────
+    function renderWorkflowStatus(a) {
+      const el = document.getElementById('workflow-status');
+      const rows = [];
+
+      // Step 1: VirusTotal
+      if (a.vt_enriched) {
+        const mal = a.is_malicious;
+        const icon  = mal === true  ? 'fa-skull-crossbones' : 'fa-shield-check';
+        const color = mal === true  ? '#f87171' : '#4ade80';
+        const label = mal === true  ? 'Malicious IOCs detected' : 'No malicious IOCs found';
+        const bg    = mal === true  ? 'rgba(239,68,68,0.08)'   : 'rgba(34,197,94,0.06)';
+        const border= mal === true  ? 'rgba(239,68,68,0.25)'   : 'rgba(34,197,94,0.2)';
+        rows.push(`
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:${bg};border:1px solid ${border};">
+            <div class="flex items-center gap-2 w-28 shrink-0">
+              <i class="fa-solid fa-virus-slash text-xs" style="color:${color};"></i>
+              <span class="text-xs font-medium" style="color:${color};">VirusTotal</span>
+            </div>
+            <i class="fa-solid fa-check text-xs text-gray-600"></i>
+            <span class="text-xs text-gray-300">${label}</span>
+          </div>`);
+      } else {
+        rows.push(`
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg"
+            style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);">
+            <div class="flex items-center gap-2 w-28 shrink-0">
+              <i class="fa-solid fa-virus-slash text-xs text-gray-600"></i>
+              <span class="text-xs text-gray-600">VirusTotal</span>
+            </div>
+            <i class="fa-solid fa-spinner fa-spin text-xs text-gray-600"></i>
+            <span class="text-xs text-gray-600">Pending enrichment…</span>
+          </div>`);
+      }
+
+      // Step 2: Cortex
+      if (a.cortex_jobs) {
+        let jobs = [];
+        try { jobs = JSON.parse(a.cortex_jobs); } catch {}
+        rows.push(`
+          <div class="flex items-start gap-3 px-3 py-2 rounded-lg"
+            style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);">
+            <div class="flex items-center gap-2 w-28 shrink-0 mt-0.5">
+              <i class="fa-solid fa-flask text-xs text-violet-400"></i>
+              <span class="text-xs font-medium text-violet-300">Cortex</span>
+            </div>
+            <i class="fa-solid fa-check text-xs text-gray-600 mt-0.5"></i>
+            <div class="flex-1 min-w-0">
+              <span class="text-xs text-gray-300">${jobs.length} analyzer job(s) submitted</span>
+              <div class="flex flex-wrap gap-1 mt-1">
+                ${jobs.map(jid => `
+                  <span class="font-mono text-xs px-1.5 py-0.5 rounded"
+                    style="background:rgba(139,92,246,0.1);color:#a78bfa;border:1px solid rgba(139,92,246,0.2);">
+                    ${jid}
+                  </span>`).join('')}
+              </div>
+            </div>
+          </div>`);
+      } else if (!a.source_ip) {
+        rows.push(`
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg"
+            style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);">
+            <div class="flex items-center gap-2 w-28 shrink-0">
+              <i class="fa-solid fa-flask text-xs text-gray-600"></i>
+              <span class="text-xs text-gray-600">Cortex</span>
+            </div>
+            <i class="fa-solid fa-minus text-xs text-gray-700"></i>
+            <span class="text-xs text-gray-600">No public IP to analyze</span>
+          </div>`);
+      } else {
+        rows.push(`
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg"
+            style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);">
+            <div class="flex items-center gap-2 w-28 shrink-0">
+              <i class="fa-solid fa-flask text-xs text-gray-600"></i>
+              <span class="text-xs text-gray-600">Cortex</span>
+            </div>
+            <i class="fa-solid fa-spinner fa-spin text-xs text-gray-600"></i>
+            <span class="text-xs text-gray-600">Submitting jobs…</span>
+          </div>`);
+      }
+
+      // Step 3: TheHive
+      if (a.thehive_case_id) {
+        rows.push(`
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg"
+            style="background:rgba(251,146,60,0.06);border:1px solid rgba(251,146,60,0.25);">
+            <div class="flex items-center gap-2 w-28 shrink-0">
+              <i class="fa-solid fa-shield-halved text-xs text-orange-400"></i>
+              <span class="text-xs font-medium text-orange-300">TheHive</span>
+            </div>
+            <i class="fa-solid fa-check text-xs text-gray-600"></i>
+            <span class="text-xs text-gray-300">Case auto-created:
+              <span class="font-mono text-orange-300">${a.thehive_case_id}</span>
+            </span>
+          </div>`);
+      } else {
+        const sev = a.severity;
+        const isHighEnough = sev === 'high' || sev === 'critical';
+        rows.push(`
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg"
+            style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);">
+            <div class="flex items-center gap-2 w-28 shrink-0">
+              <i class="fa-solid fa-shield-halved text-xs text-gray-600"></i>
+              <span class="text-xs text-gray-600">TheHive</span>
+            </div>
+            <i class="fa-solid ${isHighEnough ? 'fa-spinner fa-spin' : 'fa-minus'} text-xs text-gray-600"></i>
+            <span class="text-xs text-gray-600">
+              ${isHighEnough ? 'Pending case creation…' : 'Skipped (only for high/critical alerts)'}
+            </span>
+          </div>`);
+      }
+
+      el.innerHTML = rows.join('');
     }
 
     // ── Raw Event Details ─────────────────────────────────────

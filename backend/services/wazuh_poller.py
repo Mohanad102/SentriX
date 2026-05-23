@@ -159,6 +159,11 @@ async def backfill_existing_alerts(db) -> int:
     return count
 
 
+async def _run_workflow(alert_id: int):
+    from backend.services.workflow_service import run_auto_workflow
+    await run_auto_workflow(alert_id)
+
+
 # ── Real-time tail ────────────────────────────────────────────────────────────
 async def _tail_container_log():
     proc = await asyncio.create_subprocess_exec(
@@ -216,7 +221,7 @@ async def run_wazuh_poller():
                     db.commit()
                     db.refresh(alert)
                     print(f"[Wazuh] [{alert.severity.upper()}] {alert.title} — {alert.hostname}")
-                    asyncio.create_task(_enrich_one(alert.id))
+                    asyncio.create_task(_run_workflow(alert.id))
                 except Exception:
                     db.rollback()
                 finally:
@@ -224,18 +229,3 @@ async def run_wazuh_poller():
         except Exception as e:
             print(f"[Wazuh] Poller error: {e} — reconnecting in 10s")
             await asyncio.sleep(10)
-
-
-async def _enrich_one(alert_id: int):
-    from backend.database import SessionLocal
-    from backend.models.alert import Alert
-    from backend.services.virustotal_service import auto_enrich_alert
-    db = SessionLocal()
-    try:
-        alert = db.query(Alert).filter(Alert.id == alert_id).first()
-        if alert:
-            await auto_enrich_alert(db, alert)
-    except Exception:
-        pass
-    finally:
-        db.close()

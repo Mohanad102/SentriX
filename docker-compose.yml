@@ -79,7 +79,7 @@ services:
       - "9001:9001"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - cortex_jobs:/tmp/cortex-jobs
+      - /tmp/cortex-jobs:/tmp/cortex-jobs
     command:
       - "--secret"
       - "SentriX-Cortex-Secret-ChangeMeInProduction-2025"
@@ -164,7 +164,6 @@ volumes:
   elasticsearch_data:
   cassandra_data:
   thehive_data:
-  cortex_jobs:
   wazuh_data:
   wazuh_logs:
   wazuh_queue:

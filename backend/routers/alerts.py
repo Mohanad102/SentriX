@@ -53,13 +53,15 @@ def alert_to_dict(a: Alert, is_malicious: bool = None, closed_by: str = None):
         "incident_id":   a.incident_id,
         "vt_enriched":   a.vt_enriched or False,
         "is_malicious":  is_malicious,
-        "triage_result": a.triage_result,
-        "notes":         a.notes,
-        "ticket_ref":    a.ticket_ref,
-        "closed_by":     closed_by,
-        "closed_at":     a.closed_at.isoformat() if a.closed_at else None,
-        "created_at":    a.created_at.isoformat() if a.created_at else None,
-        "updated_at":    a.updated_at.isoformat() if a.updated_at else None,
+        "triage_result":    a.triage_result,
+        "notes":            a.notes,
+        "ticket_ref":       a.ticket_ref,
+        "thehive_case_id":  a.thehive_case_id,
+        "cortex_jobs":      a.cortex_jobs,
+        "closed_by":        closed_by,
+        "closed_at":        a.closed_at.isoformat() if a.closed_at else None,
+        "created_at":       a.created_at.isoformat() if a.created_at else None,
+        "updated_at":       a.updated_at.isoformat() if a.updated_at else None,
     }
 
 
@@ -147,19 +149,10 @@ def get_alert(
     return alert_to_dict(alert, alert.vt_malicious, closed_by)
 
 
-async def _bg_enrich_alert(alert_id: int):
-    """Background task: run VT enrichment for an alert using its own DB session."""
-    import asyncio
-    from backend.services.virustotal_service import auto_enrich_alert
-    db = SessionLocal()
-    try:
-        alert = db.query(Alert).filter(Alert.id == alert_id).first()
-        if alert:
-            await auto_enrich_alert(db, alert)
-    except Exception:
-        pass
-    finally:
-        db.close()
+async def _bg_run_workflow(alert_id: int):
+    """Background task: run the full automated workflow for an alert."""
+    from backend.services.workflow_service import run_auto_workflow
+    await run_auto_workflow(alert_id)
 
 
 @router.post("")
@@ -186,7 +179,7 @@ async def create_alert(
     db.add(alert)
     db.commit()
     db.refresh(alert)
-    background_tasks.add_task(_bg_enrich_alert, alert.id)
+    background_tasks.add_task(_bg_run_workflow, alert.id)
     return alert_to_dict(alert)
 
 
@@ -251,7 +244,7 @@ async def enrich_batch(
     ).all()
     ids = [a.id for a in unenriched]
     for alert_id in ids:
-        background_tasks.add_task(_bg_enrich_alert, alert_id)
+        background_tasks.add_task(_bg_run_workflow, alert_id)
     return {"queued": len(ids)}
 
 
