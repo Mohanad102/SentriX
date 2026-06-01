@@ -131,7 +131,7 @@
       </div>
     </div>`;
 
-  aside.innerHTML = logoHtml + l1BannerHtml + l2BannerHtml + irBannerHtml + `<nav class="p-3 flex-1 space-y-0.5">${navHtml}</nav>` + userHtml;
+  aside.innerHTML = logoHtml + l1BannerHtml + l2BannerHtml + irBannerHtml + `<nav class="p-3 flex-1 space-y-0.5 overflow-y-auto">${navHtml}</nav>` + userHtml;
 
   // Poll alert badge for all roles
   async function pollAlertBadge() {

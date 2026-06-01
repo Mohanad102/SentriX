@@ -413,17 +413,17 @@ def list_actions(
 
 
 @router.post("/{incident_id}/actions")
-def execute_action(
+async def execute_action(
     incident_id:  int,
     data:         ActionCreate,
     db:           Session = Depends(get_db),
     current_user: User    = Depends(get_current_user),
 ):
-    """
-    Execute a Response Action on the incident.
-    Simulated enforcement — logged and linked to incident.
-    L2 analysts and admins only.
-    """
+    """Execute a real Response Action on the incident."""
+    from backend.models.response_action import VALID_ACTIONS, ACTION_LABELS
+    from backend.models.alert import Alert
+    from backend.services.playbook_executor import execute_action as real_execute
+
     if current_user.role == "soc_analyst_l1":
         raise HTTPException(status_code=403, detail="L1 analysts cannot execute response actions")
 
@@ -431,23 +431,32 @@ def execute_action(
     if not incident:
         raise HTTPException(status_code=404, detail="Incident not found")
 
-    from backend.models.response_action import VALID_ACTIONS
     if data.action_type not in VALID_ACTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid action_type. Must be one of: {', '.join(VALID_ACTIONS)}")
+
+    # Build context from incident's alerts so executor can target the right agent
+    alerts = db.query(Alert).filter(Alert.incident_id == incident_id).all()
+    hostnames = [a.hostname  for a in alerts if a.hostname]
+    src_ips   = [a.source_ip for a in alerts if a.source_ip]
+    ctx = {
+        "hostname":  hostnames[0] if hostnames else None,
+        "source_ip": src_ips[0]   if src_ips   else None,
+    }
+
+    # Run the real action
+    result = await real_execute(data.action_type, data.target, context=ctx)
 
     action = ResponseAction(
         incident_id=incident_id,
         action_type=data.action_type,
         target=data.target,
-        status="executed",
-        notes=data.notes,
+        status="executed" if result["success"] else "failed",
+        notes=result["message"],
         executed_by=current_user.username,
     )
     db.add(action)
     db.flush()
 
-    # Audit log
-    from backend.models.response_action import ACTION_LABELS
     write_log(
         db=db,
         username=current_user.username,
@@ -455,7 +464,7 @@ def execute_action(
         action=f"RESPONSE_ACTION:{data.action_type.upper()}",
         resource="incident",
         resource_id=str(incident_id),
-        detail=f"{ACTION_LABELS.get(data.action_type, data.action_type)}: {data.target} | Case: {incident.case_number}",
+        detail=f"{ACTION_LABELS.get(data.action_type, data.action_type)}: {data.target} — {result['message']} | Case: {incident.case_number}",
     )
 
     db.commit()
@@ -463,21 +472,9 @@ def execute_action(
 
     return {
         **action_to_dict(action),
-        "message": _build_action_message(data.action_type, data.target),
+        "success": result["success"],
+        "message": result["message"],
     }
-
-
-def _build_action_message(action_type: str, target: str) -> str:
-    msgs = {
-        "block_ip":          f"Firewall rule created — IP {target} is now blocked.",
-        "disable_user":      f"Account {target} disabled in directory services.",
-        "isolate_endpoint":  f"Endpoint {target} isolated from network via EDR.",
-        "reset_password":    f"Password reset enforced for account {target}.",
-        "kill_process":      f"Process '{target}' terminated on affected endpoint.",
-        "remove_file":       f"Malicious file '{target}' removed and quarantined.",
-        "reset_credentials": f"All credentials for '{target}' have been reset.",
-    }
-    return msgs.get(action_type, f"Action executed on {target}.")
 
 
 @router.post("/ti-lookup")

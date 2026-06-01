@@ -41,7 +41,7 @@
   <div class="mesh-bg"></div>
 
   <!-- Sidebar -->
-  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;"></aside>
+  <aside class="sidebar flex flex-col h-screen sticky top-0 overflow-hidden" style="z-index:20;"></aside>
 
   <!-- Main -->
   <main class="flex-1 min-h-screen overflow-auto min-w-0" style="position:relative;z-index:1;">
@@ -944,7 +944,7 @@
         <tr>
           <td><span class="badge badge-info">${a.action_label}</span></td>
           <td class="font-mono text-xs">${a.target}</td>
-          <td><span class="badge badge-${a.status==='executed'?'low':'critical'}">${a.status}</span></td>
+          <td><span class="badge badge-${a.status==='executed'?'low':a.status==='failed'?'critical':'medium'}">${a.status.toUpperCase()}</span></td>
           <td class="text-xs text-gray-500">${a.executed_by||'—'}</td>
           <td class="text-xs text-gray-500">${timeAgo(a.executed_at)}</td>
           <td class="text-xs text-gray-500 max-w-32 truncate" title="${a.notes||''}">${a.notes||'—'}</td>
@@ -968,7 +968,7 @@
       if (!confirm(`Execute "${actionType.replace(/_/g,' ')}" on "${target}"?`)) return;
       try {
         const r = await apiPost(`/api/investigation/${incId}/actions`, { action_type: actionType, target });
-        showToast(r.message || 'Action executed', 'success');
+        showToast(r.message || 'Action executed', r.success === false ? 'error' : 'success');
         loadActionsTab(incId);
         loadDashboard();
       } catch(err) { showToast(err.message, 'error'); }
@@ -994,7 +994,7 @@
     }
 
     // ── Run Playbook Modal ────────────────────────────────────
-    function openPbModal(pbId) {
+    async function openPbModal(pbId) {
       const pb = allPlaybooks.find(p => p.id === pbId);
       if (!pb) return;
       if (!currentInc) { showToast('Open an incident first', 'error'); return; }
@@ -1002,8 +1002,47 @@
       document.getElementById('pb-modal-title').textContent = pb.name;
       document.getElementById('pb-modal-desc').textContent  = pb.description || '';
       document.getElementById('pb-result').classList.add('hidden');
-      document.getElementById('pb-steps-form').innerHTML = pb.steps.map(s => {
+      document.getElementById('pb-steps-form').innerHTML =
+        '<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin text-emerald-400"></i></div>';
+      document.getElementById('pb-modal').classList.remove('hidden');
+
+      // Fetch suggested targets from alert data
+      let suggested = {}, alertSummaries = [];
+      try {
+        const hint = await apiGet(`/api/ir/incidents/${currentInc.id}/suggested-targets`);
+        suggested      = hint.suggested_targets  || {};
+        alertSummaries = hint.alert_summaries    || [];
+      } catch(e) { /* non-fatal */ }
+
+      // Alert context banner
+      const contextHTML = alertSummaries.length ? `
+        <div class="rounded-lg bg-gray-800/60 border border-gray-700 p-3 mb-4">
+          <p class="text-xs font-semibold text-gray-400 mb-2"><i class="fa-solid fa-bell mr-1"></i>Triggering alert${alertSummaries.length > 1 ? 's' : ''}</p>
+          ${alertSummaries.slice(0,3).map(a => `
+            <div class="mb-1">
+              <span class="inline-block text-xs px-1.5 py-0.5 rounded mr-1 font-bold ${
+                a.severity==='critical'?'bg-red-500/20 text-red-400':
+                a.severity==='high'?'bg-orange-500/20 text-orange-400':
+                a.severity==='medium'?'bg-yellow-500/20 text-yellow-400':'bg-gray-500/20 text-gray-400'
+              }">${a.severity.toUpperCase()}</span>
+              <span class="text-xs text-gray-300">${a.title}</span>
+              ${a.hostname  ? `<span class="text-xs text-gray-500 ml-1">· host: <span class="text-gray-300">${a.hostname}</span></span>` : ''}
+              ${a.source_ip ? `<span class="text-xs text-gray-500 ml-1">· src: <span class="text-gray-300">${a.source_ip}</span></span>` : ''}
+            </div>`).join('')}
+        </div>` : '';
+
+      const ACTION_SUGGESTED_FIELD = {
+        kill_process:      'kill_process',
+        remove_file:       'remove_file',
+        disable_user:      'disable_user',
+        reset_password:    'reset_password',
+        reset_credentials: 'reset_credentials',
+      };
+
+      document.getElementById('pb-steps-form').innerHTML = contextHTML + pb.steps.map(s => {
         const needsInput = s.target_field === 'custom' && !s.target_override;
+        const suggestedVal = needsInput ? (suggested[ACTION_SUGGESTED_FIELD[s.action_type]] || '') : '';
+        const hasSuggestion = needsInput && suggestedVal;
         return `
           <div class="pb-card">
             <div class="flex items-center gap-2 mb-1">
@@ -1012,14 +1051,17 @@
             </div>
             <p class="text-xs text-gray-500 mb-2">${s.description||''}</p>
             ${needsInput ? `
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-yellow-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Manual target required</span>
-                <input type="text" id="pb-step-${s.step_order}" class="form-input flex-1 text-xs" placeholder="Enter target..." />
+              <div class="space-y-1">
+                ${hasSuggestion
+                  ? `<p class="text-xs text-emerald-400"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Extracted from alert — verify before running</p>`
+                  : `<p class="text-xs text-yellow-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Not found in alert data — enter manually</p>`}
+                <input type="text" id="pb-step-${s.step_order}" class="form-input w-full text-xs"
+                  placeholder="Enter target..."
+                  value="${hasSuggestion ? suggestedVal.replace(/"/g,'&quot;') : ''}" />
               </div>` :
               `<p class="text-xs text-gray-600"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>Target auto-resolved from incident</p>`}
           </div>`;
       }).join('');
-      document.getElementById('pb-modal').classList.remove('hidden');
     }
 
     async function confirmRunPlaybook() {
@@ -1039,17 +1081,35 @@
       try {
         const r = await apiPost(`/api/ir/playbooks/${pendingPbId}/run`, { incident_id: currentInc.id, targets });
         const resultEl = document.getElementById('pb-result');
+        const anyFailed = (r.failed_count || 0) > 0;
         resultEl.innerHTML = `
-          <div class="rounded-xl p-4 bg-emerald-500/5 border border-emerald-500/20">
-            <p class="text-emerald-400 text-sm font-semibold mb-2"><i class="fa-solid fa-circle-check mr-1"></i>Playbook Complete</p>
-            <p class="text-xs text-gray-400 mb-3">${r.executed_count} action(s) executed · ${r.skipped_count} skipped</p>
-            <div class="space-y-1">
-              ${r.executed.map(e=>`<div class="text-xs text-gray-300 flex items-start gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5 shrink-0"></i>${e.message}</div>`).join('')}
-              ${r.skipped.map(e=>`<div class="text-xs text-gray-500 flex items-start gap-2"><i class="fa-solid fa-minus text-gray-600 mt-0.5 shrink-0"></i>Step ${e.step}: skipped (${e.reason})</div>`).join('')}
+          <div class="rounded-xl p-4 ${anyFailed ? 'bg-yellow-500/5 border border-yellow-500/20' : 'bg-emerald-500/5 border border-emerald-500/20'}">
+            <p class="${anyFailed ? 'text-yellow-400' : 'text-emerald-400'} text-sm font-semibold mb-1">
+              <i class="fa-solid ${anyFailed ? 'fa-triangle-exclamation' : 'fa-circle-check'} mr-1"></i>Playbook Complete
+            </p>
+            <p class="text-xs text-gray-400 mb-3">
+              ${r.succeeded_count ?? r.executed_count} succeeded
+              ${anyFailed ? `· <span class="text-red-400">${r.failed_count} failed</span>` : ''}
+              ${r.skipped_count ? `· ${r.skipped_count} skipped` : ''}
+            </p>
+            <div class="space-y-2">
+              ${r.executed.map(e=>`
+                <div class="flex items-start gap-2">
+                  <i class="fa-solid ${e.success ? 'fa-check text-emerald-500' : 'fa-xmark text-red-400'} mt-0.5 shrink-0 text-xs"></i>
+                  <div>
+                    <span class="text-xs text-gray-300 font-medium">${e.action_label} → <code class="text-emerald-300">${e.target}</code></span>
+                    <p class="text-xs text-gray-500 mt-0.5">${e.message}</p>
+                  </div>
+                </div>`).join('')}
+              ${r.skipped.map(e=>`
+                <div class="flex items-start gap-2 text-gray-600">
+                  <i class="fa-solid fa-minus mt-0.5 shrink-0 text-xs"></i>
+                  <span class="text-xs">Step ${e.step} skipped: ${e.reason}</span>
+                </div>`).join('')}
             </div>
           </div>`;
         resultEl.classList.remove('hidden');
-        showToast(`Playbook executed: ${r.executed_count} action(s)`, 'success');
+        showToast(`Playbook done: ${r.succeeded_count ?? r.executed_count} succeeded, ${r.failed_count||0} failed`, anyFailed ? 'warning' : 'success');
         loadActionsTab(currentInc.id);
         loadDashboard();
       } catch(err) { showToast(err.message, 'error'); }

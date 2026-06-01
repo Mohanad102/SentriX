@@ -167,18 +167,6 @@ def _resolve_target(target_field: str, incident: Incident, alerts: list[Alert]) 
     return None   # "custom" — caller must supply
 
 
-def _action_msg(action_type: str, target: str) -> str:
-    msgs = {
-        "block_ip":          f"Firewall rule created — IP {target} blocked.",
-        "disable_user":      f"Account '{target}' disabled in directory services.",
-        "isolate_endpoint":  f"Endpoint '{target}' isolated via EDR.",
-        "reset_password":    f"Password reset enforced for '{target}'.",
-        "kill_process":      f"Process '{target}' terminated on affected endpoint.",
-        "remove_file":       f"File '{target}' removed and quarantined.",
-        "reset_credentials": f"All credentials for '{target}' reset.",
-    }
-    return msgs.get(action_type, f"Action executed on '{target}'.")
-
 
 def _pb_to_dict(pb: Playbook, steps: list[PlaybookStep]) -> dict:
     return {
@@ -369,6 +357,92 @@ def update_lifecycle(
 
 # ── Playbooks ──────────────────────────────────────────────────────────────────
 
+@router.get("/incidents/{incident_id}/suggested-targets")
+def suggested_targets(
+    incident_id:  int,
+    db:           Session = Depends(get_db),
+    current_user: User    = Depends(get_current_user),
+):
+    """
+    Parse the incident's alerts and return best-guess targets for each action type,
+    plus a short summary of each alert so the analyst knows what they're responding to.
+    """
+    alerts = db.query(Alert).filter(Alert.incident_id == incident_id).all()
+
+    targets: dict[str, str] = {}
+    alert_summaries = []
+
+    for alert in alerts:
+        alert_summaries.append({
+            "title":       alert.title,
+            "severity":    alert.severity,
+            "hostname":    alert.hostname,
+            "source_ip":   alert.source_ip,
+            "description": (alert.description or "")[:300],
+        })
+
+        # Fill obvious fields from structured alert columns
+        if alert.source_ip and "block_ip" not in targets:
+            targets["block_ip"] = alert.source_ip
+        if alert.hostname and "isolate_endpoint" not in targets:
+            targets["isolate_endpoint"] = alert.hostname
+
+        # Parse raw_data JSON for deeper Wazuh fields
+        raw = {}
+        if alert.raw_data:
+            try:
+                raw = json.loads(alert.raw_data)
+            except Exception:
+                pass
+
+        data = raw.get("data", {})
+        win  = data.get("win", {})
+        eventdata = win.get("eventdata", {})
+        winsys    = win.get("system", {})
+
+        # Process name — try multiple Wazuh field paths
+        if "kill_process" not in targets:
+            process = (
+                eventdata.get("image") or
+                eventdata.get("parentImage") or
+                winsys.get("processName") or
+                data.get("audit", {}).get("exe") or
+                data.get("process", {}).get("name")
+            )
+            if process:
+                targets["kill_process"] = process.split("\\")[-1].split("/")[-1]
+
+        # File path — try multiple Wazuh field paths
+        if "remove_file" not in targets:
+            filepath = (
+                eventdata.get("targetFilename") or
+                eventdata.get("image") or
+                data.get("audit", {}).get("file", {}).get("name") or
+                data.get("sca", {}).get("check", {}).get("file")
+            )
+            if filepath:
+                targets["remove_file"] = filepath
+
+        # Username — only use actual user account fields, never the agent/hostname
+        if "disable_user" not in targets:
+            username = (
+                eventdata.get("targetUserName") or
+                eventdata.get("subjectUserName") or
+                data.get("dstuser") or
+                data.get("srcuser")
+            )
+            skip = {"-", "SYSTEM", "LOCAL SERVICE", "NETWORK SERVICE", "NT AUTHORITY"}
+            if username and username not in skip:
+                targets["disable_user"]      = username
+                targets["reset_password"]    = username
+                targets["reset_credentials"] = username
+
+    return {
+        "suggested_targets": targets,
+        "alert_summaries":   alert_summaries,
+    }
+
+
 @router.get("/playbooks")
 def list_playbooks(
     db:           Session = Depends(get_db),
@@ -429,7 +503,7 @@ def create_playbook(
 
 
 @router.post("/playbooks/{playbook_id}/run")
-def run_playbook(
+async def run_playbook(
     playbook_id:  int,
     data:         PlaybookRunRequest,
     db:           Session = Depends(get_db),
@@ -438,7 +512,10 @@ def run_playbook(
     """
     Execute a playbook against an incident.
     Auto-resolves targets where possible; user supplies targets for 'custom' fields.
+    Each step calls the real executor — iptables, Wazuh active-response, etc.
     """
+    from backend.services.playbook_executor import execute_action
+
     if current_user.role == "soc_analyst_l1":
         raise HTTPException(status_code=403, detail="L1 analysts cannot run playbooks")
 
@@ -472,15 +549,30 @@ def run_playbook(
             target = _resolve_target(step.target_field, incident, alerts)
 
         if not target:
-            skipped.append({"step": step.step_order, "action": step.action_type, "reason": "no target resolved"})
+            # Explain what field was missing so the analyst knows
+            missing = {"source_ip": "no source IP in alert", "hostname": "no hostname in alert"}.get(
+                step.target_field, "no target provided"
+            )
+            skipped.append({"step": step.step_order, "action": step.action_type, "reason": missing})
             continue
+
+        # Build context so executor can target the right agent
+        hostnames = [a.hostname for a in alerts if a.hostname]
+        src_ips   = [a.source_ip for a in alerts if a.source_ip]
+        ctx = {
+            "hostname":  hostnames[0] if hostnames else None,
+            "source_ip": src_ips[0]   if src_ips   else None,
+        }
+
+        # Run the real action
+        result = await execute_action(step.action_type, target, context=ctx)
 
         action = ResponseAction(
             incident_id=data.incident_id,
             action_type=step.action_type,
             target=target,
-            status="executed",
-            notes=step.description,
+            status="executed" if result["success"] else "failed",
+            notes=result["message"],
             executed_by=current_user.username,
         )
         db.add(action)
@@ -489,43 +581,50 @@ def run_playbook(
         write_log(db=db, username=current_user.username, user_id=current_user.id,
                   action=f"PLAYBOOK_ACTION:{step.action_type.upper()}",
                   resource="incident", resource_id=str(data.incident_id),
-                  detail=f"[{pb.name}] Step {step.step_order}: {ACTION_LABELS.get(step.action_type)} → {target}")
+                  detail=f"[{pb.name}] Step {step.step_order}: {ACTION_LABELS.get(step.action_type)} → {target} | {result['message']}")
 
         executed.append({
             "step":        step.step_order,
             "action_type": step.action_type,
             "action_label": ACTION_LABELS.get(step.action_type, step.action_type),
             "target":      target,
-            "message":     _action_msg(step.action_type, target),
+            "success":     result["success"],
+            "message":     result["message"],
+            "details":     result.get("details", {}),
         })
+
+    succeeded = sum(1 for e in executed if e.get("success"))
+    failed    = len(executed) - succeeded
 
     # Record the run
     run = PlaybookRun(
         playbook_id=playbook_id,
         incident_id=data.incident_id,
         playbook_name=pb.name,
-        status="completed" if executed else "failed",
+        status="completed" if succeeded > 0 else "failed",
         executed_by=current_user.username,
         results=json.dumps({"executed": executed, "skipped": skipped}),
-        actions_count=len(executed),
+        actions_count=succeeded,
     )
     db.add(run)
 
-    # Notification
     push_notification(db,
         title=f"Playbook Executed: {pb.name}",
-        message=f"{len(executed)} action(s) on {incident.case_number} — {len(skipped)} skipped",
-        notif_type="info", resource_type="incident", resource_id=data.incident_id)
+        message=f"{succeeded} succeeded, {failed} failed, {len(skipped)} skipped on {incident.case_number}",
+        notif_type="info" if succeeded > 0 else "warning",
+        resource_type="incident", resource_id=data.incident_id)
 
     db.commit()
 
     return {
-        "playbook":       pb.name,
-        "incident":       incident.case_number,
-        "executed_count": len(executed),
-        "skipped_count":  len(skipped),
-        "executed":       executed,
-        "skipped":        skipped,
+        "playbook":        pb.name,
+        "incident":        incident.case_number,
+        "executed_count":  len(executed),
+        "succeeded_count": succeeded,
+        "failed_count":    failed,
+        "skipped_count":   len(skipped),
+        "executed":        executed,
+        "skipped":         skipped,
     }
 
 

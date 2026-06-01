@@ -16,24 +16,7 @@
   <div class="mesh-bg"></div>
 
   <!-- Sidebar -->
-  <aside class="sidebar flex flex-col min-h-screen sticky top-0" style="z-index:20;">
-    <div class="p-5 border-b border-gray-800">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
-        </div>
-        <span class="text-white font-bold text-lg">Sentri<span class="text-emerald-400">X</span></span>
-      </div>
-    </div>
-    <nav id="sidebar-nav" class="p-3 flex-1 space-y-1"></nav>
-    <div class="p-3 border-t border-gray-800">
-      <div class="flex items-center gap-3 px-2 py-2">
-        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm user-avatar">A</div>
-        <div class="flex-1 min-w-0"><p class="text-sm font-medium text-white truncate user-name">Admin</p><p class="text-xs text-gray-500 user-role">ADMIN</p></div>
-        <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
-      </div>
-    </div>
-  </aside>
+  <aside class="sidebar flex flex-col h-screen sticky top-0 overflow-hidden" style="z-index:20;"></aside>
 
   <!-- Main -->
   <main class="flex-1 flex flex-col min-h-screen overflow-hidden" style="position:relative;z-index:1;">
