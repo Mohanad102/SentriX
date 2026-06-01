@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 import asyncio
 import os
 
 from backend.database import init_db
-from backend.routers import auth, alerts, incidents, ioc, dashboard, ai_analyst, reports, users, audit, rules, virustotal, tickets, investigation, ir, agents, thehive, cortex, integrations
+from backend.routers import auth, alerts, incidents, ioc, dashboard, ai_analyst, reports, users, audit, rules, virustotal, tickets, investigation, ir, agents, thehive, cortex, integrations, blocked_ips
 
 app = FastAPI(
     title="SentriX API",
@@ -21,6 +23,32 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class IPBlockMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # X-Forwarded-For is set by proxies (Codespace, nginx, etc.)
+        forwarded_for = request.headers.get("x-forwarded-for")
+        client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else (request.client.host if request.client else None)
+
+        if client_ip:
+            try:
+                from backend.database import SessionLocal
+                from backend.models.blocked_ip import BlockedIP
+                db = SessionLocal()
+                try:
+                    blocked = db.query(BlockedIP).filter(BlockedIP.ip == client_ip).first()
+                finally:
+                    db.close()
+                if blocked:
+                    return JSONResponse(status_code=403, content={"detail": "Access denied."})
+            except Exception:
+                pass
+
+        return await call_next(request)
+
+
+app.add_middleware(IPBlockMiddleware)
 
 # API Routers
 app.include_router(auth.router)
@@ -41,6 +69,7 @@ app.include_router(agents.router)
 app.include_router(thehive.router)
 app.include_router(cortex.router)
 app.include_router(integrations.router)
+app.include_router(blocked_ips.router)
 
 # Serve frontend static files
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")

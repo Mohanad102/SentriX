@@ -1,8 +1,10 @@
 import re
 import httpx
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from backend.config import settings
+
+VT_CACHE_TTL_HOURS = 24
 
 VT_BASE = "https://www.virustotal.com/api/v3"
 
@@ -98,12 +100,22 @@ async def enrich_with_virustotal(value: str, ioc_type: str) -> dict:
 
 
 async def enrich_and_store_ioc(db, value: str, ioc_type: str, alert_id: int = None) -> dict:
-    """Scan value with VT and persist result to IOC table."""
+    """Scan value with VT and persist result to IOC table. Skips API call if cached within 24h."""
     from backend.models.ioc import IOC
+
+    existing = db.query(IOC).filter(IOC.value == value).first()
+    if existing and existing.enriched and existing.enriched_at:
+        age = datetime.utcnow() - existing.enriched_at
+        if age < timedelta(hours=VT_CACHE_TTL_HOURS):
+            return {
+                "score": existing.vt_score,
+                "is_malicious": existing.is_malicious,
+                "report": json.loads(existing.vt_report) if existing.vt_report else {},
+                "cached": True,
+            }
 
     result = await enrich_with_virustotal(value, ioc_type)
 
-    existing = db.query(IOC).filter(IOC.value == value).first()
     if existing:
         existing.vt_score = result.get("score")
         existing.is_malicious = result.get("is_malicious")

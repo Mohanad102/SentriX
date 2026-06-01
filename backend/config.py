@@ -5,7 +5,7 @@ from typing import Optional
 class Settings(BaseSettings):
     # App
     APP_NAME: str = "SentriX"
-    SECRET_KEY: str = "sentrix-super-secret-key-change-in-production-2025"
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 8  # 8 hours
 
@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # Wazuh SIEM
     WAZUH_URL: str = "https://localhost:55000"
     WAZUH_USER: str = "wazuh"
-    WAZUH_PASSWORD: str = "wazuh"
+    WAZUH_PASSWORD: str
     WAZUH_ENABLED: bool = False  # Set True when Wazuh is running
     WAZUH_ALERTS_LOG: str = "/wazuh/alerts/alerts.json"  # path inside Docker volume
 

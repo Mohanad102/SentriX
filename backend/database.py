@@ -22,7 +22,7 @@ def get_db():
 
 def init_db():
     from backend.models import user, alert, incident, ioc, audit_log, alert_rule, ticket  # noqa: F401
-    from backend.models import response_action, playbook, evidence, notification, agent_label, rule_execution  # noqa: F401
+    from backend.models import response_action, playbook, evidence, notification, agent_label, rule_execution, blocked_ip  # noqa: F401
     Base.metadata.create_all(bind=engine)
     _run_migrations()
 
@@ -60,6 +60,8 @@ def _run_migrations():
         "ALTER TABLE alert_rules ADD COLUMN conditions TEXT",
         "ALTER TABLE alert_rules ADD COLUMN logic VARCHAR DEFAULT 'AND'",
         "ALTER TABLE alerts ADD COLUMN tags VARCHAR",
+        # Per-user notifications
+        "ALTER TABLE notifications ADD COLUMN user_id INTEGER REFERENCES users(id)",
     ]
     with engine.connect() as conn:
         for sql in migrations:

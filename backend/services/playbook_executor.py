@@ -137,6 +137,22 @@ def _resolve_hostname(hostname: str) -> str | None:
 async def _block_ip(ip: str, ctx: dict) -> dict:
     applied, errors = [], []
 
+    # Always persist to DB blocklist (works without root / Wazuh)
+    try:
+        from backend.database import SessionLocal
+        from backend.models.blocked_ip import BlockedIP
+        db = SessionLocal()
+        try:
+            exists = db.query(BlockedIP).filter(BlockedIP.ip == ip).first()
+            if not exists:
+                db.add(BlockedIP(ip=ip, reason=ctx.get("reason", "manual block"), blocked_by=ctx.get("user")))
+                db.commit()
+            applied.append(f"App blocklist: {ip} will be denied access")
+        finally:
+            db.close()
+    except Exception as e:
+        errors.append(f"DB blocklist error: {e}")
+
     ok, msg = _iptables_block(ip)
     if ok:
         applied.append(msg)

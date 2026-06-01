@@ -390,6 +390,43 @@ def duplicate_rule(
     return rule_to_dict(copy)
 
 
+@router.get("/{rule_id}/dry-run")
+def dry_run_rule(
+    rule_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Test an existing saved rule against historical alerts without triggering any actions."""
+    rule = db.query(AlertRule).filter(AlertRule.id == rule_id).first()
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+
+    since = datetime.utcnow() - timedelta(minutes=rule.window_mins)
+    recent = db.query(Alert).filter(Alert.created_at >= since).all()
+    matching = [a for a in recent if _matches(a, rule)]
+
+    return {
+        "rule_id":         rule.id,
+        "rule_name":       rule.name,
+        "action":          rule.action,
+        "threshold":       rule.count,
+        "window_mins":     rule.window_mins,
+        "total_in_window": len(recent),
+        "matching_count":  len(matching),
+        "would_trigger":   len(matching) >= rule.count,
+        "samples": [
+            {
+                "id":         a.id,
+                "title":      a.title,
+                "severity":   a.severity,
+                "hostname":   a.hostname,
+                "created_at": a.created_at.isoformat() if a.created_at else None,
+            }
+            for a in matching[:5]
+        ],
+    }
+
+
 @router.get("/{rule_id}/history")
 def rule_history(
     rule_id: int,

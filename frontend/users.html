@@ -36,6 +36,10 @@
           class="px-4 py-1.5 rounded text-xs font-medium transition bg-gray-700 text-white">
           <i class="fa-solid fa-users mr-1"></i> Users
         </button>
+        <button onclick="showTab('blocked')" id="tab-blocked-btn"
+          class="px-4 py-1.5 rounded text-xs font-medium transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-ban mr-1"></i> Blocked IPs
+        </button>
         <button onclick="showTab('audit')" id="tab-audit-btn"
           class="px-4 py-1.5 rounded text-xs font-medium transition text-gray-400 hover:text-white">
           <i class="fa-solid fa-scroll mr-1"></i> Audit Log
@@ -95,6 +99,47 @@
               </thead>
               <tbody id="users-tbody"></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blocked IPs Panel -->
+      <div id="panel-blocked" class="hidden">
+        <div class="panel overflow-hidden">
+          <div class="p-4 flex items-center justify-between" style="border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div>
+              <p class="text-sm text-white font-medium">Blocked IPs</p>
+              <p class="text-xs text-gray-500 mt-0.5">IPs blocked from accessing SentriX</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="openBlockModal()" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Block IP
+              </button>
+              <button onclick="loadBlocked()" class="btn btn-secondary btn-sm">
+                <i class="fa-solid fa-rotate-right"></i> Refresh
+              </button>
+            </div>
+          </div>
+          <div id="blocked-loading" class="flex items-center justify-center py-16">
+            <i class="fa-solid fa-spinner fa-spin text-emerald-400 text-2xl"></i>
+          </div>
+          <div id="blocked-table" class="hidden overflow-x-auto">
+            <table class="data-table">
+              <thead class="bg-gray-800/50">
+                <tr>
+                  <th>IP Address</th>
+                  <th>Reason</th>
+                  <th>Blocked By</th>
+                  <th>Blocked At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="blocked-tbody"></tbody>
+            </table>
+            <div id="blocked-empty" class="hidden text-center py-12 text-gray-500">
+              <i class="fa-solid fa-ban text-3xl mb-2 block opacity-30"></i>
+              No blocked IPs
+            </div>
           </div>
         </div>
       </div>
@@ -259,6 +304,36 @@
     </div>
   </div>
 
+  <!-- Block IP Modal -->
+  <div id="block-modal" class="modal-overlay hidden">
+    <div class="modal-box max-w-md">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-white font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-ban text-red-400 text-sm"></i> Block IP
+        </h3>
+        <button onclick="closeModal('block-modal')" class="text-gray-500 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="block-form" class="space-y-4">
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">IP Address *</label>
+          <input type="text" id="block-ip" class="form-input" required placeholder="e.g. 192.168.1.100" />
+        </div>
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Reason <span class="text-gray-600 text-xs">(optional)</span></label>
+          <input type="text" id="block-reason" class="form-input" placeholder="e.g. Brute force attempt" />
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="submit" class="btn flex-1" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;">
+            <i class="fa-solid fa-ban"></i> Block
+          </button>
+          <button type="button" onclick="closeModal('block-modal')" class="btn btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="/static/js/sidebar.js?v=2"></script>
   <script src="/static/js/api.js"></script>
   <script>
@@ -270,15 +345,80 @@
 
     // ── Tabs ──────────────────────────────────────────────────
     function showTab(tab) {
-      document.getElementById('panel-users').classList.toggle('hidden', tab !== 'users');
-      document.getElementById('panel-audit').classList.toggle('hidden', tab !== 'audit');
-
-      document.getElementById('tab-users-btn').className =
-        `px-4 py-1.5 rounded text-xs font-medium transition ${tab === 'users' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
-      document.getElementById('tab-audit-btn').className =
-        `px-4 py-1.5 rounded text-xs font-medium transition ${tab === 'audit' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
-
+      ['users', 'blocked', 'audit'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.toggle('hidden', tab !== t);
+        document.getElementById(`tab-${t}-btn`).className =
+          `px-4 py-1.5 rounded text-xs font-medium transition ${tab === t ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`;
+      });
       if (tab === 'audit') loadAudit();
+      if (tab === 'blocked') loadBlocked();
+    }
+
+    // ── Blocked IPs ───────────────────────────────────────────
+    async function loadBlocked() {
+      document.getElementById('blocked-loading').classList.remove('hidden');
+      document.getElementById('blocked-table').classList.add('hidden');
+      try {
+        const data = await apiGet('/api/blocked-ips');
+        document.getElementById('blocked-loading').classList.add('hidden');
+        document.getElementById('blocked-table').classList.remove('hidden');
+
+        if (!data.items.length) {
+          document.getElementById('blocked-tbody').innerHTML = '';
+          document.getElementById('blocked-empty').classList.remove('hidden');
+          return;
+        }
+        document.getElementById('blocked-empty').classList.add('hidden');
+        document.getElementById('blocked-tbody').innerHTML = data.items.map(b => `
+          <tr>
+            <td>
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center">
+                  <i class="fa-solid fa-ban text-red-400 text-xs"></i>
+                </div>
+                <span class="font-mono text-sm text-white">${b.ip}</span>
+              </div>
+            </td>
+            <td><span class="text-xs text-gray-400">${b.reason || '—'}</span></td>
+            <td><span class="text-xs text-gray-400">${b.blocked_by || 'system'}</span></td>
+            <td><span class="text-xs text-gray-500">${timeAgo(b.blocked_at)}</span></td>
+            <td>
+              <button onclick="unblockIP(${b.id}, '${b.ip}')"
+                class="btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20">
+                <i class="fa-solid fa-lock-open"></i> Unblock
+              </button>
+            </td>
+          </tr>`).join('');
+      } catch (err) {
+        document.getElementById('blocked-loading').innerHTML =
+          `<p class="text-red-400 text-center p-8"><i class="fa-solid fa-circle-exclamation mr-2"></i>${err.message}</p>`;
+      }
+    }
+
+    function openBlockModal() {
+      document.getElementById('block-form').reset();
+      document.getElementById('block-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('block-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const ip = document.getElementById('block-ip').value.trim();
+      const reason = document.getElementById('block-reason').value.trim();
+      try {
+        await apiPost('/api/blocked-ips', { ip, reason: reason || null });
+        showToast(`${ip} has been blocked`, 'success');
+        closeModal('block-modal');
+        loadBlocked();
+      } catch (err) { showToast(err.message, 'error'); }
+    });
+
+    async function unblockIP(id, ip) {
+      if (!confirm(`Unblock ${ip}?`)) return;
+      try {
+        await apiFetch(`/api/blocked-ips/${id}`, { method: 'DELETE' });
+        showToast(`${ip} has been unblocked`, 'success');
+        loadBlocked();
+      } catch (err) { showToast(err.message, 'error'); }
     }
 
     // ── Users ─────────────────────────────────────────────────

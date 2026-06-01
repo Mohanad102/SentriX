@@ -270,8 +270,9 @@ def get_ir_stats(
 
     active = db.query(Incident).filter(Incident.status.in_(["open", "in_progress"])).all()
 
+    all_incidents = db.query(Incident).filter(Incident.status.in_(["open", "in_progress", "resolved"])).all()
     phase_counts = {p: 0 for p in ["new", "investigating", "contained", "eradicated", "recovered"]}
-    for inc in active:
+    for inc in all_incidents:
         if inc.ir_status in phase_counts:
             phase_counts[inc.ir_status] += 1
 

@@ -276,13 +276,17 @@ def ir_dashboard(
         PlaybookRun.executed_at >= today
     ).count()
 
+    from sqlalchemy import or_
+    user_notif_filter = or_(Notification.user_id == current_user.id, Notification.user_id == None)  # noqa: E711
     unread_critical = db.query(Notification).filter(
-        Notification.is_read == False,
+        user_notif_filter,
+        Notification.is_read == False,  # noqa: E712
         Notification.notif_type == "critical",
     ).count()
 
     unread_total = db.query(Notification).filter(
-        Notification.is_read == False,
+        user_notif_filter,
+        Notification.is_read == False,  # noqa: E712
     ).count()
 
     sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
@@ -729,11 +733,13 @@ def list_notifications(
     db:          Session = Depends(get_db),
     current_user: User   = Depends(get_current_user),
 ):
-    query = db.query(Notification)
+    from sqlalchemy import or_
+    user_filter = or_(Notification.user_id == current_user.id, Notification.user_id == None)  # noqa: E711
+    query = db.query(Notification).filter(user_filter)
     if unread_only:
-        query = query.filter(Notification.is_read == False)
+        query = query.filter(Notification.is_read == False)  # noqa: E712
     notifs = query.order_by(Notification.created_at.desc()).limit(limit).all()
-    unread = db.query(Notification).filter(Notification.is_read == False).count()
+    unread = db.query(Notification).filter(user_filter, Notification.is_read == False).count()  # noqa: E712
     return {
         "unread_count": unread,
         "total": len(notifs),
@@ -746,7 +752,9 @@ def mark_all_read(
     db:          Session = Depends(get_db),
     current_user: User   = Depends(get_current_user),
 ):
-    db.query(Notification).filter(Notification.is_read == False).update({"is_read": True})
+    from sqlalchemy import or_
+    user_filter = or_(Notification.user_id == current_user.id, Notification.user_id == None)  # noqa: E711
+    db.query(Notification).filter(user_filter, Notification.is_read == False).update({"is_read": True}, synchronize_session=False)  # noqa: E712
     db.commit()
     return {"message": "All notifications marked as read"}
 

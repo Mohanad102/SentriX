@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from backend.database import Base
 
@@ -13,4 +13,5 @@ class Notification(Base):
     resource_type = Column(String, nullable=True)     # incident | ticket | action
     resource_id   = Column(String, nullable=True)
     is_read       = Column(Boolean, default=False)
+    user_id       = Column(Integer, ForeignKey("users.id"), nullable=True)  # None = broadcast to all
     created_at    = Column(DateTime(timezone=True), server_default=func.now())
