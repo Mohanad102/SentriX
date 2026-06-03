@@ -1,1248 +1,654 @@
 INFO:     Will watch for changes in these directories: ['/workspaces/SentriX']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [269103] using WatchFiles
-INFO:     Started server process [269129]
+INFO:     Started reloader process [21403] using WatchFiles
+============================================================
+  SentriX — AI-Driven SOC Platform
+  Applied Science Private University
+============================================================
+  Starting server on http://localhost:8000
+  API Docs: http://localhost:8000/docs
+  Default Login: admin / admin123
+============================================================
+  Starting Wazuh tunnels via bore (with auto-restart watchdog)...
+  [Bore] Port 55000 → bore.pub:55000
+  [Bore] Port 1514 → bore.pub:11514
+  [Bore] Port 1515 → bore.pub:11515
+INFO:     Started server process [21558]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 [Wazuh] Poller scheduled
-INFO:     127.0.0.1:36816 - "GET /api/dashboard/ir-stats HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:36828 - "GET /api/dashboard/ir-stats HTTP/1.1" 401 Unauthorized
-[Wazuh] Backfilled 13 alerts
+INFO:     127.0.0.1:44986 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44992 - "GET /api/ir/stats HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44994 - "GET /api/rules HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44996 - "GET /api/rules/1/dry-run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45006 - "GET /api/ir/notifications?limit=3 HTTP/1.1" 200 OK
+[Wazuh] Backfilled 1 alerts
 [Wazuh] Starting real-time alert tail...
-[Wazuh] [HIGH] Multiple Windows error application events. — Jasem
-[Workflow:WZH-07A56F0A] Starting pipeline — severity=HIGH title='Multiple Windows error application events.'
-[Workflow:WZH-07A56F0A] VT done — malicious=None
-[Workflow:WZH-07A56F0A] No public observables for Cortex
-[Workflow:WZH-07A56F0A] TheHive case created: ~73864
-[Workflow:WZH-07A56F0A] Auto-created incident INC-430FA4 linked to TheHive ~73864
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-674B11BF] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-8E0B5797] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-INFO:     127.0.0.1:40020 - "POST /api/auth/login HTTP/1.1" 422 Unprocessable Content
-INFO:     127.0.0.1:40024 - "GET /api/dashboard/ir-stats HTTP/1.1" 401 Unauthorized
-[Workflow:WZH-8E0B5797] VT done — malicious=None
-[Workflow:WZH-8E0B5797] No public observables for Cortex
-[Workflow:WZH-8E0B5797] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-674B11BF] VT done — malicious=None
-[Workflow:WZH-674B11BF] No public observables for Cortex
-[Workflow:WZH-674B11BF] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-85B4DD49] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-85B4DD49] VT done — malicious=None
-[Workflow:WZH-85B4DD49] No public observables for Cortex
-[Workflow:WZH-85B4DD49] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:40048 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40038 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40060 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-80514A27] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-80514A27] VT done — malicious=None
-[Workflow:WZH-80514A27] No public observables for Cortex
-[Workflow:WZH-80514A27] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-1FA012A6] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-1FA012A6] VT done — malicious=None
-[Workflow:WZH-1FA012A6] No public observables for Cortex
-[Workflow:WZH-1FA012A6] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-17D45225] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-17D45225] VT done — malicious=None
-[Workflow:WZH-17D45225] No public observables for Cortex
-[Workflow:WZH-17D45225] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-15A132D3] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-15A132D3] VT done — malicious=None
-[Workflow:WZH-15A132D3] No public observables for Cortex
-[Workflow:WZH-15A132D3] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-6D21F6B1] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-6D21F6B1] VT done — malicious=None
-[Workflow:WZH-6D21F6B1] No public observables for Cortex
-[Workflow:WZH-6D21F6B1] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-85C6477F] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-85C6477F] VT done — malicious=None
-[Workflow:WZH-85C6477F] No public observables for Cortex
-[Workflow:WZH-85C6477F] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:34124 - "POST /api/auth/login HTTP/1.1" 422 Unprocessable Content
-INFO:     127.0.0.1:34136 - "GET /api/dashboard/ir-stats HTTP/1.1" 401 Unauthorized
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-00947C1A] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-INFO:     127.0.0.1:34162 - "GET /api/dashboard/ir-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34150 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-[Workflow:WZH-00947C1A] VT done — malicious=None
-[Workflow:WZH-00947C1A] No public observables for Cortex
-[Workflow:WZH-00947C1A] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-DDEB2996] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-DDEB2996] VT done — malicious=None
-[Workflow:WZH-DDEB2996] No public observables for Cortex
-[Workflow:WZH-DDEB2996] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-4BFC1057] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-4BFC1057] VT done — malicious=None
-[Workflow:WZH-4BFC1057] No public observables for Cortex
-[Workflow:WZH-4BFC1057] Severity medium below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:35070 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-C6EF24CD] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-C6EF24CD] VT done — malicious=None
-[Workflow:WZH-C6EF24CD] No public observables for Cortex
-[Workflow:WZH-C6EF24CD] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-4AAB22BB] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-4AAB22BB] VT done — malicious=None
-[Workflow:WZH-4AAB22BB] No public observables for Cortex
-[Workflow:WZH-4AAB22BB] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-EAB73920] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-EAB73920] VT done — malicious=None
-[Workflow:WZH-EAB73920] No public observables for Cortex
-[Workflow:WZH-EAB73920] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-61A1544F] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-61A1544F] VT done — malicious=None
-[Workflow:WZH-61A1544F] No public observables for Cortex
-[Workflow:WZH-61A1544F] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-91562A78] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-INFO:     127.0.0.1:34218 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34222 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34228 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
-[Workflow:WZH-91562A78] VT done — malicious=None
-[Workflow:WZH-91562A78] No public observables for Cortex
-[Workflow:WZH-91562A78] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [HIGH] Multiple Windows error application events. — Jasem
-[Workflow:WZH-CFB088A1] Starting pipeline — severity=HIGH title='Multiple Windows error application events.'
-[Workflow:WZH-CFB088A1] VT done — malicious=None
-[Workflow:WZH-CFB088A1] No public observables for Cortex
-[Workflow:WZH-CFB088A1] TheHive case created: ~102544
-[Workflow:WZH-CFB088A1] Auto-created incident INC-141529 linked to TheHive ~102544
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-DE06F2A8] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-DE06F2A8] VT done — malicious=None
-[Workflow:WZH-DE06F2A8] No public observables for Cortex
-[Workflow:WZH-DE06F2A8] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-BAA61B27] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-BAA61B27] VT done — malicious=None
-[Workflow:WZH-BAA61B27] No public observables for Cortex
-[Workflow:WZH-BAA61B27] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-26E53A6A] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-26E53A6A] VT done — malicious=None
-[Workflow:WZH-26E53A6A] No public observables for Cortex
-[Workflow:WZH-26E53A6A] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-AC4B8652] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-AC4B8652] VT done — malicious=None
-[Workflow:WZH-AC4B8652] No public observables for Cortex
-[Workflow:WZH-AC4B8652] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-8EF73501] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-8EF73501] VT done — malicious=None
-[Workflow:WZH-8EF73501] No public observables for Cortex
-[Workflow:WZH-8EF73501] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-9BD7A54E] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-9BD7A54E] VT done — malicious=None
-[Workflow:WZH-9BD7A54E] No public observables for Cortex
-[Workflow:WZH-9BD7A54E] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-51A50B9A] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-51A50B9A] VT done — malicious=None
-[Workflow:WZH-51A50B9A] No public observables for Cortex
-[Workflow:WZH-51A50B9A] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-B524A783] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-INFO:     127.0.0.1:60878 - "GET /api/dashboard/ir-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60862 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-[Workflow:WZH-B524A783] VT done — malicious=None
-[Workflow:WZH-B524A783] No public observables for Cortex
-[Workflow:WZH-B524A783] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-FE1838EF] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-FE1838EF] VT done — malicious=None
-[Workflow:WZH-FE1838EF] No public observables for Cortex
-[Workflow:WZH-FE1838EF] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-BF2E5B1F] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-BF2E5B1F] VT done — malicious=None
-[Workflow:WZH-BF2E5B1F] No public observables for Cortex
-[Workflow:WZH-BF2E5B1F] Severity medium below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:53922 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53912 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53926 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53926 - "GET /dashboard.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53912 - "GET /static/css/style.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53922 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53932 - "GET /static/js/api.js HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53912 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53922 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53932 - "GET /api/dashboard/ir-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53926 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53926 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53938 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-3FF73D08] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-3FF73D08] VT done — malicious=None
-[Workflow:WZH-3FF73D08] No public observables for Cortex
-[Workflow:WZH-3FF73D08] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:53938 - "GET /incidents.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53932 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53926 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53912 - "GET /api/ir/playbooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53938 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53922 - "GET /api/ir/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53932 - "GET /api/cortex/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52174 - "GET /api/thehive/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53932 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48792 - "GET /api/incidents?page=1&page_size=50&status=resolved HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55492 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55494 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55492 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55494 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55500 - "GET /api/dashboard/ir-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55510 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55524 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55510 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55524 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55500 - "GET /api/agents HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55500 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55500 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-F5653B0E] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-F5653B0E] VT done — malicious=None
-[Workflow:WZH-F5653B0E] No public observables for Cortex
-[Workflow:WZH-F5653B0E] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-EC6EC2FD] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-EC6EC2FD] VT done — malicious=None
-[Workflow:WZH-EC6EC2FD] No public observables for Cortex
-[Workflow:WZH-EC6EC2FD] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Wazuh] [LOW] Logon failure - Unknown user or bad password. — Jasem
-[Workflow:WZH-293F139D] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-DD977C78] Starting pipeline — severity=LOW title='Logon failure - Unknown user or bad password.'
-[Workflow:WZH-293F139D] VT done — malicious=None
-[Workflow:WZH-293F139D] No public observables for Cortex
-[Workflow:WZH-293F139D] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-DD977C78] VT done — malicious=None
-[Workflow:WZH-DD977C78] No public observables for Cortex
-[Workflow:WZH-DD977C78] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Logon failure - Unknown user or bad password. — Jasem
-[Workflow:WZH-AC594573] Starting pipeline — severity=LOW title='Logon failure - Unknown user or bad password.'
-[Workflow:WZH-AC594573] VT done — malicious=None
-[Workflow:WZH-AC594573] No public observables for Cortex
-[Workflow:WZH-AC594573] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Logon failure - Unknown user or bad password. — Jasem
-[Workflow:WZH-0CD5FA83] Starting pipeline — severity=LOW title='Logon failure - Unknown user or bad password.'
-[Workflow:WZH-0CD5FA83] VT done — malicious=None
-[Workflow:WZH-0CD5FA83] No public observables for Cortex
-[Workflow:WZH-0CD5FA83] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows workstation logon success. — Jasem
-[Wazuh] [LOW] Windows User Logoff. — Jasem
-[Workflow:WZH-DC91E019] Starting pipeline — severity=LOW title='Windows workstation logon success.'
-[Workflow:WZH-C0758697] Starting pipeline — severity=LOW title='Windows User Logoff.'
-[Workflow:WZH-C0758697] VT done — malicious=None
-[Workflow:WZH-C0758697] No public observables for Cortex
-[Workflow:WZH-C0758697] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-DC91E019] VT done — malicious=None
-[Workflow:WZH-DC91E019] No public observables for Cortex
-[Workflow:WZH-DC91E019] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-CC5E7A73] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-CC5E7A73] VT done — malicious=None
-[Workflow:WZH-CC5E7A73] No public observables for Cortex
-[Workflow:WZH-CC5E7A73] Severity medium below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:34706 - "GET /alerts.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34710 - "GET /static/css/style.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34716 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34730 - "GET /static/js/api.js HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34716 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34730 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34730 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:34710 - "GET /api/agents HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34710 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34710 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-61BDB350] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-61BDB350] VT done — malicious=None
-[Workflow:WZH-61BDB350] No public observables for Cortex
-[Workflow:WZH-61BDB350] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-4742849B] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-4742849B] VT done — malicious=None
-[Workflow:WZH-4742849B] No public observables for Cortex
-[Workflow:WZH-4742849B] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-0C5E2CAE] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-0C5E2CAE] VT done — malicious=None
-[Workflow:WZH-0C5E2CAE] No public observables for Cortex
-[Workflow:WZH-0C5E2CAE] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:52862 - "GET /alerts.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52868 - "GET /static/css/style.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52882 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52896 - "GET /static/js/api.js HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52896 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52882 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52882 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:52868 - "GET /api/agents HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52868 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52868 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
-[Wazuh] [MEDIUM] Windows application error event. — Jasem
-[Workflow:WZH-4954D8EA] Starting pipeline — severity=MEDIUM title='Windows application error event.'
-[Workflow:WZH-4954D8EA] VT done — malicious=None
-[Workflow:WZH-4954D8EA] No public observables for Cortex
-[Workflow:WZH-4954D8EA] Severity medium below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-86DDB85D] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-86DDB85D] VT done — malicious=None
-[Workflow:WZH-86DDB85D] No public observables for Cortex
-[Workflow:WZH-86DDB85D] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-83C97338] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-83C97338] VT done — malicious=None
-[Workflow:WZH-83C97338] No public observables for Cortex
-[Workflow:WZH-83C97338] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:49654 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49654 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49654 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36816 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51226 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51210 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51226 - "GET /api/cortex/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51238 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51264 - "GET /api/ir/playbooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51254 - "GET /api/ir/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51266 - "GET /api/thehive/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51266 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51254 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51266 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51264 - "GET /api/agents HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51264 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51264 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51266 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51254 - "GET /api/dashboard/ir-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51264 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45178 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45182 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45178 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45182 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51266 - "GET /api/ir/playbooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51264 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51254 - "GET /api/ir/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45178 - "GET /api/cortex/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45192 - "GET /api/thehive/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51254 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39960 - "GET /api/incidents?page=1&page_size=50&status=resolved HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55828 - "GET /api/incidents/66 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55828 - "GET /api/investigation/66/actions HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38072 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38074 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54586 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54574 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54602 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54912 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54924 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-9517FC7D] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-9517FC7D] VT done — malicious=None
-[Workflow:WZH-9517FC7D] No public observables for Cortex
-[Workflow:WZH-9517FC7D] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:44520 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44512 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44528 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-ADD9E7D1] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-ADD9E7D1] VT done — malicious=None
-[Workflow:WZH-ADD9E7D1] No public observables for Cortex
-[Workflow:WZH-ADD9E7D1] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:51800 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51802 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-52F861BB] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-52F861BB] VT done — malicious=None
-[Workflow:WZH-52F861BB] No public observables for Cortex
-[Workflow:WZH-52F861BB] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:36556 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36552 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36560 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33434 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33442 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57580 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57576 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57594 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-53EAFF27] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-53EAFF27] VT done — malicious=None
-[Workflow:WZH-53EAFF27] No public observables for Cortex
-[Workflow:WZH-53EAFF27] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:39306 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39312 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows audit failure event. — Mohanad-Laptop
-[Wazuh] [LOW] Windows audit failure event. — Mohanad-Laptop
-[Workflow:WZH-A45A7BCF] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-5D63EB4E] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-5D63EB4E] VT done — malicious=None
-[Workflow:WZH-5D63EB4E] No public observables for Cortex
-[Workflow:WZH-5D63EB4E] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-A45A7BCF] VT done — malicious=None
-[Workflow:WZH-A45A7BCF] No public observables for Cortex
-[Workflow:WZH-A45A7BCF] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Wazuh] [LOW] Windows audit failure event. — Mohanad-Laptop
-[Workflow:WZH-F14C1656] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-5B1DBA1C] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-F14C1656] VT done — malicious=None
-[Workflow:WZH-F14C1656] No public observables for Cortex
-[Workflow:WZH-F14C1656] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-5B1DBA1C] VT done — malicious=None
-[Workflow:WZH-5B1DBA1C] No public observables for Cortex
-[Workflow:WZH-5B1DBA1C] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:36322 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36314 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36326 - "GET /api/agents HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36326 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36326 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
-[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
-[Workflow:WZH-8ADE4AB4] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
-[Workflow:WZH-8ADE4AB4] VT done — malicious=None
-[Workflow:WZH-8ADE4AB4] No public observables for Cortex
-[Workflow:WZH-8ADE4AB4] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:54192 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54192 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-18B3500F] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-18B3500F] VT done — malicious=None
-[Workflow:WZH-18B3500F] No public observables for Cortex
-[Workflow:WZH-18B3500F] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:45090 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45086 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45086 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52984 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52984 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55774 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55768 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55768 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43144 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43144 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-9CB100FC] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-9CB100FC] VT done — malicious=None
-[Workflow:WZH-9CB100FC] No public observables for Cortex
-[Workflow:WZH-9CB100FC] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:59466 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59452 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59452 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44360 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51726 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43822 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:32864 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45808 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48222 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44320 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45066 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42502 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40642 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54862 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49226 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45622 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54546 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54556 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54560 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-35F57E79] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-35F57E79] VT done — malicious=None
-[Workflow:WZH-35F57E79] No public observables for Cortex
-[Workflow:WZH-35F57E79] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:57252 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-E30ED858] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-E30ED858] VT done — malicious=None
-[Workflow:WZH-E30ED858] No public observables for Cortex
-[Workflow:WZH-E30ED858] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:47214 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47214 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47222 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50316 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52064 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52064 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52080 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-22ED3581] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-22ED3581] VT done — malicious=None
-[Workflow:WZH-22ED3581] No public observables for Cortex
-[Workflow:WZH-22ED3581] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-73DC5B03] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-73DC5B03] VT done — malicious=None
-[Workflow:WZH-73DC5B03] No public observables for Cortex
-[Workflow:WZH-73DC5B03] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:54020 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38196 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38196 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38212 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48322 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49112 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49114 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49114 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-83B2401B] Starting pipeline — severity=LOW title='Windows logon success.'
-INFO:     127.0.0.1:37696 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Workflow:WZH-83B2401B] VT done — malicious=None
-[Workflow:WZH-83B2401B] No public observables for Cortex
-[Workflow:WZH-83B2401B] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:51788 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51796 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51796 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-E85E2F3E] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-E85E2F3E] VT done — malicious=None
-[Workflow:WZH-E85E2F3E] No public observables for Cortex
-[Workflow:WZH-E85E2F3E] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-B685CA66] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-B685CA66] VT done — malicious=None
-[Workflow:WZH-B685CA66] No public observables for Cortex
-[Workflow:WZH-B685CA66] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:42120 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46258 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46272 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46272 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44440 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-EEA0B317] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-EEA0B317] VT done — malicious=None
-[Workflow:WZH-EEA0B317] No public observables for Cortex
-[Workflow:WZH-EEA0B317] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-C495D3EF] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-C495D3EF] VT done — malicious=None
-[Workflow:WZH-C495D3EF] No public observables for Cortex
-[Workflow:WZH-C495D3EF] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-10B0EF58] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-10B0EF58] VT done — malicious=None
-[Workflow:WZH-10B0EF58] No public observables for Cortex
-[Workflow:WZH-10B0EF58] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Service startup type was changed — Mohanad-Laptop
-[Workflow:WZH-9F4BEDEF] Starting pipeline — severity=LOW title='Service startup type was changed'
-[Workflow:WZH-9F4BEDEF] VT done — malicious=None
-[Workflow:WZH-9F4BEDEF] No public observables for Cortex
-[Workflow:WZH-9F4BEDEF] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-CE084C9D] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-CE084C9D] VT done — malicious=None
-[Workflow:WZH-CE084C9D] No public observables for Cortex
-[Workflow:WZH-CE084C9D] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:44574 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44590 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41614 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Service startup type was changed — Mohanad-Laptop
-[Workflow:WZH-086F1155] Starting pipeline — severity=LOW title='Service startup type was changed'
-[Workflow:WZH-086F1155] VT done — malicious=None
-[Workflow:WZH-086F1155] No public observables for Cortex
-[Workflow:WZH-086F1155] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:53080 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49784 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49800 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37648 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-5BA004AC] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-5BA004AC] VT done — malicious=None
-[Workflow:WZH-5BA004AC] No public observables for Cortex
-[Workflow:WZH-5BA004AC] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Service startup type was changed — Jasem
-[Workflow:WZH-6435D8F9] Starting pipeline — severity=LOW title='Service startup type was changed'
-[Workflow:WZH-6435D8F9] VT done — malicious=None
-[Workflow:WZH-6435D8F9] No public observables for Cortex
-[Workflow:WZH-6435D8F9] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:57096 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35706 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35714 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33992 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58424 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-534801A4] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-534801A4] VT done — malicious=None
-[Workflow:WZH-534801A4] No public observables for Cortex
-[Workflow:WZH-534801A4] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:42178 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42192 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51954 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-C2FFB3CB] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-C2FFB3CB] VT done — malicious=None
-[Workflow:WZH-C2FFB3CB] No public observables for Cortex
-[Workflow:WZH-C2FFB3CB] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Service startup type was changed — Jasem
-[Workflow:WZH-6A6DA345] Starting pipeline — severity=LOW title='Service startup type was changed'
-INFO:     127.0.0.1:47310 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Workflow:WZH-6A6DA345] VT done — malicious=None
-[Workflow:WZH-6A6DA345] No public observables for Cortex
-[Workflow:WZH-6A6DA345] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:39586 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39602 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46318 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58316 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58180 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58194 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51088 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-16D49740] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-16D49740] VT done — malicious=None
-[Workflow:WZH-16D49740] No public observables for Cortex
-[Workflow:WZH-16D49740] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:38044 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33392 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33396 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-3A833BBC] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-3A833BBC] VT done — malicious=None
-[Workflow:WZH-3A833BBC] No public observables for Cortex
-[Workflow:WZH-3A833BBC] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-DB4147E6] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-DB4147E6] VT done — malicious=None
-[Workflow:WZH-DB4147E6] No public observables for Cortex
-[Workflow:WZH-DB4147E6] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:39810 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
-[Workflow:WZH-E3B08403] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
-[Workflow:WZH-E3B08403] VT done — malicious=None
-[Workflow:WZH-E3B08403] No public observables for Cortex
-[Workflow:WZH-E3B08403] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:43816 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36920 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36936 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52716 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48704 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48716 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48732 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-96E00CD6] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-96E00CD6] VT done — malicious=None
-[Workflow:WZH-96E00CD6] No public observables for Cortex
-[Workflow:WZH-96E00CD6] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:52724 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-WARNING:  WatchFiles detected changes in 'backend/routers/rules.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [269129]
-INFO:     Started server process [335029]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-[Wazuh] Poller scheduled
-INFO:     127.0.0.1:34022 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34022 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34038 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-WARNING:  WatchFiles detected changes in 'backend/services/virustotal_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [335029]
-INFO:     Started server process [335105]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'backend/services/virustotal_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [335105]
-INFO:     Started server process [335266]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'backend/models/notification.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [335266]
-INFO:     Started server process [335501]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-[Wazuh] Poller scheduled
-INFO:     127.0.0.1:45864 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-WARNING:  WatchFiles detected changes in 'backend/database.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [335501]
-INFO:     Started server process [335555]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'backend/routers/ir.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [335555]
-INFO:     Started server process [337086]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-[Wazuh] Poller scheduled
-INFO:     127.0.0.1:40428 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40428 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40436 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-WARNING:  WatchFiles detected changes in 'backend/routers/ir.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [337086]
-INFO:     Started server process [337153]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'backend/config.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [337153]
-Process SpawnProcess-9:
-Traceback (most recent call last):
-  File "/usr/local/python/3.14.2/lib/python3.14/multiprocessing/process.py", line 320, in _bootstrap
-    self.run()
-    ~~~~~~~~^^
-  File "/usr/local/python/3.14.2/lib/python3.14/multiprocessing/process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/python/3.14.2/lib/python3.14/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
-    target(sockets=sockets)
-    ~~~~~~^^^^^^^^^^^^^^^^^
-  File "/usr/local/python/3.14.2/lib/python3.14/site-packages/uvicorn/server.py", line 75, in run
-    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
-  File "/usr/local/python/3.14.2/lib/python3.14/asyncio/runners.py", line 204, in run
-    return runner.run(main)
-           ~~~~~~~~~~^^^^^^
-  File "/usr/local/python/3.14.2/lib/python3.14/asyncio/runners.py", line 127, in run
-    return self._loop.run_until_complete(task)
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
-  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-  File "/usr/local/python/3.14.2/lib/python3.14/site-packages/uvicorn/server.py", line 79, in serve
-    await self._serve(sockets)
-  File "/usr/local/python/3.14.2/lib/python3.14/site-packages/uvicorn/server.py", line 86, in _serve
-    config.load()
-    ~~~~~~~~~~~^^
-  File "/usr/local/python/3.14.2/lib/python3.14/site-packages/uvicorn/config.py", line 449, in load
-    self.loaded_app = import_from_string(self.app)
-                      ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-  File "/usr/local/python/3.14.2/lib/python3.14/site-packages/uvicorn/importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-  File "/usr/local/python/3.14.2/lib/python3.14/importlib/__init__.py", line 88, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
-  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
-  File "/workspaces/SentriX/backend/main.py", line 10, in <module>
-    from backend.database import init_db
-  File "/workspaces/SentriX/backend/database.py", line 4, in <module>
-    from backend.config import settings
-  File "/workspaces/SentriX/backend/config.py", line 49, in <module>
-    settings = Settings()
-  File "/usr/local/python/3.14.2/lib/python3.14/site-packages/pydantic_settings/main.py", line 247, in __init__
-    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
-    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/python/3.14.2/lib/python3.14/site-packages/pydantic/main.py", line 263, in __init__
-    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
-pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
-SECRET_KEY
-  Field required [type=missing, input_value={'WAZUH_URL': 'https://lo...STOTAL_ENABLED': 'true'}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.13/v/missing
-WARNING:  WatchFiles detected changes in 'backend/config.py'. Reloading...
-INFO:     Started server process [343550]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-[Wazuh] Poller scheduled
-INFO:     127.0.0.1:57204 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57392 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52958 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52968 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57216 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42942 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52958 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57204 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52968 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57392 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57216 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-[Wazuh] Backfilled 17 alerts
-[Wazuh] Starting real-time alert tail...
-INFO:     127.0.0.1:38658 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38662 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35368 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35242 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47688 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47690 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45464 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33166 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48556 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48560 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35276 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46940 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44516 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44530 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58084 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34974 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34984 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34984 - "GET /alerts.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34974 - "GET /static/css/style.css HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34996 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35008 - "GET /static/js/api.js HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34996 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35008 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35008 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:34974 - "GET /api/agents HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34974 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34974 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35008 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34974 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34996 - "GET /api/dashboard/ir-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35010 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35014 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37336 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37330 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37336 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37330 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37354 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37348 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37368 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37348 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37366 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37336 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51180 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51180 - "GET /incidents.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51436 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51180 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51452 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51436 - "GET /api/cortex/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51464 - "GET /api/ir/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51476 - "GET /api/ir/playbooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51478 - "GET /api/thehive/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51476 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51886 - "GET /api/ir/notifications?limit=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51886 - "POST /api/ir/notifications/read-all HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51886 - "GET /api/ir/notifications?limit=50 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-38B79097] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-38B79097] VT done — malicious=None
-[Workflow:WZH-38B79097] No public observables for Cortex
-[Workflow:WZH-38B79097] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:51886 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35780 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51610 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51608 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51624 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46360 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46376 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59204 - "GET /incidents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59210 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59212 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59216 - "GET /static/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36756 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36762 - "GET /api/dashboard/ir-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36778 - "GET /incidents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36784 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36788 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36794 - "GET /static/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60202 - "GET /api/dashboard/ir-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60218 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60232 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60238 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60254 - "GET /api/ir/dashboard HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60270 - "GET /api/thehive/status HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60262 - "GET /api/ir/playbooks HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60218 - "GET /api/cortex/status HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60218 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60218 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40176 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40186 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36794 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36794 - "GET /dashboard.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36800 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36794 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36800 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36824 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36810 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36800 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36842 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36810 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36832 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36794 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36828 - "GET /alerts.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36832 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36828 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36842 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36842 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36842 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41998 - "GET /agents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41998 - "GET /static/js/sidebar.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:42000 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41998 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42002 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59436 - "GET /agents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59446 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59454 - "GET /static/js/sidebar.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59446 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59454 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59446 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59436 - "GET /api/agents HTTP/1.1" 200 OK
 INFO:     127.0.0.1:46020 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46018 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46024 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34822 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34828 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44254 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44258 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44264 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48012 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48018 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48038 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48050 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48054 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Wazuh agent disconnected. — Jasem
-[Workflow:WZH-ECED4906] Starting pipeline — severity=LOW title='Wazuh agent disconnected.'
-[Workflow:WZH-ECED4906] VT done — malicious=None
-[Workflow:WZH-ECED4906] No public observables for Cortex
-[Workflow:WZH-ECED4906] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:46024 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35474 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35472 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35490 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50400 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50412 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50412 - "GET /api/agents/004 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50412 - "GET /agents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50412 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52860 - "GET /static/js/sidebar.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50412 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52860 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50412 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+[Wazuh] [LOW] Wazuh agent started. — Mohanad-Laptop
+[Workflow:WZH-61EDD6EB] Starting pipeline — severity=LOW title='Wazuh agent started.'
+[Workflow:WZH-61EDD6EB] VT done — malicious=None
+[Workflow:WZH-61EDD6EB] No public observables for Cortex
+[Workflow:WZH-61EDD6EB] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:52868 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58480 - "GET /agents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58472 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58480 - "GET /static/js/sidebar.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58472 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58480 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58480 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58494 - "GET /api/agents HTTP/1.1" 200 OK
 [Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-B37B499E] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-B37B499E] VT done — malicious=None
-[Workflow:WZH-B37B499E] No public observables for Cortex
-[Workflow:WZH-B37B499E] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:48824 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48834 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Workflow:WZH-3CDE8D48] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-3CDE8D48] VT done — malicious=None
+[Workflow:WZH-3CDE8D48] No public observables for Cortex
+[Workflow:WZH-3CDE8D48] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
+[Workflow:WZH-67CBF148] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
+[Workflow:WZH-67CBF148] VT done — malicious=False
+[Workflow:WZH-67CBF148] No public observables for Cortex
+[Workflow:WZH-67CBF148] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:48106 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48120 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32954 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32938 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32962 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32938 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32962 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32954 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32954 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32954 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+[Wazuh] [LOW] Windows audit failure event. — Mohanad-Laptop
+[Workflow:WZH-19C426D9] Starting pipeline — severity=LOW title='Windows audit failure event.'
+[Workflow:WZH-19C426D9] VT done — malicious=False
+[Workflow:WZH-19C426D9] No public observables for Cortex
+[Workflow:WZH-19C426D9] Severity low below threshold — skipping TheHive auto-case
 [Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-ABE9613A] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-ABE9613A] VT done — malicious=None
-[Workflow:WZH-ABE9613A] No public observables for Cortex
-[Workflow:WZH-ABE9613A] Severity low below threshold — skipping TheHive auto-case
+[Workflow:WZH-D63608C3] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-D63608C3] VT done — malicious=False
+[Workflow:WZH-D63608C3] No public observables for Cortex
+[Workflow:WZH-D63608C3] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:51896 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51896 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51896 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
+[Workflow:WZH-E4B338C3] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
+[Workflow:WZH-E4B338C3] VT done — malicious=False
+[Workflow:WZH-E4B338C3] No public observables for Cortex
+[Workflow:WZH-E4B338C3] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:53850 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53856 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53856 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53322 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53322 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
 [Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-BA36B956] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-BA36B956] VT done — malicious=None
-[Workflow:WZH-BA36B956] No public observables for Cortex
-[Workflow:WZH-BA36B956] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:50668 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50660 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50674 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34130 - "GET /api/ir/playbooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34138 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34122 - "GET /api/ir/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34122 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34138 - "GET /api/ir/playbooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34130 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34122 - "GET /api/ir/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34138 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34122 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34138 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41754 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41770 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41774 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51452 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51462 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45710 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45724 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45734 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39130 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39132 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Workflow:WZH-9588DFAF] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-9588DFAF] VT done — malicious=False
+[Workflow:WZH-9588DFAF] No public observables for Cortex
+[Workflow:WZH-9588DFAF] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:50920 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50906 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50906 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
+[Workflow:WZH-7F7AD062] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
+[Workflow:WZH-7F7AD062] VT done — malicious=False
+[Workflow:WZH-7F7AD062] No public observables for Cortex
+[Workflow:WZH-7F7AD062] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:36312 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36312 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+[Wazuh] [LOW] Skipped creation of restore point for C:\\WINDOWS\\Temp\\{6E0D29BD-5AF9-4705-8591-44C70FEDA195}\\.be\\VC_redist.x64.exe -q -burn.elevated BurnPipe.{175E2322-FA09-40EE-989F-5F662E2CF2F7} {F35F1174-5C95-44F0-BC02-5963208CD835} 22052, Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.44.35211 as there is a previous restore point available. — Mohanad-Laptop
+[Workflow:WZH-FBB8034F] Starting pipeline — severity=LOW title='Skipped creation of restore point for C:\\\\WINDOWS\\\\Temp\\\\{6E0D29BD-5AF9-4705-8591-44C70FEDA195}\\\\.be\\\\VC_redist.x64.exe -q -burn.elevated BurnPipe.{175E2322-FA09-40EE-989F-5F662E2CF2F7} {F35F1174-5C95-44F0-BC02-5963208CD835} 22052, Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.44.35211 as there is a previous restore point available.'
+[Workflow:WZH-FBB8034F] VT done — malicious=False
+[Workflow:WZH-FBB8034F] No public observables for Cortex
+[Workflow:WZH-FBB8034F] Severity low below threshold — skipping TheHive auto-case
 [Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-082FC77F] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-082FC77F] VT done — malicious=None
-[Workflow:WZH-082FC77F] No public observables for Cortex
-[Workflow:WZH-082FC77F] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:55070 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55082 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55070 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48202 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48216 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36254 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36248 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36256 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37388 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37398 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Workflow:WZH-83B61BC9] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-83B61BC9] VT done — malicious=False
+[Workflow:WZH-83B61BC9] No public observables for Cortex
+[Workflow:WZH-83B61BC9] Severity low below threshold — skipping TheHive auto-case
 [Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-CC9992CB] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-CC9992CB] VT done — malicious=None
-[Workflow:WZH-CC9992CB] No public observables for Cortex
-[Workflow:WZH-CC9992CB] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:41474 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41476 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41492 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50550 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50558 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52014 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52006 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52026 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53812 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53826 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55780 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55768 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55796 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33548 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33554 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-A846D4CE] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-A846D4CE] VT done — malicious=None
-[Workflow:WZH-A846D4CE] No public observables for Cortex
-[Workflow:WZH-A846D4CE] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-2CAD1A4C] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-2CAD1A4C] VT done — malicious=None
-[Workflow:WZH-2CAD1A4C] No public observables for Cortex
-[Workflow:WZH-2CAD1A4C] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-5E1D1E46] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-5E1D1E46] VT done — malicious=None
-[Workflow:WZH-5E1D1E46] No public observables for Cortex
-[Workflow:WZH-5E1D1E46] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-E5C4AF5D] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-E5C4AF5D] VT done — malicious=None
-[Workflow:WZH-E5C4AF5D] No public observables for Cortex
-[Workflow:WZH-E5C4AF5D] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-DB69DDE4] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-DB69DDE4] VT done — malicious=None
-[Workflow:WZH-DB69DDE4] No public observables for Cortex
-[Workflow:WZH-DB69DDE4] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-D57A3493] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-D57A3493] VT done — malicious=None
-[Workflow:WZH-D57A3493] No public observables for Cortex
-[Workflow:WZH-D57A3493] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-A2E4B9F1] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-A2E4B9F1] VT done — malicious=None
-[Workflow:WZH-A2E4B9F1] No public observables for Cortex
-[Workflow:WZH-A2E4B9F1] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-BE8EDAB6] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-BE8EDAB6] VT done — malicious=None
-[Workflow:WZH-BE8EDAB6] No public observables for Cortex
-[Workflow:WZH-BE8EDAB6] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-2B81FA69] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-2B81FA69] VT done — malicious=None
-[Workflow:WZH-2B81FA69] No public observables for Cortex
-[Workflow:WZH-2B81FA69] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-CA10EC2E] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-CA10EC2E] VT done — malicious=None
-[Workflow:WZH-CA10EC2E] No public observables for Cortex
-[Workflow:WZH-CA10EC2E] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-A3BCAB92] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-A3BCAB92] VT done — malicious=None
-[Workflow:WZH-A3BCAB92] No public observables for Cortex
-[Workflow:WZH-A3BCAB92] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-3105EE1B] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-3105EE1B] VT done — malicious=None
-[Workflow:WZH-3105EE1B] No public observables for Cortex
-[Workflow:WZH-3105EE1B] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-2455B941] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-2455B941] VT done — malicious=None
-[Workflow:WZH-2455B941] No public observables for Cortex
-[Workflow:WZH-2455B941] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-3754C16F] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-3754C16F] VT done — malicious=None
-[Workflow:WZH-3754C16F] No public observables for Cortex
-[Workflow:WZH-3754C16F] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-BBF4F025] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-BBF4F025] VT done — malicious=None
-[Workflow:WZH-BBF4F025] No public observables for Cortex
-[Workflow:WZH-BBF4F025] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-7657F0F3] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-7657F0F3] VT done — malicious=None
-[Workflow:WZH-7657F0F3] No public observables for Cortex
-[Workflow:WZH-7657F0F3] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-A1F664C9] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-A1F664C9] VT done — malicious=None
-[Workflow:WZH-A1F664C9] No public observables for Cortex
-[Workflow:WZH-A1F664C9] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-B8E76E59] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-B8E76E59] VT done — malicious=None
-[Workflow:WZH-B8E76E59] No public observables for Cortex
-[Workflow:WZH-B8E76E59] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-FC6C514B] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-FC6C514B] VT done — malicious=None
-[Workflow:WZH-FC6C514B] No public observables for Cortex
-[Workflow:WZH-FC6C514B] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-BACE3241] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-BACE3241] VT done — malicious=None
-[Workflow:WZH-BACE3241] No public observables for Cortex
-[Workflow:WZH-BACE3241] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-96733C4E] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-96733C4E] VT done — malicious=None
-[Workflow:WZH-96733C4E] No public observables for Cortex
-[Workflow:WZH-96733C4E] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-66B7E2DC] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-66B7E2DC] VT done — malicious=None
-[Workflow:WZH-66B7E2DC] No public observables for Cortex
-[Workflow:WZH-66B7E2DC] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-5506480A] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-5506480A] VT done — malicious=None
-[Workflow:WZH-5506480A] No public observables for Cortex
-[Workflow:WZH-5506480A] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-823FAFC6] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-823FAFC6] VT done — malicious=None
-[Workflow:WZH-823FAFC6] No public observables for Cortex
-[Workflow:WZH-823FAFC6] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-BD8347B4] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-BD8347B4] VT done — malicious=None
-[Workflow:WZH-BD8347B4] No public observables for Cortex
-[Workflow:WZH-BD8347B4] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-7D6CC21D] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-7D6CC21D] VT done — malicious=None
-[Workflow:WZH-7D6CC21D] No public observables for Cortex
-[Workflow:WZH-7D6CC21D] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-4A74738A] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-4A74738A] VT done — malicious=None
-[Workflow:WZH-4A74738A] No public observables for Cortex
-[Workflow:WZH-4A74738A] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-6ABF90F7] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-6ABF90F7] VT done — malicious=None
-[Workflow:WZH-6ABF90F7] No public observables for Cortex
-[Workflow:WZH-6ABF90F7] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-4F3403D8] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-4F3403D8] VT done — malicious=None
-[Workflow:WZH-4F3403D8] No public observables for Cortex
-[Workflow:WZH-4F3403D8] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-6412F362] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-6412F362] VT done — malicious=None
-[Workflow:WZH-6412F362] No public observables for Cortex
-[Workflow:WZH-6412F362] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-1FA50D23] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-1FA50D23] VT done — malicious=None
-[Workflow:WZH-1FA50D23] No public observables for Cortex
-[Workflow:WZH-1FA50D23] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-BF5E41AA] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-BF5E41AA] VT done — malicious=None
-[Workflow:WZH-BF5E41AA] No public observables for Cortex
-[Workflow:WZH-BF5E41AA] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-C2576ACC] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-C2576ACC] VT done — malicious=None
-[Workflow:WZH-C2576ACC] No public observables for Cortex
-[Workflow:WZH-C2576ACC] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-4DEE4213] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-4DEE4213] VT done — malicious=None
-[Workflow:WZH-4DEE4213] No public observables for Cortex
-[Workflow:WZH-4DEE4213] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-EE6B6B44] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-EE6B6B44] VT done — malicious=None
-[Workflow:WZH-EE6B6B44] No public observables for Cortex
-[Workflow:WZH-EE6B6B44] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-90FDBFB0] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-90FDBFB0] VT done — malicious=None
-[Workflow:WZH-90FDBFB0] No public observables for Cortex
-[Workflow:WZH-90FDBFB0] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-666CC6FF] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-666CC6FF] VT done — malicious=None
-[Workflow:WZH-666CC6FF] No public observables for Cortex
-[Workflow:WZH-666CC6FF] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-DE9F5EB7] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-DE9F5EB7] VT done — malicious=None
-[Workflow:WZH-DE9F5EB7] No public observables for Cortex
-[Workflow:WZH-DE9F5EB7] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-484E90B3] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-484E90B3] VT done — malicious=None
-[Workflow:WZH-484E90B3] No public observables for Cortex
-[Workflow:WZH-484E90B3] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-01B9C599] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-01B9C599] VT done — malicious=None
-[Workflow:WZH-01B9C599] No public observables for Cortex
-[Workflow:WZH-01B9C599] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-5A47B1EA] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-5A47B1EA] VT done — malicious=None
-[Workflow:WZH-5A47B1EA] No public observables for Cortex
-[Workflow:WZH-5A47B1EA] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-E6E8920C] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-E6E8920C] VT done — malicious=None
-[Workflow:WZH-E6E8920C] No public observables for Cortex
-[Workflow:WZH-E6E8920C] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-A5E6D27D] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-A5E6D27D] VT done — malicious=None
-[Workflow:WZH-A5E6D27D] No public observables for Cortex
-[Workflow:WZH-A5E6D27D] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-88B24474] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-88B24474] VT done — malicious=None
-[Workflow:WZH-88B24474] No public observables for Cortex
-[Workflow:WZH-88B24474] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-196D7A74] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-196D7A74] VT done — malicious=None
-[Workflow:WZH-196D7A74] No public observables for Cortex
-[Workflow:WZH-196D7A74] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Wazuh] [LOW] Windows audit failure event. — Jasem
-[Workflow:WZH-999668D2] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-999668D2] VT done — malicious=None
-[Workflow:WZH-999668D2] No public observables for Cortex
-[Workflow:WZH-999668D2] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-16B2F1C0] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-16B2F1C0] VT done — malicious=None
-[Workflow:WZH-16B2F1C0] No public observables for Cortex
-[Workflow:WZH-16B2F1C0] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-C506E494] Starting pipeline — severity=LOW title='Windows audit failure event.'
-[Workflow:WZH-C506E494] VT done — malicious=None
-[Workflow:WZH-C506E494] No public observables for Cortex
-[Workflow:WZH-C506E494] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Logon failure - Unknown user or bad password. — Jasem
-[Workflow:WZH-6C0231AE] Starting pipeline — severity=LOW title='Logon failure - Unknown user or bad password.'
-[Workflow:WZH-6C0231AE] VT done — malicious=None
-[Workflow:WZH-6C0231AE] No public observables for Cortex
-[Workflow:WZH-6C0231AE] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-A9D8879E] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-A9D8879E] VT done — malicious=None
-[Workflow:WZH-A9D8879E] No public observables for Cortex
-[Workflow:WZH-A9D8879E] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows workstation logon success. — Jasem
-[Wazuh] [LOW] Windows User Logoff. — Jasem
-[Workflow:WZH-CEE3132C] Starting pipeline — severity=LOW title='Windows workstation logon success.'
-[Workflow:WZH-CEE3132C] VT done — malicious=None
-[Workflow:WZH-CEE3132C] No public observables for Cortex
-[Workflow:WZH-CEE3132C] Severity low below threshold — skipping TheHive auto-case
-[Workflow:WZH-3592082C] Starting pipeline — severity=LOW title='Windows User Logoff.'
-[Workflow:WZH-3592082C] VT done — malicious=None
-[Workflow:WZH-3592082C] No public observables for Cortex
-[Workflow:WZH-3592082C] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:40724 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40716 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40736 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-049F6628] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-049F6628] VT done — malicious=None
-[Workflow:WZH-049F6628] No public observables for Cortex
-[Workflow:WZH-049F6628] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-516F01F8] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-516F01F8] VT done — malicious=None
-[Workflow:WZH-516F01F8] No public observables for Cortex
-[Workflow:WZH-516F01F8] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-55749731] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-55749731] VT done — malicious=None
-[Workflow:WZH-55749731] No public observables for Cortex
-[Workflow:WZH-55749731] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-CBCC168C] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-CBCC168C] VT done — malicious=None
-[Workflow:WZH-CBCC168C] No public observables for Cortex
-[Workflow:WZH-CBCC168C] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Summary event of the report's signatures. — Jasem
-[Workflow:WZH-5E1024F1] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
-[Workflow:WZH-5E1024F1] VT done — malicious=None
-[Workflow:WZH-5E1024F1] No public observables for Cortex
-[Workflow:WZH-5E1024F1] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:42624 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42630 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Workflow:WZH-4851FC3F] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-4851FC3F] VT done — malicious=False
+[Workflow:WZH-4851FC3F] No public observables for Cortex
+[Workflow:WZH-4851FC3F] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Skipped creation of restore point for C:\\WINDOWS\\Temp\\{8A0006D0-9075-4E50-9209-C781176DF9AF}\\.be\\VC_redist.x86.exe -q -burn.elevated BurnPipe.{54403BC3-4B6A-49CD-8EBE-047253F38817} {B0E5C707-8FAA-47CE-8DE5-90BC617025E3} 12928, Microsoft Visual C++ 2015-2022 Redistributable (x86) - 14.44.35211 as there is a previous restore point available. — Mohanad-Laptop
+[Workflow:WZH-D78CDC00] Starting pipeline — severity=LOW title='Skipped creation of restore point for C:\\\\WINDOWS\\\\Temp\\\\{8A0006D0-9075-4E50-9209-C781176DF9AF}\\\\.be\\\\VC_redist.x86.exe -q -burn.elevated BurnPipe.{54403BC3-4B6A-49CD-8EBE-047253F38817} {B0E5C707-8FAA-47CE-8DE5-90BC617025E3} 12928, Microsoft Visual C++ 2015-2022 Redistributable (x86) - 14.44.35211 as there is a previous restore point available.'
+[Workflow:WZH-D78CDC00] VT done — malicious=False
+[Workflow:WZH-D78CDC00] No public observables for Cortex
+[Workflow:WZH-D78CDC00] Severity low below threshold — skipping TheHive auto-case
 [Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
-[Workflow:WZH-0B29AB25] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-0B29AB25] VT done — malicious=None
-[Workflow:WZH-0B29AB25] No public observables for Cortex
-[Workflow:WZH-0B29AB25] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-E8183DD7] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-E8183DD7] VT done — malicious=None
-[Workflow:WZH-E8183DD7] No public observables for Cortex
-[Workflow:WZH-E8183DD7] Severity low below threshold — skipping TheHive auto-case
-[Wazuh] [LOW] Windows logon success. — Jasem
-[Workflow:WZH-F9D1F237] Starting pipeline — severity=LOW title='Windows logon success.'
-[Workflow:WZH-F9D1F237] VT done — malicious=None
-[Workflow:WZH-F9D1F237] No public observables for Cortex
-[Workflow:WZH-F9D1F237] Severity low below threshold — skipping TheHive auto-case
-INFO:     127.0.0.1:59096 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59094 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59100 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56910 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56902 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56912 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45792 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45784 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45804 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40164 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40172 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Workflow:WZH-6CAEB778] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-6CAEB778] VT done — malicious=False
+[Workflow:WZH-6CAEB778] No public observables for Cortex
+[Workflow:WZH-6CAEB778] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-18B17814] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-18B17814] VT done — malicious=False
+[Workflow:WZH-18B17814] No public observables for Cortex
+[Workflow:WZH-18B17814] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-BF4CE584] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-BF4CE584] VT done — malicious=False
+[Workflow:WZH-BF4CE584] No public observables for Cortex
+[Workflow:WZH-BF4CE584] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:52920 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52914 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-AF7F9777] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-AF7F9777] VT done — malicious=False
+[Workflow:WZH-AF7F9777] No public observables for Cortex
+[Workflow:WZH-AF7F9777] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-720A933C] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-720A933C] VT done — malicious=False
+[Workflow:WZH-720A933C] No public observables for Cortex
+[Workflow:WZH-720A933C] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] The Windows search service stopped normally. — Mohanad-Laptop
+[Workflow:WZH-F79DB074] Starting pipeline — severity=LOW title='The Windows search service stopped normally.'
+[Workflow:WZH-F79DB074] VT done — malicious=False
+[Workflow:WZH-F79DB074] No public observables for Cortex
+[Workflow:WZH-F79DB074] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] The Windows search service started. — Mohanad-Laptop
+[Workflow:WZH-034F2274] Starting pipeline — severity=LOW title='The Windows search service started.'
+[Workflow:WZH-034F2274] VT done — malicious=False
+[Workflow:WZH-034F2274] No public observables for Cortex
+[Workflow:WZH-034F2274] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-F3274205] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-F3274205] VT done — malicious=False
+[Workflow:WZH-F3274205] No public observables for Cortex
+[Workflow:WZH-F3274205] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:52996 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
+[Workflow:WZH-2F6BA29D] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
+[Workflow:WZH-2F6BA29D] VT done — malicious=False
+[Workflow:WZH-2F6BA29D] No public observables for Cortex
+[Workflow:WZH-2F6BA29D] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows installer began an installation process. — Mohanad-Laptop
+[Workflow:WZH-1E799E01] Starting pipeline — severity=LOW title='Windows installer began an installation process.'
+[Workflow:WZH-1E799E01] VT done — malicious=False
+[Workflow:WZH-1E799E01] No public observables for Cortex
+[Workflow:WZH-1E799E01] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-7EDBCB6E] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-7EDBCB6E] VT done — malicious=False
+[Workflow:WZH-7EDBCB6E] No public observables for Cortex
+[Workflow:WZH-7EDBCB6E] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows installer reconfigured the product. — Mohanad-Laptop
+[Workflow:WZH-BCB152BB] Starting pipeline — severity=LOW title='Windows installer reconfigured the product.'
+[Workflow:WZH-BCB152BB] VT done — malicious=False
+[Workflow:WZH-BCB152BB] No public observables for Cortex
+[Workflow:WZH-BCB152BB] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] The Windows search service stopped normally. — Mohanad-Laptop
+[Workflow:WZH-8CD812C1] Starting pipeline — severity=LOW title='The Windows search service stopped normally.'
+[Workflow:WZH-8CD812C1] VT done — malicious=False
+[Workflow:WZH-8CD812C1] No public observables for Cortex
+[Workflow:WZH-8CD812C1] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:39950 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+[Wazuh] [LOW] Windows installer began an installation process. — Mohanad-Laptop
+[Workflow:WZH-41676AEE] Starting pipeline — severity=LOW title='Windows installer began an installation process.'
+[Workflow:WZH-41676AEE] VT done — malicious=False
+[Workflow:WZH-41676AEE] No public observables for Cortex
+[Workflow:WZH-41676AEE] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows installer began an installation process. — Mohanad-Laptop
+[Wazuh] [LOW] Windows installer reconfigured the product. — Mohanad-Laptop
+[Wazuh] [LOW] The Windows search service started. — Mohanad-Laptop
+[Workflow:WZH-CF622276] Starting pipeline — severity=LOW title='Windows installer began an installation process.'
+[Workflow:WZH-CF622276] VT done — malicious=False
+[Workflow:WZH-CF622276] No public observables for Cortex
+[Workflow:WZH-CF622276] Severity low below threshold — skipping TheHive auto-case
+[Workflow:WZH-700F5699] Starting pipeline — severity=LOW title='Windows installer reconfigured the product.'
+[Workflow:WZH-700F5699] VT done — malicious=False
+[Workflow:WZH-700F5699] No public observables for Cortex
+[Workflow:WZH-700F5699] Severity low below threshold — skipping TheHive auto-case
+[Workflow:WZH-001D1744] Starting pipeline — severity=LOW title='The Windows search service started.'
+[Workflow:WZH-001D1744] VT done — malicious=False
+[Workflow:WZH-001D1744] No public observables for Cortex
+[Workflow:WZH-001D1744] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-5634555C] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-5634555C] VT done — malicious=False
+[Workflow:WZH-5634555C] No public observables for Cortex
+[Workflow:WZH-5634555C] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows installer reconfigured the product. — Mohanad-Laptop
+[Wazuh] [LOW] Windows installer began an installation process. — Mohanad-Laptop
+[Wazuh] [LOW] Windows installer reconfigured the product. — Mohanad-Laptop
+[Workflow:WZH-8B8A0872] Starting pipeline — severity=LOW title='Windows installer reconfigured the product.'
+[Workflow:WZH-8B8A0872] VT done — malicious=False
+[Workflow:WZH-8B8A0872] No public observables for Cortex
+[Workflow:WZH-8B8A0872] Severity low below threshold — skipping TheHive auto-case
+[Workflow:WZH-0FCD29C6] Starting pipeline — severity=LOW title='Windows installer began an installation process.'
+[Workflow:WZH-0FCD29C6] VT done — malicious=False
+[Workflow:WZH-0FCD29C6] No public observables for Cortex
+[Workflow:WZH-0FCD29C6] Severity low below threshold — skipping TheHive auto-case
+[Workflow:WZH-5FDE3DD6] Starting pipeline — severity=LOW title='Windows installer reconfigured the product.'
+[Workflow:WZH-5FDE3DD6] VT done — malicious=False
+[Workflow:WZH-5FDE3DD6] No public observables for Cortex
+[Workflow:WZH-5FDE3DD6] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:53828 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34356 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34356 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43374 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41674 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33482 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33482 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33482 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Wazuh] [LOW] Windows System error event — Mohanad-Laptop
+[Workflow:WZH-00D3326F] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-00D3326F] VT done — malicious=False
+[Workflow:WZH-00D3326F] No public observables for Cortex
+[Workflow:WZH-00D3326F] Severity low below threshold — skipping TheHive auto-case
+[Workflow:WZH-044927C8] Starting pipeline — severity=LOW title='Windows System error event'
+[Workflow:WZH-044927C8] VT done — malicious=False
+[Workflow:WZH-044927C8] No public observables for Cortex
+[Workflow:WZH-044927C8] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:58832 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Wazuh] [LOW] Summary event of the report's signatures. — Mohanad-Laptop
+[Workflow:WZH-490924E7] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
+[Workflow:WZH-490924E7] VT done — malicious=False
+[Workflow:WZH-490924E7] No public observables for Cortex
+[Workflow:WZH-490924E7] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:44786 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+[Wazuh] [LOW] The VSS service is shutting down due to idle timeout. — Mohanad-Laptop
+[Workflow:WZH-6CAD6640] Starting pipeline — severity=LOW title='The VSS service is shutting down due to idle timeout.'
+[Workflow:WZH-6CAD6640] VT done — malicious=False
+[Workflow:WZH-6CAD6640] No public observables for Cortex
+[Workflow:WZH-6CAD6640] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:42566 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42560 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+[Wazuh] [LOW] Summary event of the report's signatures. — Mohanad-Laptop
+[Workflow:WZH-2ABC092A] Starting pipeline — severity=LOW title="Summary event of the report's signatures."
+[Workflow:WZH-2ABC092A] VT done — malicious=False
+[Workflow:WZH-2ABC092A] No public observables for Cortex
+[Workflow:WZH-2ABC092A] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:38016 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55906 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50370 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50366 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50366 - "GET /alerts.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50370 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50382 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50394 - "GET /static/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39342 - "GET /alerts.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39356 - "GET /static/css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39362 - "GET /static/js/sidebar.js?v=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39376 - "GET /static/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47710 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47704 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47726 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47726 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47726 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49218 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49224 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49218 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49246 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49238 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49268 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49238 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49258 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49224 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49224 - "GET /incidents.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49238 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49258 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49246 - "GET /api/ir/playbooks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49224 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49268 - "GET /api/ir/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49238 - "GET /api/cortex/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49268 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49218 - "GET /api/thehive/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49268 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49218 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49224 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49258 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49238 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49268 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49246 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49224 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49218 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48554 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:48554 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43206 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48554 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43206 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43212 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43210 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43230 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43212 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43220 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48554 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43220 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48554 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43212 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40002 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40006 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38694 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38678 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38702 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38166 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38174 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57964 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57952 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57966 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54528 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58814 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54528 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52506 - "GET /users.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52516 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52506 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52526 - "GET /api/users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52526 - "GET /api/blocked-ips HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52526 - "GET /api/blocked-ips HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53642 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53640 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53644 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53644 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53644 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
+[Workflow:WZH-730CC642] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
+[Workflow:WZH-730CC642] VT done — malicious=False
+[Workflow:WZH-730CC642] No public observables for Cortex
+[Workflow:WZH-730CC642] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:40608 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40608 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55214 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55200 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55200 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57944 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57944 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44288 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44284 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44284 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44284 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44292 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44284 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44302 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44306 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44330 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44306 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44322 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44292 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59130 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51000 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38242 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38266 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33078 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34436 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42280 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42268 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42300 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42290 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42282 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42268 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42300 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42288 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42280 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48210 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33344 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55870 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55874 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55888 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51072 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50324 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49882 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49896 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49906 - "GET /api/dashboard/alerts-by-severity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49918 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49928 - "GET /api/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49896 - "GET /api/dashboard/incidents-by-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49906 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49940 - "GET /api/dashboard/services-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49882 - "GET /api/dashboard/alerts-over-time?days=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39442 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
+[Workflow:WZH-D6608437] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
+[Workflow:WZH-D6608437] VT done — malicious=False
+[Workflow:WZH-D6608437] No public observables for Cortex
+[Workflow:WZH-D6608437] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:52898 - "GET /api/dashboard/recent-alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54316 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54332 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54330 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54330 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54330 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59964 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59964 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51210 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51218 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51218 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
+[Workflow:WZH-A17F0328] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
+[Workflow:WZH-A17F0328] VT done — malicious=False
+[Workflow:WZH-A17F0328] No public observables for Cortex
+[Workflow:WZH-A17F0328] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:55974 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55984 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48538 - "GET /api/alerts?page=1&page_size=20&sort_order=desc&hostname=Jasem HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41288 - "GET /api/alerts?page=1&page_size=20&severity=high&sort_order=desc&hostname=Jasem HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59532 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59536 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54064 - "GET /api/alerts?page=1&page_size=20&severity=high&sort_order=desc&hostname=Jasem HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55714 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34044 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34036 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34048 - "GET /api/alerts?page=1&page_size=20&severity=high&sort_order=desc&hostname=Jasem HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39114 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39114 - "GET /api/alerts?page=1&page_size=20&severity=high&sort_order=desc&hostname=Jasem HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39114 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60990 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32770 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32780 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32780 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32780 - "POST /api/alerts/enrich-batch HTTP/1.1" 200 OK
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-A9EA1DC5] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-A9EA1DC5] VT done — malicious=False
+[Workflow:WZH-A9EA1DC5] No public observables for Cortex
+[Workflow:WZH-A9EA1DC5] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:59662 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59662 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40906 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40898 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40898 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45844 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45844 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37584 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37598 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37584 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41514 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60698 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47954 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47946 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35604 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42034 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34706 - "GET /api/alerts?page=1&page_size=20&sort_order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41020 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41010 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41020 - "GET /api/cortex/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41024 - "GET /api/incidents?page=1&page_size=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41028 - "GET /api/ir/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41040 - "GET /api/ir/playbooks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41044 - "GET /api/thehive/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41044 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35596 - "GET /api/incidents/89 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35596 - "GET /api/investigation/89/actions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35596 - "GET /api/investigation/89/actions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41114 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41116 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56550 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56556 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56550 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51516 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51528 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42008 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42002 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42020 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58534 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58548 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36320 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36314 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36328 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45760 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45760 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45764 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39978 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45764 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36694 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36710 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42812 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42826 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42836 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43718 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43718 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43722 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53162 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43722 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37454 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37454 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-D7BBA8DE] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-D7BBA8DE] VT done — malicious=False
+[Workflow:WZH-D7BBA8DE] No public observables for Cortex
+[Workflow:WZH-D7BBA8DE] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-F06058C8] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-F06058C8] VT done — malicious=False
+[Workflow:WZH-F06058C8] No public observables for Cortex
+[Workflow:WZH-F06058C8] Severity low below threshold — skipping TheHive auto-case
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-BF0CC857] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-BF0CC857] VT done — malicious=False
+[Workflow:WZH-BF0CC857] No public observables for Cortex
+[Workflow:WZH-BF0CC857] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:37468 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44194 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37468 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41848 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41860 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Wazuh] [LOW] Software protection service scheduled successfully. — Mohanad-Laptop
+[Workflow:WZH-93CDA49F] Starting pipeline — severity=LOW title='Software protection service scheduled successfully.'
+[Workflow:WZH-93CDA49F] VT done — malicious=False
+[Workflow:WZH-93CDA49F] No public observables for Cortex
+[Workflow:WZH-93CDA49F] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:46246 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46236 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46258 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35374 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35374 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35378 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53452 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35378 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48942 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48952 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37198 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37182 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37204 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47342 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47348 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58614 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58598 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58618 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37806 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37810 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+[Wazuh] [LOW] Windows logon success. — Mohanad-Laptop
+[Workflow:WZH-8C1292FB] Starting pipeline — severity=LOW title='Windows logon success.'
+[Workflow:WZH-8C1292FB] VT done — malicious=False
+[Workflow:WZH-8C1292FB] No public observables for Cortex
+[Workflow:WZH-8C1292FB] Severity low below threshold — skipping TheHive auto-case
+INFO:     127.0.0.1:43666 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43652 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43676 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56088 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56088 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56092 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52994 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56092 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54316 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54330 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58618 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58610 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58618 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58630 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34700 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38114 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38116 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38114 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38120 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35800 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39144 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39140 - "GET /api/alerts?status=open&page_size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39144 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39148 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40452 - "GET /api/ir/notifications?unread_only=true&limit=1 HTTP/1.1" 200 OK

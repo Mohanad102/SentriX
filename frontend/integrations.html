@@ -226,13 +226,17 @@
                 <i class="fa-solid fa-robot text-amber-400"></i>
               </div>
               <div>
-                <p class="text-white font-semibold text-sm">OpenAI / AI Analyst</p>
-                <p class="text-gray-500 text-xs">AI-driven alert triage &amp; threat analysis</p>
+                <p class="text-white font-semibold text-sm" id="val-ai-provider-name">Claude / AI Analyst</p>
+                <p class="text-gray-500 text-xs">AI-powered SOC analyst &amp; threat analysis</p>
               </div>
             </div>
             <span id="pill-ai" class="status-pill pill-off">Disabled</span>
           </div>
           <div class="space-y-1 mb-3">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-400">Provider</span>
+              <span id="val-ai-provider" class="text-gray-300">—</span>
+            </div>
             <div class="flex items-center justify-between text-xs">
               <span class="text-gray-400">Model</span>
               <span id="val-ai-model" class="text-gray-300 font-mono">—</span>
@@ -241,13 +245,20 @@
               <span class="text-gray-400">API Key</span>
               <span id="val-ai-key" class="text-gray-300">—</span>
             </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-400">Connection</span>
+              <span id="val-ai-conn" class="text-gray-500">—</span>
+            </div>
           </div>
           <div class="flex items-center gap-2">
+            <button class="test-btn" onclick="testConnection('ai')">
+              <i class="fa-solid fa-rotate mr-1"></i> Test Connection
+            </button>
             <a href="/ai_analyst.html" class="test-btn" style="text-decoration:none;">
               <i class="fa-solid fa-robot mr-1"></i> Open AI Analyst
             </a>
           </div>
-          <p class="env-hint">OPENAI_API_KEY · OPENAI_MODEL · AI_ENABLED=true</p>
+          <p class="env-hint">ANTHROPIC_API_KEY · ANTHROPIC_MODEL · (or OPENAI_API_KEY · AI_ENABLED=true)</p>
         </div>
       </div>
 
@@ -276,10 +287,13 @@ WAZUH_ENABLED=true
 # Threat Intel
 VIRUSTOTAL_API_KEY=your-vt-key
 VIRUSTOTAL_ENABLED=true
-# AI Engine
-OPENAI_API_KEY=your-openai-key
-OPENAI_MODEL=gpt-4o-mini
-AI_ENABLED=true</pre>
+# AI Engine — Claude (recommended)
+ANTHROPIC_API_KEY=your-anthropic-key
+ANTHROPIC_MODEL=claude-sonnet-4-6
+# OR OpenAI fallback
+# OPENAI_API_KEY=your-openai-key
+# OPENAI_MODEL=gpt-4o-mini
+# AI_ENABLED=true</pre>
       </div>
 
     </div><!-- /p-6 -->
@@ -347,8 +361,11 @@ AI_ENABLED=true</pre>
 
         // AI
         setPill('pill-ai', d.ai.enabled);
+        setVal('val-ai-provider', d.ai.provider);
         setVal('val-ai-model', d.ai.model);
         setVal('val-ai-key', d.ai.api_key_set ? '••••••••' : 'Not set');
+        setVal('val-ai-provider-name', d.ai.provider !== 'Demo Mode' ? `${d.ai.provider} / AI Analyst` : 'AI Analyst (Demo Mode)');
+        setConn('val-ai-conn', null, d.ai.enabled ? '—' : 'Not configured');
 
       } catch (e) {
         console.error(e);

@@ -33,7 +33,11 @@ class Settings(BaseSettings):
     VIRUSTOTAL_API_KEY: str = ""
     VIRUSTOTAL_ENABLED: bool = False  # Set True when API key is provided
 
-    # OpenAI / AI Engine
+    # Anthropic / Claude
+    ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_MODEL: str = "claude-sonnet-4-6"
+
+    # OpenAI / AI Engine (fallback)
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
     AI_ENABLED: bool = False  # Set True when OpenAI key is provided

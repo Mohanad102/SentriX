@@ -99,12 +99,26 @@ async def startup_event():
     init_db()
     _seed_data()
     _seed_ir_data()
+    _init_knowledge_base()
     # Start Wazuh poller in background if enabled
     from backend.config import settings
     if settings.WAZUH_ENABLED:
         from backend.services.wazuh_poller import run_wazuh_poller
         asyncio.create_task(run_wazuh_poller())
         print("[Wazuh] Poller scheduled")
+
+
+def _init_knowledge_base():
+    from backend.database import SessionLocal
+    from backend.services.knowledge_base import knowledge_base
+    db = SessionLocal()
+    try:
+        count = knowledge_base.build(db)
+        print(f"[RAG] Knowledge base built — {count} documents indexed")
+    except Exception as e:
+        print(f"[RAG] Knowledge base init error: {e}")
+    finally:
+        db.close()
 
 
 def _seed_ir_data():

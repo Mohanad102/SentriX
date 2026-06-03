@@ -2,240 +2,556 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SentriX — AI Analyst</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    /* ── Chat bubbles ─────────────────────────────── */
+    .chat-bubble-ai {
+      background: rgba(16,185,129,0.04);
+      border: 1px solid rgba(16,185,129,0.12);
+      border-radius: 0 14px 14px 14px;
+    }
+    .chat-bubble-user {
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.18);
+      border-radius: 14px 0 14px 14px;
+    }
+
+    /* ── Markdown rendering ───────────────────────── */
+    .ai-content h1 { font-size:1.2rem; font-weight:700; color:#f1f5f9; margin:16px 0 8px; }
+    .ai-content h2 { font-size:1.05rem; font-weight:600; color:#e2e8f0; margin:14px 0 6px; border-bottom:1px solid rgba(255,255,255,.06); padding-bottom:4px; }
+    .ai-content h3 { font-size:0.95rem; font-weight:600; color:#cbd5e1; margin:12px 0 5px; }
+    .ai-content p  { margin:6px 0; line-height:1.65; color:#cbd5e1; }
+    .ai-content ul, .ai-content ol { margin:6px 0 6px 18px; }
+    .ai-content li { margin:3px 0; line-height:1.6; color:#cbd5e1; }
+    .ai-content ol { list-style:decimal; }
+    .ai-content ul { list-style:disc; }
+    .ai-content strong { color:#f1f5f9; font-weight:600; }
+    .ai-content em    { color:#94a3b8; font-style:italic; }
+    .ai-content blockquote {
+      border-left:3px solid rgba(16,185,129,.4);
+      padding:6px 12px;
+      margin:8px 0;
+      background:rgba(16,185,129,.04);
+      border-radius:0 6px 6px 0;
+      color:#94a3b8;
+    }
+    .ai-content hr { border:none; border-top:1px solid rgba(255,255,255,.06); margin:12px 0; }
+
+    /* tables */
+    .ai-content table { width:100%; border-collapse:collapse; margin:10px 0; font-size:0.82rem; }
+    .ai-content th { background:rgba(255,255,255,.05); color:#e2e8f0; padding:6px 10px; text-align:left; font-weight:600; border:1px solid rgba(255,255,255,.07); }
+    .ai-content td { padding:5px 10px; border:1px solid rgba(255,255,255,.06); color:#cbd5e1; vertical-align:top; }
+    .ai-content tr:nth-child(even) td { background:rgba(255,255,255,.02); }
+
+    /* inline code */
+    .ai-content code:not(.code-block-inner) {
+      background: rgba(16,185,129,.1);
+      color: #34d399;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.82em;
+      border: 1px solid rgba(16,185,129,.2);
+    }
+
+    /* code blocks */
+    .code-block-wrapper {
+      position: relative;
+      margin: 10px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 12px;
+      background: rgba(255,255,255,.04);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .code-block-lang { font-size: 0.7rem; color: #64748b; font-family: monospace; text-transform: uppercase; letter-spacing: .05em; }
+    .code-copy-btn {
+      font-size: 0.7rem; color: #64748b; background: none; border: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px;
+      transition: all .15s;
+    }
+    .code-copy-btn:hover { color: #10b981; background: rgba(16,185,129,.08); }
+    .code-block-inner {
+      display: block;
+      padding: 12px 14px;
+      background: #0a0f1e;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+      white-space: pre;
+    }
+
+    /* ── Streaming cursor ─────────────────────────── */
+    .streaming-cursor::after {
+      content: '▋';
+      color: #10b981;
+      animation: blink .7s step-end infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── Model badge ──────────────────────────────── */
+    .model-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 99px; font-size: 0.68rem; font-weight: 600;
+      background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2); color: #34d399;
+    }
+    .model-badge.demo { background:rgba(107,114,128,.08); border-color:rgba(107,114,128,.2); color:#6b7280; }
+
+    /* ── Quick prompts ────────────────────────────── */
+    .qcat-label {
+      font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+      color: #475569; padding: 2px 0; margin-top: 8px;
+    }
+    .qbtn {
+      width: 100%; text-align: left; padding: 7px 10px; border-radius: 8px; font-size: 0.75rem;
+      color: #94a3b8; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.05);
+      cursor: pointer; transition: all .15s; margin-bottom: 3px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .qbtn:hover { background: rgba(16,185,129,.06); border-color: rgba(16,185,129,.2); color: #e2e8f0; }
+    .qbtn i { color: #475569; font-size: 0.7rem; flex-shrink:0; }
+    .qbtn:hover i { color: #10b981; }
+
+    /* ── Copy message btn ─────────────────────────── */
+    .msg-copy-btn {
+      opacity: 0; font-size: 0.68rem; color: #475569; background: none; border: none;
+      cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: all .15s;
+      display: flex; align-items: center; gap: 3px;
+    }
+    .chat-msg-row:hover .msg-copy-btn { opacity: 1; }
+    .msg-copy-btn:hover { color: #10b981; background: rgba(16,185,129,.08); }
+
+    /* ── Misc ─────────────────────────────────────── */
+    #chat-messages { scroll-behavior: smooth; }
+    .tag-chip {
+      display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;
+      font-size:0.65rem;font-weight:600;text-transform:uppercase;
+    }
+    .sev-critical{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2);}
+    .sev-high{background:rgba(249,115,22,.12);color:#fb923c;border:1px solid rgba(249,115,22,.2);}
+    .sev-medium{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
+    .sev-low{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2);}
+  </style>
 </head>
-<body class="text-gray-100 flex" style="background:#020817;">
+<body class="text-gray-100 flex" id="body" style="background:#020817;">
 
   <div class="mesh-bg"></div>
 
   <!-- Sidebar -->
   <aside class="sidebar flex flex-col h-screen sticky top-0 overflow-hidden" style="z-index:20;"></aside>
 
-  <!-- Main -->
-  <main class="flex-1 flex flex-col min-h-screen overflow-hidden" style="position:relative;z-index:1;">
-    <!-- Header -->
-    <header class="px-6 py-4 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-          <i class="fa-solid fa-robot text-emerald-400"></i>
-        </div>
-        <div>
-          <h1 class="text-white font-semibold">Virtual SOC Analyst</h1>
-          <p class="text-gray-500 text-xs">AI-powered threat analysis with RAG</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <!-- Incident context selector -->
-        <div class="flex items-center gap-2">
-          <label class="text-gray-500 text-xs">Context:</label>
-          <select id="incident-select" class="form-input form-select w-52 py-1.5 text-xs" onchange="onIncidentChange()">
-            <option value="">No specific incident</option>
-          </select>
-        </div>
-        <button onclick="clearChat()" class="btn btn-secondary btn-sm">
-          <i class="fa-solid fa-broom"></i> Clear
-        </button>
-      </div>
-    </header>
+  <!-- Main content -->
+  <main class="flex-1 flex min-h-screen overflow-hidden" style="position:relative;z-index:1;">
 
-    <!-- Context Bar -->
-    <div id="context-bar" class="hidden bg-emerald-500/5 border-b border-emerald-500/20 px-6 py-2 flex items-center gap-3">
-      <i class="fa-solid fa-file-shield text-emerald-400 text-sm"></i>
-      <span class="text-emerald-400 text-xs font-medium" id="context-label">Analyzing incident context</span>
-      <button onclick="runIncidentAnalysis()" class="ml-auto btn btn-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> Run Full Analysis
-      </button>
-    </div>
+    <!-- Chat column -->
+    <div class="flex flex-col flex-1 min-w-0">
 
-    <!-- Chat Messages -->
-    <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
-      <!-- Welcome message -->
-      <div class="flex items-start gap-3">
-        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-          <i class="fa-solid fa-robot text-emerald-400 text-sm"></i>
-        </div>
-        <div class="chat-bubble-ai px-4 py-3 max-w-2xl">
-          <div class="ai-content text-sm text-gray-200">
-            <h2>Welcome to SentriX AI — Virtual SOC Analyst</h2>
-            <p>I'm your AI-powered security assistant. I can help you with:</p>
-            <ul>
-              <li><strong>Incident Analysis</strong> — Summarize and investigate security incidents</li>
-              <li><strong>IOC Analysis</strong> — Identify and explain indicators of compromise</li>
-              <li><strong>Response Guidance</strong> — Step-by-step containment and remediation</li>
-              <li><strong>Threat Intelligence</strong> — MITRE ATT&CK mapping and TTP analysis</li>
-            </ul>
-            <p>Select an incident from the dropdown above for context-aware analysis, or ask me anything!</p>
+      <!-- Header -->
+      <header class="px-5 py-3.5 flex items-center justify-between sticky top-0 page-header glass" style="z-index:10;">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+            <i class="fa-solid fa-robot text-emerald-400"></i>
           </div>
-          <p class="text-gray-600 text-xs mt-2">SentriX AI · just now</p>
+          <div>
+            <h1 class="text-white font-semibold text-sm">Virtual SOC Analyst</h1>
+            <p class="text-gray-500 text-xs">AI-powered threat analysis</p>
+          </div>
+          <span id="model-badge" class="model-badge demo ml-2">
+            <i class="fa-solid fa-circle-nodes text-xs"></i>
+            <span id="model-name">Loading...</span>
+          </span>
         </div>
-      </div>
-    </div>
 
-    <!-- Suggested Prompts -->
-    <div id="suggestions" class="px-6 pb-3">
-      <div class="flex flex-wrap gap-2">
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">Analyze current incident</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">What IOCs should I look for?</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">Give me response recommendations</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">Map attack to MITRE ATT&CK</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">Explain the attack chain</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">How to configure Wazuh integration?</button>
-      </div>
-    </div>
-
-    <!-- Input Area -->
-    <div class="bg-gray-900/80 border-t border-gray-800 px-6 py-4">
-      <div class="flex items-end gap-3 max-w-4xl mx-auto">
-        <div class="flex-1 relative">
-          <textarea id="chat-input" rows="1"
-            placeholder="Ask the AI analyst anything... (Shift+Enter for new line, Enter to send)"
-            class="form-input resize-none min-h-[44px] max-h-32 pr-12 overflow-y-auto"
-            oninput="autoResize(this)"
-            onkeydown="handleKey(event)"></textarea>
+        <div class="flex items-center gap-2">
+          <!-- Incident selector -->
+          <div class="flex items-center gap-2">
+            <label class="text-gray-500 text-xs whitespace-nowrap">Context:</label>
+            <select id="incident-select" class="form-input form-select py-1.5 text-xs" style="width:200px;" onchange="onIncidentChange()">
+              <option value="">No specific incident</option>
+            </select>
+          </div>
+          <button onclick="clearChat()" title="Clear chat"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-300 transition"
+            style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+            <i class="fa-solid fa-broom text-xs"></i>
+          </button>
+          <button onclick="exportChat()" title="Export chat"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-300 transition"
+            style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+            <i class="fa-solid fa-download text-xs"></i>
+          </button>
+          <!-- Panel toggle (mobile) -->
+          <button onclick="togglePanel()" id="panel-toggle"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-300 transition md:hidden"
+            style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+            <i class="fa-solid fa-sidebar text-xs"></i>
+          </button>
         </div>
-        <button id="send-btn" onclick="sendMessage()" class="btn btn-primary h-11 px-5">
-          <i class="fa-solid fa-paper-plane"></i>
+      </header>
+
+      <!-- Incident context bar -->
+      <div id="context-bar" class="hidden px-5 py-2 flex items-center gap-3"
+        style="background:rgba(16,185,129,.04);border-bottom:1px solid rgba(16,185,129,.15);">
+        <i class="fa-solid fa-file-shield text-emerald-400 text-xs"></i>
+        <span class="text-emerald-400 text-xs font-medium" id="context-label"></span>
+        <button onclick="runIncidentAnalysis()"
+          class="ml-auto text-xs px-3 py-1 rounded-lg font-medium transition"
+          style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#34d399;">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Full Analysis
         </button>
       </div>
-      <p class="text-gray-600 text-xs text-center mt-2">
-        <i class="fa-solid fa-circle-info mr-1"></i>
-        AI responses are for guidance only. Always verify findings with your security team.
-        <span id="ai-mode-indicator" class="ml-2 text-gray-500"></span>
-      </p>
+
+      <!-- Messages -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-5">
+        <!-- Welcome -->
+        <div class="flex items-start gap-3 chat-msg-row" data-role="assistant">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i class="fa-solid fa-robot text-emerald-400 text-sm"></i>
+          </div>
+          <div class="chat-bubble-ai px-4 py-3 max-w-2xl">
+            <div class="ai-content text-sm">
+              <h2>Welcome to SentriX AI — Virtual SOC Analyst</h2>
+              <p>I'm your AI-powered security assistant with real-time access to your SOC data. I can help with:</p>
+              <ul>
+                <li><strong>Incident Analysis</strong> — Investigate and summarize active incidents</li>
+                <li><strong>IOC Analysis</strong> — Identify and explain indicators of compromise</li>
+                <li><strong>Response Guidance</strong> — Step-by-step containment and remediation</li>
+                <li><strong>Threat Intelligence</strong> — MITRE ATT&amp;CK mapping and TTP analysis</li>
+              </ul>
+              <p>Select an incident from the dropdown above for context-aware analysis, or use the quick prompts on the right.</p>
+            </div>
+            <p class="text-gray-600 text-xs mt-2">SentriX AI · just now</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="px-5 py-4" style="background:rgba(2,8,23,.8);border-top:1px solid rgba(255,255,255,.06);">
+        <div class="flex items-end gap-3">
+          <div class="flex-1 relative">
+            <textarea id="chat-input" rows="1"
+              placeholder="Ask the AI analyst anything... (Enter to send, Shift+Enter for new line)"
+              class="form-input resize-none pr-10 overflow-y-auto"
+              style="min-height:44px;max-height:128px;"
+              oninput="autoResize(this)"
+              onkeydown="handleKey(event)"></textarea>
+          </div>
+          <button id="send-btn" onclick="sendMessage()"
+            class="btn btn-primary h-11 px-5 flex items-center gap-2 flex-shrink-0">
+            <i class="fa-solid fa-paper-plane text-sm"></i>
+            <span class="text-sm">Send</span>
+          </button>
+        </div>
+        <p class="text-gray-600 text-xs text-center mt-2">
+          <i class="fa-solid fa-circle-info mr-1"></i>
+          AI responses are advisory only — always verify with your security team.
+        </p>
+      </div>
     </div>
+
+    <!-- Right panel: quick prompts + context info -->
+    <div id="right-panel" class="flex-shrink-0 border-l overflow-y-auto hidden md:flex flex-col"
+      style="width:240px;border-color:rgba(255,255,255,.06);background:rgba(5,12,24,.8);">
+
+      <div class="p-4">
+        <!-- Quick prompts -->
+        <p class="text-white text-xs font-semibold mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-yellow-400 text-xs"></i> Quick Prompts
+        </p>
+
+        <div class="qcat-label">Triage</div>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-magnifying-glass"></i>Summarize current incident</button>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-triangle-exclamation"></i>What IOCs should I investigate?</button>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-scale-balanced"></i>Is this a true positive?</button>
+
+        <div class="qcat-label mt-2">Response</div>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-shield-halved"></i>Recommended containment steps</button>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-ban"></i>Which IPs should I block?</button>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-user-slash"></i>Should I disable any accounts?</button>
+
+        <div class="qcat-label mt-2">Intelligence</div>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-diagram-project"></i>Map attack to MITRE ATT&CK</button>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-link"></i>Explain the attack chain</button>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-chart-line"></i>What is the business impact?</button>
+
+        <div class="qcat-label mt-2">SOC Stats</div>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-chart-bar"></i>Current SOC health summary</button>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-fire"></i>What are the top threats today?</button>
+
+        <div class="qcat-label mt-2">Config Help</div>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-gear"></i>How to configure Wazuh rules?</button>
+        <button class="qbtn" onclick="quickPrompt(this)"><i class="fa-solid fa-plug"></i>How to set up TheHive integration?</button>
+      </div>
+
+      <!-- Incident context card -->
+      <div id="incident-card" class="hidden mx-4 mb-4 p-3 rounded-xl"
+        style="background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.12);">
+        <p class="text-emerald-400 text-xs font-semibold mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-file-shield text-xs"></i> Incident Context
+        </p>
+        <div id="incident-card-body" class="text-xs text-gray-400 space-y-1"></div>
+      </div>
+    </div>
+
   </main>
 
-  <style>
-    .suggestion-btn {
-      background: #1f2937; border: 1px solid #374151; color: #9ca3af;
-      padding: 5px 12px; border-radius: 9999px; font-size: 0.75rem;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .suggestion-btn:hover { background: #374151; color: #e5e7eb; }
-    #chat-messages { scroll-behavior: smooth; }
-  </style>
-
   <script src="/static/js/api.js"></script>
+  <script src="/static/js/sidebar.js?v=2"></script>
   <script>
     if (!requireAuth()) throw new Error('Not authenticated');
     if ((getUser()?.role || '') === 'soc_analyst_l1') { window.location.href = '/dashboard.html'; throw new Error('Access denied'); }
 
     let sessionId = localStorage.getItem('sentrix_chat_session') || null;
-    let isLoading = false;
-    let currentIncidentId = null;
+    let isLoading  = false;
+    let currentIncidentId  = null;
+    let currentIncidentData = null;
 
-    // Load incidents for context selector
+    // ── Initialise ──────────────────────────────────
+    async function init() {
+      await Promise.all([loadIncidents(), loadModelInfo()]);
+      const urlParams = new URLSearchParams(window.location.search);
+      const incParam  = urlParams.get('incident');
+      if (incParam) {
+        document.getElementById('incident-select').value = incParam;
+        onIncidentChange();
+      }
+    }
+
+    async function loadModelInfo() {
+      try {
+        const data = await apiGet('/api/ai/model-info');
+        const badge = document.getElementById('model-badge');
+        const name  = document.getElementById('model-name');
+        name.textContent = data.model;
+        if (data.model.includes('Demo')) {
+          badge.className = 'model-badge demo ml-2';
+        } else {
+          badge.className = 'model-badge ml-2';
+        }
+      } catch {}
+    }
+
     async function loadIncidents() {
       try {
-        const data = await apiGet('/api/incidents', { page_size: 50 });
+        const data = await apiGet('/api/incidents', { page_size: 100 });
         const select = document.getElementById('incident-select');
         data.items.forEach(inc => {
           const opt = document.createElement('option');
           opt.value = inc.id;
-          opt.textContent = `${inc.case_number} — ${inc.title.substring(0, 40)}`;
+          opt.dataset.severity = inc.severity;
+          opt.dataset.status   = inc.status;
+          opt.dataset.title    = inc.title;
+          opt.dataset.case     = inc.case_number;
+          opt.textContent = `${inc.case_number} — ${inc.title.substring(0, 38)}`;
           select.appendChild(opt);
         });
-
-        // Check URL params for pre-selected incident
-        const urlParams = new URLSearchParams(window.location.search);
-        const incParam = urlParams.get('incident');
-        if (incParam) {
-          select.value = incParam;
-          onIncidentChange();
-        }
-      } catch (err) { console.error('Failed to load incidents:', err); }
+      } catch (err) { console.error(err); }
     }
 
     function onIncidentChange() {
-      const val = document.getElementById('incident-select').value;
+      const select = document.getElementById('incident-select');
+      const val    = select.value;
       currentIncidentId = val ? parseInt(val) : null;
-      const bar = document.getElementById('context-bar');
-      const label = document.getElementById('context-label');
+
+      const bar  = document.getElementById('context-bar');
+      const lbl  = document.getElementById('context-label');
+      const card = document.getElementById('incident-card');
+
       if (currentIncidentId) {
-        const opt = document.getElementById('incident-select').selectedOptions[0];
-        label.textContent = `Context: ${opt.textContent}`;
+        const opt = select.selectedOptions[0];
+        lbl.textContent = opt.dataset.case + ' — ' + (opt.dataset.title || '').substring(0, 40);
         bar.classList.remove('hidden');
+
+        // Populate incident card
+        const sev   = opt.dataset.severity || 'medium';
+        const status = opt.dataset.status || '';
+        document.getElementById('incident-card-body').innerHTML = `
+          <p><span class="text-gray-500">Case:</span> <span class="text-white font-medium">${opt.dataset.case}</span></p>
+          <p><span class="text-gray-500">Severity:</span> <span class="tag-chip sev-${sev}">${sev.toUpperCase()}</span></p>
+          <p><span class="text-gray-500">Status:</span> <span class="text-gray-300">${status}</span></p>
+          <p class="text-gray-400 truncate">${(opt.dataset.title||'').substring(0,50)}</p>`;
+        card.classList.remove('hidden');
       } else {
         bar.classList.add('hidden');
+        card.classList.add('hidden');
       }
     }
 
-    function autoResize(textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px';
-      document.getElementById('suggestions').style.display = textarea.value ? 'none' : 'block';
-    }
-
-    function handleKey(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    }
-
-    function sendSuggestion(btn) {
-      document.getElementById('chat-input').value = btn.textContent;
-      document.getElementById('suggestions').style.display = 'none';
-      sendMessage();
-    }
-
+    // ── Streaming send ──────────────────────────────
     async function sendMessage() {
       if (isLoading) return;
       const input = document.getElementById('chat-input');
-      const text = input.value.trim();
+      const text  = input.value.trim();
       if (!text) return;
 
       input.value = '';
       input.style.height = 'auto';
-      document.getElementById('suggestions').style.display = 'none';
 
       appendMessage('user', text);
-      const typingId = appendTyping();
-      isLoading = true;
-      document.getElementById('send-btn').disabled = true;
+      const { div: aiDiv, contentDiv } = appendMessageEmpty();
+      setSendState(true);
+
+      let fullText = '';
+      let newSessionId = sessionId;
 
       try {
-        const result = await apiPost('/api/ai/chat', {
-          message: text,
-          session_id: sessionId,
-          incident_id: currentIncidentId
+        const resp = await fetch('/api/ai/chat/stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify({
+            message: text,
+            session_id: sessionId,
+            incident_id: currentIncidentId,
+          }),
         });
-        sessionId = result.session_id;
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ detail: `HTTP ${resp.status}` }));
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+
+        const reader  = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let   buffer  = '';
+
+        contentDiv.classList.add('streaming-cursor');
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();    // keep incomplete line
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const raw = line.slice(6).trim();
+            if (!raw) continue;
+            let evt;
+            try { evt = JSON.parse(raw); } catch { continue; }
+
+            if (evt.session_id) {
+              newSessionId = evt.session_id;
+            }
+            if (evt.chunk) {
+              fullText += evt.chunk;
+              contentDiv.innerHTML = renderMd(fullText);
+              scrollBottom();
+            }
+            if (evt.error) {
+              contentDiv.classList.remove('streaming-cursor');
+              contentDiv.innerHTML = `<span class="text-red-400"><i class="fa-solid fa-circle-exclamation mr-1"></i>${escHtml(evt.error)}</span>`;
+            }
+          }
+        }
+
+        contentDiv.classList.remove('streaming-cursor');
+        contentDiv.innerHTML = renderMd(fullText);
+
+        sessionId = newSessionId;
         localStorage.setItem('sentrix_chat_session', sessionId);
-        removeTyping(typingId);
-        appendMessage('assistant', result.response);
+
+        // Add copy button
+        addCopyBtn(aiDiv, fullText);
+        scrollBottom();
+
       } catch (err) {
-        removeTyping(typingId);
-        appendMessage('assistant', `Error: ${err.message}`, true);
+        contentDiv.classList.remove('streaming-cursor');
+        contentDiv.innerHTML = `<span class="text-red-400"><i class="fa-solid fa-circle-exclamation mr-1"></i>${escHtml(err.message)}</span>`;
       } finally {
-        isLoading = false;
-        document.getElementById('send-btn').disabled = false;
+        setSendState(false);
       }
     }
 
-    function appendMessage(role, content, isError = false) {
+    // ── Run full incident analysis ──────────────────
+    async function runIncidentAnalysis() {
+      if (!currentIncidentId || isLoading) return;
+      const { div: aiDiv, contentDiv } = appendMessageEmpty();
+      setSendState(true);
+      contentDiv.classList.add('streaming-cursor');
+      contentDiv.innerHTML = '<span class="text-gray-500 text-xs"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Running full incident analysis…</span>';
+
+      try {
+        const result = await apiPost('/api/ai/analyze-incident', { incident_id: currentIncidentId });
+        const md = `## Incident Analysis\n\n**Summary:**\n${result.summary}\n\n**IOCs:**\n${result.iocs}\n\n**Recommendations:**\n${result.recommendations}`;
+        contentDiv.classList.remove('streaming-cursor');
+        contentDiv.innerHTML = renderMd(md);
+        addCopyBtn(aiDiv, md);
+        showToast('Analysis saved to incident', 'success');
+      } catch (err) {
+        contentDiv.classList.remove('streaming-cursor');
+        contentDiv.innerHTML = `<span class="text-red-400">Analysis error: ${escHtml(err.message)}</span>`;
+      } finally {
+        setSendState(false);
+        scrollBottom();
+      }
+    }
+
+    // ── Clear / export ──────────────────────────────
+    async function clearChat() {
+      if (sessionId) {
+        try { await apiDelete(`/api/ai/chat-history/${sessionId}`); } catch {}
+        sessionId = null;
+        localStorage.removeItem('sentrix_chat_session');
+      }
+      document.getElementById('chat-messages').innerHTML = '';
+      appendMessage('assistant', 'Chat cleared. How can I help with your security investigation?');
+      showToast('Chat cleared', 'success');
+    }
+
+    function exportChat() {
+      const rows = document.querySelectorAll('.chat-msg-row');
+      let txt = 'SentriX AI Chat Export\n' + new Date().toLocaleString() + '\n' + '='.repeat(50) + '\n\n';
+      rows.forEach(r => {
+        const role = r.dataset.role === 'user' ? 'Analyst' : 'SentriX AI';
+        const content = r.querySelector('.ai-content, .user-content');
+        if (content) txt += `[${role}]\n${content.innerText}\n\n`;
+      });
+      const blob = new Blob([txt], { type: 'text/plain' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `sentrix-chat-${Date.now()}.txt`; a.click();
+    }
+
+    function togglePanel() {
+      const p = document.getElementById('right-panel');
+      p.classList.toggle('hidden');
+    }
+
+    // ── DOM helpers ─────────────────────────────────
+    function appendMessage(role, content) {
       const container = document.getElementById('chat-messages');
       const div = document.createElement('div');
-      div.className = 'flex items-start gap-3';
+      div.className = 'flex items-start gap-3 chat-msg-row';
+      div.dataset.role = role;
 
-      const now = new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+      const now  = new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
       const user = getUser();
 
       if (role === 'user') {
         div.className += ' flex-row-reverse';
         div.innerHTML = `
-          <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-blue-400 font-bold text-sm">
-            ${user?.full_name?.charAt(0) || 'U'}
+          <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-blue-400 font-bold text-sm border border-blue-500/30">
+            ${(user?.full_name || 'U').charAt(0).toUpperCase()}
           </div>
           <div class="chat-bubble-user px-4 py-3 max-w-2xl">
-            <p class="text-sm text-gray-100">${escapeHtml(content)}</p>
+            <p class="user-content text-sm text-gray-100" style="white-space:pre-wrap;">${escHtml(content)}</p>
             <p class="text-gray-600 text-xs mt-1 text-right">${now}</p>
           </div>`;
       } else {
@@ -243,97 +559,200 @@
           <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
             <i class="fa-solid fa-robot text-emerald-400 text-sm"></i>
           </div>
-          <div class="chat-bubble-ai px-4 py-3 max-w-2xl ${isError ? 'border border-red-500/30' : ''}">
-            <div class="ai-content text-sm text-gray-200">${renderMarkdown(content)}</div>
-            <p class="text-gray-600 text-xs mt-2">SentriX AI · ${now}</p>
+          <div class="chat-bubble-ai px-4 py-3 max-w-2xl flex-1">
+            <div class="ai-content text-sm">${renderMd(content)}</div>
+            <div class="flex items-center justify-between mt-2">
+              <p class="text-gray-600 text-xs">SentriX AI · ${now}</p>
+            </div>
           </div>`;
+        addCopyBtn(div, content);
       }
 
       container.appendChild(div);
-      container.scrollTop = container.scrollHeight;
+      scrollBottom();
       return div;
     }
 
-    function appendTyping() {
+    function appendMessageEmpty() {
       const container = document.getElementById('chat-messages');
-      const id = 'typing-' + Date.now();
       const div = document.createElement('div');
-      div.id = id;
-      div.className = 'flex items-start gap-3';
+      div.className = 'flex items-start gap-3 chat-msg-row';
+      div.dataset.role = 'assistant';
+      const now = new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
       div.innerHTML = `
-        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
           <i class="fa-solid fa-robot text-emerald-400 text-sm"></i>
         </div>
-        <div class="chat-bubble-ai px-4 py-3">
-          <div class="flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:0ms"></span>
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:150ms"></span>
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:300ms"></span>
+        <div class="chat-bubble-ai px-4 py-3 max-w-2xl flex-1">
+          <div class="ai-content text-sm">
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:0ms"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:150ms"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:300ms"></span>
+            </div>
           </div>
+          <p class="text-gray-600 text-xs mt-2">SentriX AI · ${now}</p>
         </div>`;
       container.appendChild(div);
-      container.scrollTop = container.scrollHeight;
-      return id;
+      scrollBottom();
+      const contentDiv = div.querySelector('.ai-content');
+      return { div, contentDiv };
     }
 
-    function removeTyping(id) {
-      document.getElementById(id)?.remove();
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.appendChild(document.createTextNode(text));
-      return div.innerHTML;
-    }
-
-    async function runIncidentAnalysis() {
-      if (!currentIncidentId) return;
-      const typingId = appendTyping();
-      isLoading = true;
-      document.getElementById('send-btn').disabled = true;
-
-      try {
-        const result = await apiPost('/api/ai/analyze-incident', { incident_id: currentIncidentId });
-        removeTyping(typingId);
-        const fullText = `## Incident Analysis Complete\n\n**Summary:**\n${result.summary}\n\n**IOCs:**\n${result.iocs}\n\n**Recommendations:**\n${result.recommendations}`;
-        appendMessage('assistant', fullText);
-        showToast('AI analysis saved to incident', 'success');
-      } catch (err) {
-        removeTyping(typingId);
-        appendMessage('assistant', `Analysis error: ${err.message}`, true);
-      } finally {
-        isLoading = false;
-        document.getElementById('send-btn').disabled = false;
+    function addCopyBtn(msgDiv, rawText) {
+      const wrap = msgDiv.querySelector('.chat-bubble-ai');
+      if (!wrap) return;
+      let bar = wrap.querySelector('.msg-actions');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'msg-actions flex items-center gap-1 mt-2';
+        wrap.appendChild(bar);
       }
+      const btn = document.createElement('button');
+      btn.className = 'msg-copy-btn';
+      btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+      btn.onclick = () => {
+        navigator.clipboard.writeText(rawText).then(() => {
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+          setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 2000);
+        });
+      };
+      bar.appendChild(btn);
     }
 
-    async function clearChat() {
-      if (sessionId) {
-        try { await apiDelete(`/api/ai/chat-history/${sessionId}`); } catch {}
-        sessionId = null;
-        localStorage.removeItem('sentrix_chat_session');
+    function scrollBottom() {
+      const c = document.getElementById('chat-messages');
+      c.scrollTop = c.scrollHeight;
+    }
+
+    function setSendState(loading) {
+      isLoading = loading;
+      const btn = document.getElementById('send-btn');
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? '<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span class="text-sm">Thinking</span>'
+        : '<i class="fa-solid fa-paper-plane text-sm"></i> <span class="text-sm">Send</span>';
+    }
+
+    function quickPrompt(btn) {
+      const text = btn.innerText.trim();
+      document.getElementById('chat-input').value = text;
+      sendMessage();
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function escHtml(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str || ''));
+      return d.innerHTML;
+    }
+
+    // ── Markdown renderer ───────────────────────────
+    function renderMd(text) {
+      if (!text) return '';
+      let html = escHtml(text);
+
+      // Code blocks — capture ``` blocks first (before inline code)
+      html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+        const l = lang || 'text';
+        const id = 'cb-' + Math.random().toString(36).slice(2);
+        return `<div class="code-block-wrapper">
+          <div class="code-block-header">
+            <span class="code-block-lang">${escHtml(l)}</span>
+            <button class="code-copy-btn" onclick="copyCode('${id}')">
+              <i class="fa-regular fa-copy"></i> copy
+            </button>
+          </div>
+          <code id="${id}" class="code-block-inner">${code.trimEnd()}</code>
+        </div>`;
+      });
+
+      // Inline code (after block code replacement)
+      html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+      // Headers
+      html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
+      html = html.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
+
+      // Bold + italic
+      html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      html = html.replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>');
+      html = html.replace(/\*(.+?)\*/g,          '<em>$1</em>');
+
+      // Blockquote
+      html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+
+      // HR
+      html = html.replace(/^---$/gm, '<hr>');
+
+      // Tables
+      html = renderMdTables(html);
+
+      // Lists — collect consecutive list items
+      html = html.replace(/(^(\d+)\. .+\n?)+/gm, m => {
+        const items = m.trim().split('\n').map(l => l.replace(/^\d+\. /, '')).map(l => `<li>${l}</li>`).join('');
+        return `<ol>${items}</ol>`;
+      });
+      html = html.replace(/(^[-*] .+\n?)+/gm, m => {
+        const items = m.trim().split('\n').map(l => l.replace(/^[-*] /, '')).map(l => `<li>${l}</li>`).join('');
+        return `<ul>${items}</ul>`;
+      });
+
+      // Paragraphs — wrap non-tag lines
+      const lines = html.split('\n');
+      const out = [];
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t) { out.push(''); continue; }
+        if (/^<(h[1-6]|ul|ol|li|blockquote|hr|div|pre|code|table|thead|tbody|tr|th|td)/.test(t)) {
+          out.push(t);
+        } else {
+          out.push(`<p>${t}</p>`);
+        }
       }
-      const container = document.getElementById('chat-messages');
-      container.innerHTML = '';
-      document.getElementById('suggestions').style.display = 'block';
-      appendMessage('assistant', "Chat cleared. How can I help you with your security investigation?");
-      showToast('Chat cleared', 'success');
+      return out.join('\n');
     }
 
-    // AI mode indicator
-    async function checkAiMode() {
-      const indicator = document.getElementById('ai-mode-indicator');
-      try {
-        const config = await apiGet('/api/dashboard/stats'); // Just a ping
-        indicator.textContent = ''; // Will show based on response
-      } catch {}
-      // Check OpenAI by trying a simple inference
-      indicator.textContent = 'Mode: Demo (set OPENAI_API_KEY for full AI)';
+    function renderMdTables(html) {
+      return html.replace(/(^(\|.+\|\n?)+)/gm, block => {
+        const rows = block.trim().split('\n').filter(r => r.trim());
+        if (rows.length < 2) return block;
+        const isSep = r => /^\|[-| :]+\|$/.test(r.trim());
+        let thead = '', tbody = '';
+        let inBody = false;
+        for (const row of rows) {
+          if (isSep(row)) { inBody = true; continue; }
+          const cells = row.split('|').filter((_, i, a) => i > 0 && i < a.length - 1);
+          if (!inBody) {
+            thead = '<thead><tr>' + cells.map(c => `<th>${c.trim()}</th>`).join('') + '</tr></thead>';
+          } else {
+            tbody += '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+          }
+        }
+        return `<table>${thead}<tbody>${tbody}</tbody></table>`;
+      });
     }
 
-    loadIncidents();
-    checkAiMode();
+    function copyCode(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText).then(() => {
+        const btn = el.closest('.code-block-wrapper').querySelector('.code-copy-btn');
+        if (btn) { btn.innerHTML = '<i class="fa-solid fa-check"></i> copied'; setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i> copy'; }, 2000); }
+      });
+    }
+
+    init();
   </script>
-  <script src="/static/js/sidebar.js?v=2"></script>
 </body>
 </html>
+
