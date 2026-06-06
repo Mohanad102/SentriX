@@ -90,6 +90,17 @@ def _start_and_watch(bore_bin, local_port, port_slot):
         time.sleep(10)
 
 
+def _keepalive_loop():
+    """Ping localhost every 4 minutes to prevent Codespaces inactivity shutdown."""
+    import urllib.request
+    while True:
+        time.sleep(240)
+        try:
+            urllib.request.urlopen("http://localhost:8000/api/dashboard/stats", timeout=5)
+        except Exception:
+            pass
+
+
 def start_bore_tunnels():
     bore_bin = _find_bore()
     if not bore_bin:
@@ -119,6 +130,9 @@ if __name__ == "__main__":
     print("=" * 60)
 
     start_bore_tunnels()
+
+    threading.Thread(target=_keepalive_loop, daemon=True).start()
+    print("  Keep-alive: pinging localhost every 4 min to prevent inactivity stop")
 
     uvicorn.run(
         "backend.main:app",
