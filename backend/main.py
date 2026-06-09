@@ -100,6 +100,8 @@ def serve_page(page: str):
 @app.on_event("startup")
 async def startup_event():
     init_db()
+    from backend.routers.integrations import load_db_overrides
+    load_db_overrides()
     _seed_data()
     _seed_ir_data()
     _init_knowledge_base()

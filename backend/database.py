@@ -23,6 +23,7 @@ def get_db():
 def init_db():
     from backend.models import user, alert, incident, ioc, audit_log, alert_rule, ticket  # noqa: F401
     from backend.models import response_action, playbook, evidence, notification, agent_label, rule_execution, blocked_ip  # noqa: F401
+    from backend.models import integration_setting  # noqa: F401
     Base.metadata.create_all(bind=engine)
     _run_migrations()
 

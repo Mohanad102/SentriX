@@ -1,10 +1,54 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from typing import Optional
 from backend.utils.auth import get_current_user
 from backend.models.user import User
 from backend.config import settings
 from backend.services import thehive_service, cortex_service
+from backend.database import get_db
 
 router = APIRouter(prefix="/api/integrations", tags=["integrations"])
+
+_SETTINGS_MAP = {
+    "thehive":    {"url": "THEHIVE_URL",    "api_key": "THEHIVE_API_KEY",    "enabled": "THEHIVE_ENABLED"},
+    "cortex":     {"url": "CORTEX_URL",     "api_key": "CORTEX_API_KEY",     "enabled": "CORTEX_ENABLED"},
+    "wazuh":      {"url": "WAZUH_URL", "username": "WAZUH_USER", "password": "WAZUH_PASSWORD", "enabled": "WAZUH_ENABLED"},
+    "virustotal": {"api_key": "VIRUSTOTAL_API_KEY", "enabled": "VIRUSTOTAL_ENABLED"},
+    "ai":         {"anthropic_key": "ANTHROPIC_API_KEY", "model": "ANTHROPIC_MODEL", "openai_key": "OPENAI_API_KEY"},
+}
+
+_SENSITIVE = {"api_key", "anthropic_key", "openai_key", "password"}
+
+
+def _upsert(db: Session, service: str, key: str, value: str):
+    from backend.models.integration_setting import IntegrationSetting
+    row = db.query(IntegrationSetting).filter_by(service=service, key=key).first()
+    if row:
+        row.value = value
+    else:
+        db.add(IntegrationSetting(service=service, key=key, value=value))
+    db.commit()
+
+
+def load_db_overrides():
+    """Load integration settings from DB into in-memory settings. Called at startup."""
+    from backend.models.integration_setting import IntegrationSetting
+    from backend.database import SessionLocal
+    db = SessionLocal()
+    try:
+        for row in db.query(IntegrationSetting).all():
+            attr = _SETTINGS_MAP.get(row.service, {}).get(row.key)
+            if attr and row.value is not None:
+                current = getattr(settings, attr, None)
+                if isinstance(current, bool):
+                    setattr(settings, attr, row.value.lower() in ("true", "1"))
+                else:
+                    setattr(settings, attr, row.value)
+    except Exception as e:
+        print(f"[Integration] DB override load failed: {e}")
+    finally:
+        db.close()
 
 
 def _ai_provider_name() -> str:
@@ -44,6 +88,7 @@ async def get_settings(current_user: User = Depends(_admin_only)):
         },
         "wazuh": {
             "url": settings.WAZUH_URL,
+            "username": settings.WAZUH_USER,
             "enabled": settings.WAZUH_ENABLED,
         },
         "virustotal": {
@@ -58,6 +103,50 @@ async def get_settings(current_user: User = Depends(_admin_only)):
         },
     }
 
+
+class SaveBody(BaseModel):
+    url: Optional[str] = None
+    api_key: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    anthropic_key: Optional[str] = None
+    openai_key: Optional[str] = None
+    model: Optional[str] = None
+    enabled: Optional[bool] = None
+
+
+@router.post("/save/{service}")
+async def save_integration(
+    service: str,
+    body: SaveBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(_admin_only),
+):
+    if service not in _SETTINGS_MAP:
+        raise HTTPException(status_code=400, detail="Unknown service")
+
+    smap = _SETTINGS_MAP[service]
+
+    for field, value in body.dict(exclude_none=True).items():
+        if field not in smap:
+            continue
+        if field in _SENSITIVE and not str(value).strip():
+            continue  # blank = keep current value
+
+        str_val = str(value) if not isinstance(value, bool) else ("true" if value else "false")
+        _upsert(db, service, field, str_val)
+
+        attr = smap[field]
+        current = getattr(settings, attr, None)
+        if isinstance(current, bool):
+            setattr(settings, attr, value if isinstance(value, bool) else str(value).lower() in ("true", "1"))
+        else:
+            setattr(settings, attr, value)
+
+    return {"ok": True}
+
+
+# ── Test endpoints ──────────────────────────────────────────────────────────────
 
 @router.post("/test/thehive")
 async def test_thehive(current_user: User = Depends(get_current_user)):
@@ -115,7 +204,7 @@ async def test_ai(current_user: User = Depends(get_current_user)):
         try:
             import anthropic
             client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
-            response = await client.messages.create(
+            await client.messages.create(
                 model=settings.ANTHROPIC_MODEL,
                 max_tokens=1,
                 messages=[{"role": "user", "content": "ping"}],

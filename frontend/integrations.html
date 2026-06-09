@@ -20,6 +20,23 @@
     .test-btn:hover { background:rgba(255,255,255,.07);color:#fff; }
     .env-hint { font-size:0.7rem;color:#475569;font-family:monospace;padding:6px 10px;border-radius:6px;
       background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);margin-top:8px; }
+    .cfg-form { border-top:1px solid rgba(255,255,255,.06);margin-top:12px;padding-top:12px; }
+    .cfg-row { margin-bottom:9px; }
+    .cfg-label { font-size:0.71rem;color:#6b7280;margin-bottom:3px;display:block; }
+    .cfg-input { width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:6px 10px;font-size:0.77rem;color:#e5e7eb;outline:none;transition:border-color .15s;font-family:monospace;box-sizing:border-box; }
+    .cfg-input:focus { border-color:rgba(16,185,129,.4); }
+    .cfg-input::placeholder { color:#374151;font-family:inherit; }
+    .cfg-row-inline { display:flex;align-items:center;justify-content:space-between;padding:4px 0;margin-bottom:4px; }
+    .cfg-save { font-size:0.72rem;padding:5px 14px;border-radius:7px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#34d399;cursor:pointer;transition:all .15s; }
+    .cfg-save:hover { background:rgba(16,185,129,.22); }
+    .cfg-cancel-btn { font-size:0.72rem;padding:5px 12px;border-radius:7px;background:transparent;border:1px solid rgba(255,255,255,.08);color:#6b7280;cursor:pointer;transition:all .15s; }
+    .cfg-cancel-btn:hover { color:#9ca3af; }
+    .sw { position:relative;width:34px;height:18px;display:inline-block;cursor:pointer; }
+    .sw input { opacity:0;width:0;height:0;position:absolute; }
+    .sw-track { position:absolute;inset:0;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);transition:background .2s; }
+    .sw input:checked ~ .sw-track { background:rgba(16,185,129,.35);border-color:rgba(16,185,129,.4); }
+    .sw-knob { position:absolute;width:12px;height:12px;background:#6b7280;border-radius:50%;top:3px;left:3px;transition:transform .2s,background .2s; }
+    .sw input:checked ~ .sw-knob { transform:translateX(16px);background:#34d399; }
   </style>
 </head>
 <body class="text-gray-100 flex" id="body" style="background:#020817;">
@@ -87,9 +104,30 @@
             <button class="test-btn" onclick="testConnection('thehive')">
               <i class="fa-solid fa-rotate mr-1"></i> Test Connection
             </button>
+            <button class="test-btn" onclick="toggleConfigure('thehive')">
+              <i class="fa-solid fa-sliders mr-1"></i> Configure
+            </button>
             <a href="/thehive.html" class="test-btn" style="text-decoration:none;">
               <i class="fa-solid fa-arrow-right mr-1"></i> Open SOAR
             </a>
+          </div>
+          <div id="cfg-thehive" class="cfg-form" style="display:none;">
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-thehive-url">Server URL</label>
+              <input id="inp-thehive-url" type="text" class="cfg-input" placeholder="http://localhost:9000">
+            </div>
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-thehive-key">API Key</label>
+              <input id="inp-thehive-key" type="password" class="cfg-input" placeholder="Leave blank to keep current">
+            </div>
+            <div class="cfg-row-inline">
+              <span class="cfg-label" style="margin:0;">Enable Integration</span>
+              <label class="sw"><input type="checkbox" id="chk-thehive-enabled"><span class="sw-track"></span><span class="sw-knob"></span></label>
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button class="cfg-save" onclick="saveIntegration('thehive')"><i class="fa-solid fa-floppy-disk mr-1"></i>Save</button>
+              <button class="cfg-cancel-btn" onclick="toggleConfigure('thehive')">Cancel</button>
+            </div>
           </div>
           <p class="env-hint">THEHIVE_URL · THEHIVE_API_KEY · THEHIVE_ENABLED=true</p>
         </div>
@@ -127,9 +165,30 @@
             <button class="test-btn" onclick="testConnection('cortex')">
               <i class="fa-solid fa-rotate mr-1"></i> Test Connection
             </button>
+            <button class="test-btn" onclick="toggleConfigure('cortex')">
+              <i class="fa-solid fa-sliders mr-1"></i> Configure
+            </button>
             <a href="/thehive.html#cortex" class="test-btn" style="text-decoration:none;">
               <i class="fa-solid fa-flask-vial mr-1"></i> Analyzers
             </a>
+          </div>
+          <div id="cfg-cortex" class="cfg-form" style="display:none;">
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-cortex-url">Server URL</label>
+              <input id="inp-cortex-url" type="text" class="cfg-input" placeholder="http://localhost:9001">
+            </div>
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-cortex-key">API Key</label>
+              <input id="inp-cortex-key" type="password" class="cfg-input" placeholder="Leave blank to keep current">
+            </div>
+            <div class="cfg-row-inline">
+              <span class="cfg-label" style="margin:0;">Enable Integration</span>
+              <label class="sw"><input type="checkbox" id="chk-cortex-enabled"><span class="sw-track"></span><span class="sw-knob"></span></label>
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button class="cfg-save" onclick="saveIntegration('cortex')"><i class="fa-solid fa-floppy-disk mr-1"></i>Save</button>
+              <button class="cfg-cancel-btn" onclick="toggleConfigure('cortex')">Cancel</button>
+            </div>
           </div>
           <p class="env-hint">CORTEX_URL · CORTEX_API_KEY · CORTEX_ENABLED=true</p>
         </div>
@@ -168,6 +227,31 @@
             <button class="test-btn" onclick="testConnection('wazuh')">
               <i class="fa-solid fa-rotate mr-1"></i> Test Connection
             </button>
+            <button class="test-btn" onclick="toggleConfigure('wazuh')">
+              <i class="fa-solid fa-sliders mr-1"></i> Configure
+            </button>
+          </div>
+          <div id="cfg-wazuh" class="cfg-form" style="display:none;">
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-wazuh-url">Server URL</label>
+              <input id="inp-wazuh-url" type="text" class="cfg-input" placeholder="https://localhost:55000">
+            </div>
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-wazuh-user">Username</label>
+              <input id="inp-wazuh-user" type="text" class="cfg-input" placeholder="wazuh">
+            </div>
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-wazuh-pass">Password</label>
+              <input id="inp-wazuh-pass" type="password" class="cfg-input" placeholder="Leave blank to keep current">
+            </div>
+            <div class="cfg-row-inline">
+              <span class="cfg-label" style="margin:0;">Enable Integration</span>
+              <label class="sw"><input type="checkbox" id="chk-wazuh-enabled"><span class="sw-track"></span><span class="sw-knob"></span></label>
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button class="cfg-save" onclick="saveIntegration('wazuh')"><i class="fa-solid fa-floppy-disk mr-1"></i>Save</button>
+              <button class="cfg-cancel-btn" onclick="toggleConfigure('wazuh')">Cancel</button>
+            </div>
           </div>
           <p class="env-hint">WAZUH_URL · WAZUH_USER · WAZUH_PASSWORD · WAZUH_ENABLED=true</p>
         </div>
@@ -206,9 +290,26 @@
             <button class="test-btn" onclick="testConnection('virustotal')">
               <i class="fa-solid fa-rotate mr-1"></i> Test Connection
             </button>
+            <button class="test-btn" onclick="toggleConfigure('virustotal')">
+              <i class="fa-solid fa-sliders mr-1"></i> Configure
+            </button>
             <a href="/virustotal.html" class="test-btn" style="text-decoration:none;">
               <i class="fa-solid fa-arrow-right mr-1"></i> Open Scanner
             </a>
+          </div>
+          <div id="cfg-virustotal" class="cfg-form" style="display:none;">
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-vt-key-input">API Key</label>
+              <input id="inp-vt-key-input" type="password" class="cfg-input" placeholder="Leave blank to keep current">
+            </div>
+            <div class="cfg-row-inline">
+              <span class="cfg-label" style="margin:0;">Enable Integration</span>
+              <label class="sw"><input type="checkbox" id="chk-virustotal-enabled"><span class="sw-track"></span><span class="sw-knob"></span></label>
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button class="cfg-save" onclick="saveIntegration('virustotal')"><i class="fa-solid fa-floppy-disk mr-1"></i>Save</button>
+              <button class="cfg-cancel-btn" onclick="toggleConfigure('virustotal')">Cancel</button>
+            </div>
           </div>
           <p class="env-hint">VIRUSTOTAL_API_KEY · VIRUSTOTAL_ENABLED=true</p>
         </div>
@@ -254,9 +355,27 @@
             <button class="test-btn" onclick="testConnection('ai')">
               <i class="fa-solid fa-rotate mr-1"></i> Test Connection
             </button>
+            <button class="test-btn" onclick="toggleConfigure('ai')">
+              <i class="fa-solid fa-sliders mr-1"></i> Configure
+            </button>
             <a href="/ai_analyst.html" class="test-btn" style="text-decoration:none;">
               <i class="fa-solid fa-robot mr-1"></i> Open AI Analyst
             </a>
+          </div>
+          <div id="cfg-ai" class="cfg-form" style="display:none;">
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-ai-anthropic-key">Anthropic API Key (Claude)</label>
+              <input id="inp-ai-anthropic-key" type="password" class="cfg-input" placeholder="sk-ant-... Leave blank to keep current">
+            </div>
+            <div class="cfg-row">
+              <label class="cfg-label" for="inp-ai-model">Model</label>
+              <input id="inp-ai-model" type="text" class="cfg-input" placeholder="claude-sonnet-4-6">
+            </div>
+            <p class="text-xs mt-1 mb-2" style="color:#4b5563;">OpenAI fallback: set OPENAI_API_KEY &amp; AI_ENABLED=true in .env</p>
+            <div class="flex gap-2 mt-2">
+              <button class="cfg-save" onclick="saveIntegration('ai')"><i class="fa-solid fa-floppy-disk mr-1"></i>Save</button>
+              <button class="cfg-cancel-btn" onclick="toggleConfigure('ai')">Cancel</button>
+            </div>
           </div>
           <p class="env-hint">ANTHROPIC_API_KEY · ANTHROPIC_MODEL · (or OPENAI_API_KEY · AI_ENABLED=true)</p>
         </div>
@@ -354,6 +473,16 @@ ANTHROPIC_MODEL=claude-sonnet-4-6
         setPill('pill-wazuh', d.wazuh.enabled);
         setVal('val-wazuh-url', d.wazuh.url);
         setConn('val-wazuh-conn', null, d.wazuh.enabled ? '—' : 'Not configured');
+        // Pre-fill configure forms (non-sensitive fields only)
+        const ithUrl = document.getElementById('inp-thehive-url'); if (ithUrl) ithUrl.value = d.thehive.url || '';
+        const chkTH = document.getElementById('chk-thehive-enabled'); if (chkTH) chkTH.checked = d.thehive.enabled;
+        const icxUrl = document.getElementById('inp-cortex-url'); if (icxUrl) icxUrl.value = d.cortex.url || '';
+        const chkCX = document.getElementById('chk-cortex-enabled'); if (chkCX) chkCX.checked = d.cortex.enabled;
+        const iwzUrl = document.getElementById('inp-wazuh-url'); if (iwzUrl) iwzUrl.value = d.wazuh.url || '';
+        const iwzUser = document.getElementById('inp-wazuh-user'); if (iwzUser) iwzUser.value = d.wazuh.username || '';
+        const chkWZ = document.getElementById('chk-wazuh-enabled'); if (chkWZ) chkWZ.checked = d.wazuh.enabled;
+        const chkVT = document.getElementById('chk-virustotal-enabled'); if (chkVT) chkVT.checked = d.virustotal.enabled;
+        const iaiModel = document.getElementById('inp-ai-model'); if (iaiModel && d.ai.model !== 'not configured') iaiModel.value = d.ai.model || '';
 
         // VirusTotal
         setPill('pill-virustotal', d.virustotal.enabled);
@@ -402,6 +531,69 @@ ANTHROPIC_MODEL=claude-sonnet-4-6
         }
       } catch {
         setConn(`val-${service}-conn`, false, 'Network error');
+        showToast('Network error', 'error');
+      }
+    }
+
+    function toggleConfigure(service) {
+      const all = ['thehive','cortex','wazuh','virustotal','ai'];
+      const form = document.getElementById(`cfg-${service}`);
+      const isOpen = form && form.style.display !== 'none';
+      all.forEach(s => { const f = document.getElementById(`cfg-${s}`); if (f) f.style.display = 'none'; });
+      if (form && !isOpen) form.style.display = 'block';
+    }
+
+    async function saveIntegration(service) {
+      const body = {};
+      if (service === 'thehive') {
+        const url = document.getElementById('inp-thehive-url')?.value.trim();
+        const key = document.getElementById('inp-thehive-key')?.value.trim();
+        if (url) body.url = url;
+        if (key) body.api_key = key;
+        body.enabled = document.getElementById('chk-thehive-enabled')?.checked ?? false;
+      } else if (service === 'cortex') {
+        const url = document.getElementById('inp-cortex-url')?.value.trim();
+        const key = document.getElementById('inp-cortex-key')?.value.trim();
+        if (url) body.url = url;
+        if (key) body.api_key = key;
+        body.enabled = document.getElementById('chk-cortex-enabled')?.checked ?? false;
+      } else if (service === 'wazuh') {
+        const url = document.getElementById('inp-wazuh-url')?.value.trim();
+        const user = document.getElementById('inp-wazuh-user')?.value.trim();
+        const pass = document.getElementById('inp-wazuh-pass')?.value.trim();
+        if (url) body.url = url;
+        if (user) body.username = user;
+        if (pass) body.password = pass;
+        body.enabled = document.getElementById('chk-wazuh-enabled')?.checked ?? false;
+      } else if (service === 'virustotal') {
+        const key = document.getElementById('inp-vt-key-input')?.value.trim();
+        if (key) body.api_key = key;
+        body.enabled = document.getElementById('chk-virustotal-enabled')?.checked ?? false;
+      } else if (service === 'ai') {
+        const akey = document.getElementById('inp-ai-anthropic-key')?.value.trim();
+        const model = document.getElementById('inp-ai-model')?.value.trim();
+        if (akey) body.anthropic_key = akey;
+        if (model) body.model = model;
+      }
+      try {
+        const r = await fetch(`/api/integrations/save/${service}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+          body: JSON.stringify(body)
+        });
+        const d = await r.json();
+        if (r.ok && d.ok) {
+          showToast(`${service} settings saved successfully`, 'success');
+          // Clear sensitive fields
+          ['inp-thehive-key','inp-cortex-key','inp-wazuh-pass','inp-vt-key-input','inp-ai-anthropic-key'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.value = '';
+          });
+          toggleConfigure(service);
+          await loadSettings();
+        } else {
+          showToast(d.detail || 'Save failed', 'error');
+        }
+      } catch {
         showToast('Network error', 'error');
       }
     }
