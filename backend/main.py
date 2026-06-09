@@ -79,17 +79,20 @@ if os.path.exists(static_path):
     app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 
+_NO_CACHE = {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+
+
 @app.get("/", include_in_schema=False)
 def root():
     index_file = os.path.join(frontend_path, "index.html")
-    return FileResponse(index_file)
+    return FileResponse(index_file, headers=_NO_CACHE)
 
 
 @app.get("/{page}.html", include_in_schema=False)
 def serve_page(page: str):
     file_path = os.path.join(frontend_path, f"{page}.html")
     if os.path.exists(file_path):
-        return FileResponse(file_path)
+        return FileResponse(file_path, headers=_NO_CACHE)
     from fastapi import HTTPException
     raise HTTPException(status_code=404, detail="Page not found")
 
