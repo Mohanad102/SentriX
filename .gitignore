@@ -3,3 +3,8 @@
 __pycache__/
 *.db
 *.log
+*.log.*
+server_*.log
+home.txt
+*.doc
+*.docx
