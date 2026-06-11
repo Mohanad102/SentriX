@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 from backend.database import get_db
 from backend.models.user import User
 from backend.utils.auth import get_password_hash, require_admin, get_current_user, validate_password_strength
@@ -18,6 +19,8 @@ class UserUpdate(BaseModel):
 
 
 def user_to_dict(u: User):
+    last_seen = u.last_seen
+    online = bool(last_seen and (datetime.utcnow() - last_seen.replace(tzinfo=None)).total_seconds() < 300)
     return {
         "id": u.id,
         "username": u.username,
@@ -25,6 +28,8 @@ def user_to_dict(u: User):
         "full_name": u.full_name,
         "role": u.role,
         "is_active": u.is_active,
+        "online": online,
+        "last_seen": last_seen.isoformat() if last_seen else None,
         "created_at": u.created_at.isoformat() if u.created_at else None,
         "last_login": u.last_login.isoformat() if u.last_login else None,
     }

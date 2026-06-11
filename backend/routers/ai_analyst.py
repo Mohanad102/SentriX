@@ -1,9 +1,10 @@
 import json
+import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
@@ -14,6 +15,43 @@ from backend.models.incident import Incident
 from backend.models.ioc import ChatMessage, IOC
 from backend.models.user import User
 from backend.utils.auth import get_current_user
+
+# Matches alert IDs like WZH-018B64F2, ALT-00042, INC-0001, etc.
+_ALERT_ID_RE = re.compile(r'\b([A-Z]{2,5}-[A-Z0-9]{4,12})\b')
+
+
+def _resolve_alert_context(message: str, db: Session) -> Optional[dict]:
+    """If the message references a known alert ID, fetch it from the DB."""
+    matches = _ALERT_ID_RE.findall(message.upper())
+    if not matches:
+        return None
+    for alert_id in matches:
+        alert = db.query(Alert).filter(
+            or_(
+                Alert.alert_id == alert_id,
+                func.upper(Alert.alert_id) == alert_id,
+            )
+        ).first()
+        if alert:
+            iocs = db.query(IOC).filter(IOC.alert_id == alert.id).all() if hasattr(IOC, 'alert_id') else []
+            return {
+                "alert_id":   alert.alert_id,
+                "title":      alert.title,
+                "severity":   alert.severity,
+                "status":     alert.status,
+                "category":   alert.category,
+                "source_ip":  alert.source_ip,
+                "hostname":   alert.hostname,
+                "description": alert.description,
+                "rule_id":    getattr(alert, "rule_id", None),
+                "triage_result": getattr(alert, "triage_result", None),
+                "created_at": alert.created_at.isoformat() if alert.created_at else None,
+                "iocs": [
+                    {"value": i.value, "type": i.ioc_type, "malicious": i.is_malicious, "score": i.vt_score}
+                    for i in iocs
+                ],
+            }
+    return None
 
 router = APIRouter(prefix="/api/ai", tags=["ai"], dependencies=[Depends(get_current_user)])
 
@@ -91,6 +129,28 @@ async def chat(
                 "description": inc.description,
                 "alerts": [{"title": a.title, "severity": a.severity, "category": a.category, "source_ip": a.source_ip} for a in inc_alerts],
                 "iocs": [{"value": i.value, "type": i.ioc_type, "malicious": i.is_malicious, "score": i.vt_score} for i in inc_iocs],
+            }
+
+    # Auto-resolve alert IDs mentioned in the message
+    if not incident_context:
+        resolved_alert = _resolve_alert_context(req.message, db)
+        if resolved_alert:
+            incident_context = {
+                "case_number": resolved_alert["alert_id"],
+                "title": resolved_alert["title"],
+                "severity": resolved_alert["severity"],
+                "status": resolved_alert["status"],
+                "description": (
+                    f"Alert ID: {resolved_alert['alert_id']} | "
+                    f"Category: {resolved_alert['category']} | "
+                    f"Source IP: {resolved_alert['source_ip']} | "
+                    f"Hostname: {resolved_alert['hostname']} | "
+                    f"Triage: {resolved_alert['triage_result'] or 'pending'} | "
+                    f"Detected: {resolved_alert['created_at']}\n"
+                    + (resolved_alert.get("description") or "")
+                ),
+                "alerts": [],
+                "iocs": resolved_alert["iocs"],
             }
 
     from backend.services.rag_service import get_ai_response
@@ -255,6 +315,28 @@ async def chat_stream(
                 "description": inc.description,
                 "alerts": [{"title": a.title, "severity": a.severity, "category": a.category, "source_ip": a.source_ip} for a in inc_alerts],
                 "iocs":   [{"value": i.value, "type": i.ioc_type, "malicious": i.is_malicious, "score": i.vt_score} for i in inc_iocs],
+            }
+
+    # Auto-resolve alert IDs mentioned in the message
+    if not incident_context:
+        resolved_alert = _resolve_alert_context(req.message, db)
+        if resolved_alert:
+            incident_context = {
+                "case_number": resolved_alert["alert_id"],
+                "title":       resolved_alert["title"],
+                "severity":    resolved_alert["severity"],
+                "status":      resolved_alert["status"],
+                "description": (
+                    f"Alert ID: {resolved_alert['alert_id']} | "
+                    f"Category: {resolved_alert['category']} | "
+                    f"Source IP: {resolved_alert['source_ip']} | "
+                    f"Hostname: {resolved_alert['hostname']} | "
+                    f"Triage: {resolved_alert['triage_result'] or 'pending'} | "
+                    f"Detected: {resolved_alert['created_at']}\n"
+                    + (resolved_alert.get("description") or "")
+                ),
+                "alerts": [],
+                "iocs":   resolved_alert["iocs"],
             }
 
     from backend.services.rag_service import get_ai_response_stream

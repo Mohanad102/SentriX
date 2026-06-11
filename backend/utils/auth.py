@@ -68,6 +68,16 @@ def get_current_user(
     user = db.query(User).filter(User.username == username).first()
     if user is None or not user.is_active:
         raise credentials_exception
+
+    # Update last_seen (throttled: only if more than 60s since last update)
+    now = datetime.utcnow()
+    if user.last_seen is None or (now - user.last_seen).total_seconds() > 60:
+        user.last_seen = now
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+
     return user
 
 

@@ -63,6 +63,8 @@ def _run_migrations():
         "ALTER TABLE alerts ADD COLUMN tags VARCHAR",
         # Per-user notifications
         "ALTER TABLE notifications ADD COLUMN user_id INTEGER REFERENCES users(id)",
+        # Online presence tracking
+        "ALTER TABLE users ADD COLUMN last_seen DATETIME",
     ]
     with engine.connect() as conn:
         for sql in migrations:

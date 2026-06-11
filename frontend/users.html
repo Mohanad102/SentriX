@@ -431,7 +431,7 @@
         // Update stats
         document.getElementById('stat-total').textContent  = data.total;
         document.getElementById('stat-admins').textContent = data.items.filter(u => u.role === 'admin').length;
-        document.getElementById('stat-active').textContent = data.items.filter(u => u.is_active).length;
+        document.getElementById('stat-active').textContent = data.items.filter(u => u.online).length;
 
         // Cache users
         data.items.forEach(u => usersCache[u.id] = u);
@@ -458,9 +458,9 @@
               </span>
             </td>
             <td>
-              <span class="badge ${u.is_active ? 'badge-low' : 'badge-medium'}">
-                <i class="fa-solid ${u.is_active ? 'fa-circle-check' : 'fa-circle-xmark'} text-xs"></i>
-                ${u.is_active ? 'Active' : 'Inactive'}
+              <span class="badge ${u.online ? 'badge-low' : 'badge-neutral'}" style="${u.online ? '' : 'background:rgba(100,100,120,0.15);color:#9ca3af;border-color:rgba(100,100,120,0.3)'}">
+                <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${u.online ? '#22c55e' : '#6b7280'};margin-right:5px;${u.online ? 'box-shadow:0 0 6px #22c55e' : ''}"></span>
+                ${u.online ? 'Online' : 'Offline'}
               </span>
             </td>
             <td><span class="text-xs text-gray-500">${u.last_login ? timeAgo(u.last_login) : 'Never'}</span></td>

@@ -198,6 +198,21 @@ async def test_virustotal(current_user: User = Depends(get_current_user)):
         return {"connected": False, "error": str(e)}
 
 
+@router.post("/wazuh/poll")
+async def trigger_wazuh_poll(current_user: User = Depends(_admin_only)):
+    """Manually trigger a Wazuh alert backfill."""
+    if not settings.WAZUH_ENABLED:
+        raise HTTPException(status_code=503, detail="Wazuh is disabled")
+    from backend.services.wazuh_poller import backfill_existing_alerts
+    from backend.database import SessionLocal
+    db = SessionLocal()
+    try:
+        count = await backfill_existing_alerts(db)
+        return {"imported": count}
+    finally:
+        db.close()
+
+
 @router.post("/test/ai")
 async def test_ai(current_user: User = Depends(get_current_user)):
     if settings.ANTHROPIC_API_KEY:
