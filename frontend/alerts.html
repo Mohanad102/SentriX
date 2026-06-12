@@ -896,15 +896,20 @@
           vtBtn.style.opacity = '';
         }
 
-        // Show/hide L1-specific sections
+        // Show/hide L1-specific sections (also show for admin)
         const evidenceSection    = document.getElementById('l1-evidence-section');
         const remediationSection = document.getElementById('l1-remediation-section');
         const l1Steps            = document.getElementById('l1-steps');
-        if (isL1) {
+        if (isL1 || isAdmin) {
           evidenceSection.classList.remove('hidden');
           remediationSection.classList.remove('hidden');
-          l1Steps.classList.remove('hidden');
-          document.getElementById('classify-label').textContent = 'Step 1 — Validation (True Positive / False Positive?)';
+          if (isL1) {
+            l1Steps.classList.remove('hidden');
+            document.getElementById('classify-label').textContent = 'Step 1 — Validation (True Positive / False Positive?)';
+          } else {
+            l1Steps.classList.add('hidden');
+            document.getElementById('classify-label').textContent = 'Classification';
+          }
           // Pre-fill evidence from alert
           document.getElementById('ev-ip').value       = a.source_ip  || '';
           document.getElementById('ev-hostname').value = a.hostname    || '';
@@ -1131,6 +1136,12 @@
 
       jsonEl.textContent = JSON.stringify(raw, null, 2);
       section.classList.remove('hidden');
+
+      // Auto-expand Event Details for admin and non-L1 roles
+      if (!isL1) {
+        body.classList.remove('hidden');
+        document.getElementById('raw-event-chevron').style.transform = 'rotate(180deg)';
+      }
     }
 
     function toggleRawEvent() {

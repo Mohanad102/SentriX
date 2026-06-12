@@ -1475,7 +1475,8 @@
         await apiPost('/api/ai/analyze-incident', { incident_id: incidentId });
         showToast('AI analysis complete!', 'success');
         closeModal('detail-modal');
-        showDetail(incidentId);
+        await showDetail(incidentId);
+        switchTab('details');
       } catch(err) { showToast(err.message, 'error'); }
     }
 

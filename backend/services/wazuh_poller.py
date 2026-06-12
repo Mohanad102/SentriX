@@ -1,6 +1,6 @@
 """
 Wazuh alert poller — reads alerts from the Wazuh Manager container via docker exec.
-Polls every 30 seconds using a tracked line offset (reliable on Windows).
+Polls every 10 seconds using a tracked line offset (reliable on Windows).
 """
 import asyncio
 import json
